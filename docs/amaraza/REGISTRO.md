@@ -348,3 +348,53 @@ grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir
 | `65e4c29fff0c5abe3e0e72b74215825a8f36edef` | `dbef6b626824382ea96d396f891ebaea6e3ad121` | AR0.1: comprobación final y registro |
 
 Los mensajes de commit no se editaron (`--no-edit`): el del commit de la comprobación final cita `cab1c1bd1330`, que corresponde a `cb99da959ccf3a77278d8e467aa0130761dd17e5`. Las puertas que este registro atribuye a un commit se ejecutaron sobre su árbol anterior, idéntico al nuevo.
+
+## AR0.2. Equivalencias PDForte → Rust (2026-10-09)
+
+### Punto de partida
+
+- `git config user.email`: el correo del proyecto (§7.1).
+- `git fetch origin`: `main` == `origin/main` == `dbfd8249258b790f5f48d000ac1c0ea1d3b84f70` (`git cat-file -t` → `commit`). Ese commit es el que define AR0.2 a AR0.5 en el plan.
+- Rama `ar0.2-equivalencias`, creada desde `main`.
+
+### Qué se hizo
+
+- `docs/amaraza/EQUIVALENCIAS.md` clasifica las 30 reglas de §3.1–§3.8 del `AGENTS.md` de PDForte y las 14 decisiones (D-01…D-13 y RF-FIRMA-01):
+
+  | Origen | La cubre el original | Regla nueva de Amaraza | Descartada |
+  |---|---:|---:|---:|
+  | §3.1–§3.8 | 11 | 16 | 3 |
+  | Decisiones | 6 | 6 | 2 |
+
+  - **Criterio:** en el código del original mandan sus reglas; en el código del fork, la más estricta.
+  - PDForte se cita por número de regla, sin traer código, actas ni auditorías (§3 de las reglas).
+- `.agents/rules/00-amaraza.md` §9 recoge las reglas nuevas A1–A15.
+- **Fuentes del original consultadas:**
+  - guardar: `crates/ui-egui/src/editing.rs`;
+  - firmados: `crates/engine/src/lib.rs`;
+  - firmas: `crates/sign/src/pdf.rs` y `crates/sign/src/windows.rs`;
+  - censura: `crates/ui-egui/src/redact_ui.rs`;
+  - recuperación: `crates/ui-egui/src/recovery.rs`;
+  - límites de render: `crates/render/src/raster.rs`;
+  - ventana mínima y registros: `apps/pdfcraft/src/main.rs`;
+  - capas: `xtask/src/layers.rs`;
+  - licencias: `deny.toml`;
+  - y `AGENTS.md` y `CLAUDE.md` del upstream.
+- **Hallazgos en que PdfCraft es menos estricto que PDForte**, que quedan como decisiones del titular (EQUIVALENCIAS §4):
+  - permite las ediciones incrementales de documentos firmados (D-03);
+  - la recuperación escribe en claro y no purga por antigüedad (D-10);
+  - al guardar verifica después de sustituir, y no hay copia ni barrera;
+  - la censura conserva el historial de deshacer;
+  - registra rutas completas;
+  - la ventana mínima es de 820×520 (D-08);
+  - no hay instancia única (D-12);
+  - al listar certificados abre la clave en modo silencioso (A6; se comprueba con el token en AR1.2).
+- No se modificó ningún archivo del upstream: la tabla de archivos modificados no cambia.
+
+### Commits de AR0.2
+
+| Commit | Contenido | Puertas |
+|---|---|---|
+| `647daf4e20d8e2cc526e287edc8ff145aae61a97` | AR0.1: evidencia del titular y SHA de los últimos commits (solo documentación) | fmt 0, assets ok |
+| `4e98829054c96afe092420a4fa4fc91ce73194aa` | `docs/amaraza/EQUIVALENCIAS.md` (solo documentación) | Ver la fila siguiente |
+| *(siguiente)* | Reglas A1–A15 (`.agents/rules/00-amaraza.md` §9) y este registro (solo documentación) | Puertas con `LANG=en_US.UTF-8` y `CARGO_BUILD_JOBS=6`, sobre el mismo código que `main`: fmt 0 (4 s), clippy 0 (8 s), assets ok (1 s, 235 activos); pruebas (305 s, portátil conectado a la corriente): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el defecto del upstream de la línea base; con el inglés pasan las 9 pruebas que dependen del idioma |
