@@ -61,7 +61,6 @@
 	Flatten Fill & Sign when saving	Aplatir Remplir et signer à l'enregistrement
 	Text, marks and signatures become part of the page. Other comments stay editable.	Le texte, les marques et les signatures deviennent partie de la page. Les autres commentaires restent modifiables.
 	OK	OK
-	Join our Discord	Rejoindre notre Discord
 	Close	Fermer
 	Next / previous match	Correspondance suivante / précédente
 	Copy selected text	Copier le texte sélectionné
@@ -121,10 +120,8 @@
 	Next page	Page suivante
 	Previous page	Page précédente
 	Current page — type a page number or label (such as iv) and press Enter	Page actuelle — saisissez un numéro ou une étiquette de page (comme iv) et appuyez sur Entrée
-	Welcome to PdfCraft	Bienvenue dans PdfCraft
+	Te damos la bienvenida a Amaraza PDF	Bienvenue dans Amaraza PDF
 	An open-source PDF workbench — local, private, and scriptable.	Un atelier PDF open source — local, privé et automatisable.
-	Join the ArtCraft community	Rejoindre la communauté ArtCraft
-	Get help, share feedback and follow development on Discord.	Obtenez de l'aide, partagez vos retours et suivez le développement sur Discord.
 	Recommended tools	Outils recommandés
 	Use now	Utiliser
 	Open file	Ouvrir un fichier
@@ -264,12 +261,10 @@
 	Split document…	Fractionner le document…
 	Number pages…	Numéroter les pages…
 	Keyboard shortcuts	Raccourcis clavier
-	Join the ArtCraft Discord	Rejoindre le Discord ArtCraft
-	PdfCraft web page	Page web de PdfCraft
 	PdfCraft on GitHub	PdfCraft sur GitHub
-	ArtCraft website	Site web d'ArtCraft
+	Amaraza PDF en GitHub	Amaraza PDF sur GitHub
 	Check for updates…	Rechercher des mises à jour…
-	About PdfCraft	À propos de PdfCraft
+	Acerca de Amaraza PDF	À propos de Amaraza PDF
 	Export a PDF	Exporter un PDF
 	Export to	Exporter vers
 	Microsoft Word (.docx)	Microsoft Word (.docx)
@@ -1325,7 +1320,6 @@
 	Discard	Abandonner
 	Version {v}	Version {v}
 	A clean-room, open-source PDF application written in Rust. MIT OR Apache-2.0.	Une application PDF open source, en salle blanche, écrite en Rust. MIT OR Apache-2.0.
-	Part of	Partie de
 	Summarize Options	Options du résumé
 	Choose a layout:	Choisissez une disposition :
 	Comments only	Commentaires seulement

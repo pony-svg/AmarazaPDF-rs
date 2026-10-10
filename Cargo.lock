@@ -3581,6 +3581,7 @@ dependencies = [
 name = "pdfcraft-engine"
 version = "0.4.0"
 dependencies = [
+ "amaraza-identity",
  "chrono",
  "icu_properties",
  "idna",
@@ -3797,6 +3798,7 @@ dependencies = [
 name = "pdfcraft-ui-egui"
 version = "0.4.0"
 dependencies = [
+ "amaraza-identity",
  "arboard",
  "base64 0.22.1",
  "bytemuck",

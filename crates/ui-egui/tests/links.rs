@@ -1,5 +1,6 @@
-//! Community links: the Discord button is one click away everywhere; Help menu, About dialog and
-//! home screen open the ArtCraft and PdfCraft pages.
+//! Project links: the Help menu and the About dialog open Amaraza PDF's repository and credit
+//! PdfCraft in plain text. Nothing links to the ArtCraft site or its community: the ArtCraft brand
+//! licence leaves forks a plain-text credit only (docs/amaraza/PLAN.md, AR0.1).
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
@@ -17,52 +18,46 @@ fn harness(setup: impl FnOnce(&mut PdfCraftApp) + 'static) -> Harness<'static, P
     h
 }
 
+const ONE_PAGE: &[u8] = b"%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF";
+
 #[test]
-fn discord_button_in_the_top_bar_opens_discord() {
-    let mut h = harness(|_| {});
-    h.get_by_label("Discord").click();
-    h.run_steps(2);
-    assert_eq!(h.state().last_opened_url.as_deref(), Some(links::DISCORD));
-    assert_eq!(links::DISCORD, "https://discord.gg/artcraft");
+fn no_artcraft_community_on_the_home_screen_or_title_bar() {
+    // PdfCraft had a Discord button in the title bar and an ArtCraft community card on the home
+    // screen; the fork shows neither.
+    let h = harness(|_| {});
+    h.get_by_label_contains("Amaraza PDF");
+    assert_eq!(h.query_all_by_label("Discord").count(), 0);
+    assert_eq!(h.query_all_by_label_contains("ArtCraft").count(), 0);
+    assert_eq!(h.query_all_by_label_contains("Discord").count(), 0);
 }
 
 #[test]
-fn home_screen_links() {
-    for (label, url) in [
-        ("Join our Discord", links::DISCORD),
-        ("PdfCraft web page", "https://getartcraft.com/apps/pdfcraft"),
-        ("PdfCraft on GitHub", "https://github.com/storytold/pdfcraft"),
-        ("ArtCraft website", "https://getartcraft.com"),
-    ] {
-        let mut h = harness(|_| {});
-        h.get_by_label("Join the ArtCraft community");
-        h.get_by_label(label).click();
+fn about_dialog_credits_pdfcraft_and_opens_the_project_links() {
+    for l in links::LINKS {
+        // With a document open, so the home screen is not on screen.
+        let mut h = harness(move |app| {
+            app.open_bytes("one.pdf", None, ONE_PAGE.to_vec()).unwrap();
+            app.dialog = Some(Dialog::About);
+        });
+        h.get_by_label(amaraza_identity::PRODUCT_NAME);
+        h.get_by_label(links::BASED_ON);
+        h.get_by_label(l.label).click();
         h.run_steps(2);
-        assert_eq!(h.state().last_opened_url.as_deref(), Some(url), "{label}");
+        assert_eq!(h.state().last_opened_url.as_deref(), Some(l.url), "{}", l.label);
     }
 }
 
 #[test]
-fn about_dialog_shows_the_brand_and_links() {
-    let pdf = b"%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF";
-    // With a document open, so the home screen's own links are not on screen.
-    let mut h = harness(move |app| {
-        app.open_bytes("one.pdf", None, pdf.to_vec()).unwrap();
-        app.dialog = Some(Dialog::About);
-    });
-    assert!(h.query_all_by_label("ArtCraft").count() >= 2, "the mark and the wordmark (alt text)");
-    h.get_by_label("Join our Discord").click();
-    h.run_steps(2);
-    assert_eq!(h.state().last_opened_url.as_deref(), Some(links::DISCORD));
-}
-
-#[test]
 fn help_commands_open_each_link() {
+    assert_eq!(links::LINKS.first().map(|l| l.url), Some(amaraza_identity::REPOSITORY), "Amaraza PDF's own repository comes first");
     for l in links::LINKS {
         let mut h = harness(|_| {});
         assert!(h.state_mut().execute(l.command), "{}", l.command);
         assert_eq!(h.state().last_opened_url.as_deref(), Some(l.url));
         assert_eq!(pdfcraft_engine::commands::command(l.command).unwrap().menu, Some("Help"));
+    }
+    for gone in ["help.discord", "help.app_page", "help.website"] {
+        assert!(pdfcraft_engine::commands::command(gone).is_none(), "{gone} linked to ArtCraft");
     }
 }
 

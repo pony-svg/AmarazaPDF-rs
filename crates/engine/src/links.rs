@@ -1,15 +1,14 @@
-//! Where PdfCraft and the ArtCraft community live on the web. One table, so the Help menu, the
-//! About dialog, the home screen, the CLI and the README agree.
+//! Where Amaraza PDF and the project it is based on live on the web (`amaraza_identity`). One
+//! table, so the Help menu, the About dialog, the CLI and the README agree.
 
 use icu_properties::props::Script;
 
-/// The app's name in ArtCraft URLs (`getartcraft.com/apps/{APP}`, `github.com/storytold/{APP}`).
-pub const APP: &str = "pdfcraft";
-
-pub const DISCORD: &str = "https://discord.gg/artcraft";
-pub const WEBSITE: &str = "https://getartcraft.com";
-pub const APP_PAGE: &str = "https://getartcraft.com/apps/pdfcraft";
-pub const GITHUB: &str = "https://github.com/storytold/pdfcraft";
+/// Amaraza PDF's source repository.
+pub const GITHUB: &str = amaraza_identity::REPOSITORY;
+/// PdfCraft, the project Amaraza PDF is based on, credited in plain text ([`BASED_ON`]).
+pub const UPSTREAM: &str = amaraza_identity::UPSTREAM_REPOSITORY;
+/// The attribution line shown in About and printed by the CLI.
+pub const BASED_ON: &str = amaraza_identity::BASED_ON;
 
 /// A link and the registry command that opens it.
 #[derive(Clone, Copy, Debug)]
@@ -21,12 +20,10 @@ pub struct Link {
     pub icon: &'static str,
 }
 
-/// In the order they are shown. Discord comes first: it is where people get help fastest.
+/// In the order they are shown: Amaraza PDF first, then the project it is based on.
 pub const LINKS: &[Link] = &[
-    Link { command: "help.discord", label: "Join the ArtCraft Discord", url: DISCORD, icon: "messages-square" },
-    Link { command: "help.app_page", label: "PdfCraft web page", url: APP_PAGE, icon: "globe" },
-    Link { command: "help.github", label: "PdfCraft on GitHub", url: GITHUB, icon: "code-xml" },
-    Link { command: "help.website", label: "ArtCraft website", url: WEBSITE, icon: "external-link" },
+    Link { command: "help.github", label: "Amaraza PDF en GitHub", url: GITHUB, icon: "code-xml" },
+    Link { command: "help.upstream", label: "PdfCraft on GitHub", url: UPSTREAM, icon: "external-link" },
 ];
 
 pub fn for_command(id: &str) -> Option<&'static Link> {
@@ -340,12 +337,17 @@ fn mixes_scripts(label: &str) -> bool {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn urls_follow_the_artcraft_scheme() {
-        assert_eq!(super::APP_PAGE, format!("{}/apps/{}", super::WEBSITE, super::APP));
-        assert_eq!(super::GITHUB, format!("https://github.com/storytold/{}", super::APP));
+    fn links_are_amaraza_and_the_plain_text_upstream_credit() {
+        assert_eq!(super::GITHUB, amaraza_identity::REPOSITORY);
+        assert_eq!(super::UPSTREAM, "https://github.com/storytold/pdfcraft");
         for l in super::LINKS {
             assert!(l.url.starts_with("https://"), "{}", l.url);
             assert!(crate::commands::command(l.command).is_some(), "{} is a registered command", l.command);
+            // The ArtCraft brand licence leaves forks a plain-text credit only: no links to the
+            // ArtCraft site or community, and no ArtCraft name in the menus.
+            for gone in ["getartcraft", "discord", "artcraft"] {
+                assert!(!l.url.to_lowercase().contains(gone) && !l.label.to_lowercase().contains(gone), "{l:?}");
+            }
         }
     }
 

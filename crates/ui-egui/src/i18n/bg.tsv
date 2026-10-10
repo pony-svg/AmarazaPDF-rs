@@ -1299,7 +1299,6 @@
 	Select all pages (Organize)	Избери всички страници (Организиране)
 	Version {v}	Версия {v}
 	A clean-room, open-source PDF application written in Rust. MIT OR Apache-2.0.	Независимо разработено PDF приложение с отворен код, написано на Rust. MIT OR Apache-2.0.
-	Part of	Част от
 	Summarize Options	Опции за обобщение
 	Choose a layout:	Изберете оформление:
 	Comments only	Само коментари
@@ -1712,7 +1711,7 @@
 	Read	Четене
 	Convert	Конвертиране
 	E-Sign	Е-подпис
-	Welcome to PdfCraft	Добре дошли в PdfCraft
+	Te damos la bienvenida a Amaraza PDF	Добре дошли в Amaraza PDF
 	An open-source PDF workbench — local, private, and scriptable.	PDF работна среда с отворен код — локална, поверителна и програмируема.
 	Recommended tools	Препоръчани инструменти
 	Use now	Използвай сега
@@ -1745,15 +1744,10 @@
 	Split document…	Раздели документа…
 	Number pages…	Номерирай страниците…
 	Keyboard shortcuts	Клавишни комбинации
-	Join the ArtCraft Discord	Присъедини се към ArtCraft в Discord
-	Join the ArtCraft community	Присъедини се към общността на ArtCraft
-	Get help, share feedback and follow development on Discord.	Получете помощ, споделете мнение и следете разработката в Discord.
-	Join our Discord	Присъедини се към нашия Discord
-	PdfCraft web page	Уебстраница на PdfCraft
 	PdfCraft on GitHub	PdfCraft в GitHub
-	ArtCraft website	Уебсайт на ArtCraft
+	Amaraza PDF en GitHub	Amaraza PDF в GitHub
 	Check for updates…	Провери за актуализации…
-	About PdfCraft	За PdfCraft
+	Acerca de Amaraza PDF	За Amaraza PDF
 	JavaScript console…	JavaScript конзола…
 	Document JavaScripts…	JavaScript на документа…
 	Recognize text…	Разпознай текст…

@@ -12,6 +12,19 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 |---|---|---|---|
 | `Cargo.lock` | Entrada local `amaraza-identity` (y su uso por los crates que la llaman); sin dependencias de terceros | Crate de identidad del fork | AR0.1 |
 | `xtask/src/layers.rs` | `amaraza-identity` registrado como `Standalone(0)` en `TABLE` | La comprobación de capas exige registrar cada crate | AR0.1 |
+| `crates/engine/Cargo.toml`, `crates/ui-egui/Cargo.toml` | Dependencia `amaraza-identity = { path = … }` | Identidad en un solo crate | AR0.1 |
+| `crates/engine/src/links.rs` | Sin Discord, getartcraft.com ni página de la app; `GITHUB` = repositorio del fork; nuevos `UPSTREAM` y `BASED_ON`; prueba que impide enlaces o etiquetas de ArtCraft | Licencia de marca ArtCraft: solo atribución en texto plano | AR0.1 |
+| `crates/engine/src/commands.rs` | Fuera `help.discord`, `help.app_page` y `help.website`; `help.github` → "Amaraza PDF en GitHub"; nuevo `help.upstream` ("PdfCraft on GitHub", al upstream); `help.about` → "Acerca de Amaraza PDF" | Ídem | AR0.1 |
+| `crates/ui-egui/src/chrome.rs` | Sin el botón de Discord de la barra de título (y su ancho reservado) | Ídem | AR0.1 |
+| `crates/ui-egui/src/home.rs` | Sin la tarjeta de la comunidad ArtCraft; título "Te damos la bienvenida a Amaraza PDF" | Ídem e identidad | AR0.1 |
+| `crates/ui-egui/src/widgets.rs` | Fuera `artcraft_logo` y `artcraft_mark` (dejan de incrustarse las marcas); `community_links` → `project_links` | Ídem | AR0.1 |
+| `crates/ui-egui/src/dialogs.rs` | "Acerca de": nombre Amaraza PDF, atribución `BASED_ON` y enlaces del proyecto, sin "Part of" + logotipo ArtCraft | Ídem | AR0.1 |
+| `crates/ui-egui/src/i18n/{bg,cs,de,es,fr,hu,ja,ru,te,uk,zh-hans,zh-hant}.tsv` | Fuera las entradas de Discord y ArtCraft; "About PdfCraft" y "Welcome to PdfCraft" pasan a las nuevas fuentes en español; nueva "Amaraza PDF en GitHub". Las traducciones existentes se conservan, solo cambia el nombre del producto | Las pruebas de cobertura exigen traducir cada etiqueta de menú | AR0.1 |
+| `ATTRIBUTION.toml` | `sha256` de los 12 catálogos | `cargo xtask assets` comprueba el hash | AR0.1 |
+| `crates/ui-egui/tests/links.rs` | Reescrita: ni Discord ni ArtCraft en pantalla, "Acerca de" con atribución y enlaces, comandos de Ayuda | Prueba del nuevo comportamiento | AR0.1 |
+| `crates/ui-egui/tests/ui.rs` | Busca el nuevo título de inicio | Ídem | AR0.1 |
+| `apps/pdfcraft-cli/src/main.rs` | Sin la línea de Discord en `--help`; `--version` muestra el repositorio del fork y la atribución | Ídem | AR0.1 |
+| `crates/automation/src/mcp.rs` | `websiteUrl` del servidor MCP = repositorio del fork | Ya no existe la página de getartcraft.com | AR0.1 |
 
 ## AR0.0. Entorno y línea base (2026-10-09)
 
@@ -173,7 +186,8 @@ Cada commit pasa las cuatro puertas (`cargo fmt --check`, `cargo clippy --worksp
 | Commit | Contenido | Puertas |
 |---|---|---|
 | `36312494802acec1e78514121ed0fc2d31063ebb` | Decisiones del titular e inventario inicial (solo documentación) | fmt 0, clippy 0, assets ok; las pruebas no cambian respecto a la línea base |
-| *(siguiente)* | Crate `crates/amaraza-identity` (constantes y 3 pruebas), registrado en `xtask/src/layers.rs` | fmt 0, clippy 0, assets ok; pruebas: 1564 pasadas, 12 fallidas, 6 ignoradas. Son los 10 fallos de la línea base más los 2 de rendimiento (ver la nota) |
+| `af1edb863173a83d081868955192497cfcb11e8f` | Crate `crates/amaraza-identity` (constantes y 3 pruebas), registrado en `xtask/src/layers.rs` | fmt 0, clippy 0, assets ok; pruebas: 1564 pasadas, 12 fallidas, 6 ignoradas. Son los 10 fallos de la línea base más los 2 de rendimiento (ver la nota) |
+| *(siguiente)* | Interfaz y CLI sin enlaces ni comunidad de ArtCraft: botón de Discord, tarjeta de inicio, "Part of" + logotipo y comandos de Ayuda fuera; "Acerca de" con la atribución en texto plano; catálogos | fmt 0, clippy 0 (también `--all-targets`), assets ok; pruebas: 1565 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una primera ejecución falló al compilar por artefactos incompletos en `target/` (`der`, `tiny_skia` sin `.rlib`); `cargo test --workspace --no-run` lo resolvió sin cambios y se repitieron las puertas |
 
 **Nota sobre las pruebas de rendimiento** (`pdfcraft-ui-egui --test perf`: `scrolling_a_500_page_document_stays_within_the_frame_budget` y `panels_with_hundreds_of_items_stay_within_the_frame_budget`):
 - Miden el tiempo medio por fotograma contra un presupuesto fijo de 40 ms. En Windows no pueden leer la carga del sistema, así que nunca se saltan.

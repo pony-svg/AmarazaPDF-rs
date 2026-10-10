@@ -9,6 +9,8 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+# Amaraza PDF fork: identity constants (docs/amaraza/PLAN.md, AR0.1).
+amaraza-identity = { path = "../amaraza-identity" }
 pdfcraft-measure = { workspace = true }
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "tiff"] }
 pdfcraft-render = { workspace = true }

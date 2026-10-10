@@ -82,7 +82,6 @@
 	Flatten Fill & Sign when saving	Расплющить «Заполнить и подписать» при сохранении
 	Text, marks and signatures become part of the page. Other comments stay editable.	Текст, пометки и подписи становятся частью страницы. Остальные комментарии можно по-прежнему править.
 	OK	OK
-	Join our Discord	Присоединяйтесь к нашему Discord
 	Close	Закрыть
 	Next / previous match	Следующее / предыдущее совпадение
 	Copy selected text	Копировать выделенный текст
@@ -142,10 +141,8 @@
 	Next page	Следующая страница
 	Previous page	Предыдущая страница
 	Current page — type a page number or label (such as iv) and press Enter	Текущая страница — введите номер или метку страницы (например, iv) и нажмите Enter
-	Welcome to PdfCraft	Добро пожаловать в PdfCraft
+	Te damos la bienvenida a Amaraza PDF	Добро пожаловать в Amaraza PDF
 	An open-source PDF workbench — local, private, and scriptable.	Открытый PDF-редактор — локальный, приватный и программируемый.
-	Join the ArtCraft community	Присоединяйтесь к сообществу ArtCraft
-	Get help, share feedback and follow development on Discord.	Получайте помощь, делитесь отзывами и следите за разработкой в Discord.
 	Recommended tools	Рекомендуемые инструменты
 	Use now	Использовать сейчас
 	Open file	Открыть файл
@@ -285,12 +282,10 @@
 	Split document…	Разделить документ…
 	Number pages…	Пронумеровать страницы…
 	Keyboard shortcuts	Горячие клавиши
-	Join the ArtCraft Discord	Присоединяйтесь к Discord ArtCraft
-	PdfCraft web page	Веб-страница PdfCraft
 	PdfCraft on GitHub	PdfCraft на GitHub
-	ArtCraft website	Веб-сайт ArtCraft
+	Amaraza PDF en GitHub	Amaraza PDF на GitHub
 	Check for updates…	Проверить обновления…
-	About PdfCraft	О программе PdfCraft
+	Acerca de Amaraza PDF	О программе Amaraza PDF
 	Export a PDF	Экспортировать PDF
 	Export to	Экспортировать в
 	Microsoft Word (.docx)	Microsoft Word (.docx)
@@ -1347,7 +1342,6 @@
 	Discard	Отклонить
 	Version {v}	Версия {v}
 	A clean-room, open-source PDF application written in Rust. MIT OR Apache-2.0.	Открытое PDF-приложение с чистой комнатой, написанное на Rust. MIT OR Apache-2.0.
-	Part of	Часть
 	Summarize Options	Параметры суммирования
 	Choose a layout:	Выберите макет:
 	Comments only	Только комментарии
