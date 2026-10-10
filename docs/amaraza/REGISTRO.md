@@ -118,12 +118,16 @@ Comprobación: con `LANG=en_US.UTF-8`, el comando `cargo test -p pdfcraft-ui-egu
 
 En este equipo, la puerta `cargo test --workspace` se compara contra esta línea base. También se puede ejecutar con `LANG=en_US.UTF-8`, indicándolo en el registro.
 
-**B. Confinamiento de `--root` en Windows (1 fallo real, no depende del entorno).**
+**B. Confinamiento de `--root` (1 fallo): falso positivo de entorno.** *Corregido en la revisión D-13 de AR0.2: la primera versión de este registro lo daba por un defecto real del upstream, y así lo dicen también los mensajes de los commits de AR0.0 y AR0.1, que ya están publicados.*
 
 - Prueba: `pdfcraft-automation --test hostile_args`, `no_tool_escapes_the_root`.
 - Salida: `root confinement: 510 escape attempts over 140 tools, 495 refused, 15 leaks`.
-- Qué pasa: la prueba crea un enlace simbólico de directorio, `link-out`, que apunta fuera de la raíz (aquí Windows lo permite). 15 herramientas aceptan la ruta `link-out/outside.pdf`: `doc_save`, `page_insert_file`, `doc_create_multiple`, `doc_print`, `measure_export`, `sign_id_create`, `comments_summarize`, `doc_watermark`, `doc_background`, `accessibility_report`, `form_merge_data`, `doc_compare_report`, `doc_export_text`, `doc_reduce` y `doc_optimize`.
-- Es un defecto del upstream con efecto de seguridad: se puede escribir fuera de `--root` a través de un enlace. Queda pendiente que el titular decida si se corrige en el fork (como tarea propia) o se comunica al upstream (§6 de las reglas).
+- Qué pasa: la prueba intenta crear un enlace simbólico de directorio, `link-out`, que apunta fuera de la raíz, e ignora el error si no puede (`let _ = symlink_dir(…)`). Después espera que todas las herramientas rechacen `link-out/outside.pdf`. 15 herramientas la aceptan: `doc_save`, `page_insert_file`, `doc_create_multiple`, `doc_print`, `measure_export`, `sign_id_create`, `comments_summarize`, `doc_watermark`, `doc_background`, `accessibility_report`, `form_merge_data`, `doc_compare_report`, `doc_export_text`, `doc_reduce` y `doc_optimize`.
+- Por qué es un falso positivo: en este equipo crear un enlace simbólico exige privilegios de administrador (no está activo el modo de desarrollador de Windows). El enlace no llega a existir, así que `link-out/outside.pdf` es una ruta normal **dentro** de la raíz, y aceptarla es lo correcto.
+- Comprobaciones:
+  - `New-Item -ItemType SymbolicLink` falla con "Se necesitan privilegios de administrador para esta operación".
+  - La segunda red de la prueba (archivos creados, modificados o borrados fuera de la raíz) no encontró nada: las 15 filtraciones son solo "accepted".
+- Donde se pueden crear enlaces (CI del upstream en Linux y macOS, o Windows con el modo de desarrollador), la prueba comprueba lo que dice. En este equipo la puerta de pruebas cuenta este fallo como de entorno. Hacer que la prueba se salte los casos de enlace cuando no se puede crear el enlace sería un cambio en el upstream: lo decide el titular (§6).
 
 ### Pruebas ignoradas (6, por diseño del upstream; no se ejecutaron)
 
@@ -278,7 +282,7 @@ grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir
 4. **Nombres de binario:** en Linux, macOS y FreeBSD el ejecutable sigue siendo `pdfcraft`, y la CLI es `pdfcraft-cli` en todas las plataformas.
 5. **Instalador sin compilar:** WiX v5 no está instalado. El MSI y su `test-msi.ps1` no se han ejecutado.
 6. **Empaquetado de Linux, Flatpak, macOS y FreeBSD:** no se ha probado (solo `bash -n`, YAML y XML).
-7. **Defecto del upstream `no_tool_escapes_the_root`** (escritura fuera de `--root` a través de un enlace simbólico en Windows): el titular decide si se corrige en el fork o se comunica al upstream.
+7. **Falso positivo de entorno `no_tool_escapes_the_root`** (ver AR0.0, fallo B; corregido en la revisión D-13 de AR0.2): aquí no se pueden crear enlaces simbólicos sin privilegios de administrador. No hay escritura fuera de `--root`.
 8. **9 pruebas de interfaz dependen del idioma de Windows:** se podría fijar el idioma en sus arneses (tarea propia del fork) o comunicarlo al upstream.
 9. **Prueba intermitente** `saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents` (`--test recovery`): falló una vez en la penúltima ejecución completa y pasó en las otras 10 ejecuciones completas y en 8 repeticiones aisladas. Usa su propia carpeta temporal, no la carpeta de recuperación que cambia AR0.1.
 10. `LEGACY_STORAGE_KEY` (`"printcraft"`) sigue leyendo esa clave dentro del propio `app.ron` de Amaraza. Nunca existe y no toca carpetas de otra app.
@@ -397,4 +401,25 @@ Los mensajes de commit no se editaron (`--no-edit`): el del commit de la comprob
 |---|---|---|
 | `647daf4e20d8e2cc526e287edc8ff145aae61a97` | AR0.1: evidencia del titular y SHA de los últimos commits (solo documentación) | fmt 0, assets ok |
 | `4e98829054c96afe092420a4fa4fc91ce73194aa` | `docs/amaraza/EQUIVALENCIAS.md` (solo documentación) | Ver la fila siguiente |
-| *(siguiente)* | Reglas A1–A15 (`.agents/rules/00-amaraza.md` §9) y este registro (solo documentación) | Puertas con `LANG=en_US.UTF-8` y `CARGO_BUILD_JOBS=6`, sobre el mismo código que `main`: fmt 0 (4 s), clippy 0 (8 s), assets ok (1 s, 235 activos); pruebas (305 s, portátil conectado a la corriente): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el defecto del upstream de la línea base; con el inglés pasan las 9 pruebas que dependen del idioma |
+| `2bcded2a68e5fd459c286715181b8d48168364e5` | Reglas A1–A15 (`.agents/rules/00-amaraza.md` §9) y este registro (solo documentación) | Puertas con `LANG=en_US.UTF-8` y `CARGO_BUILD_JOBS=6`, sobre el mismo código que `main`: fmt 0 (4 s), clippy 0 (8 s), assets ok (1 s, 235 activos); pruebas (305 s, portátil conectado a la corriente): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el falso positivo de entorno de la línea base (ver AR0.0, fallo B); con el inglés pasan las 9 pruebas que dependen del idioma |
+| *(siguiente)* | Correcciones de la revisión D-13 de AR0.2 (ver la sección siguiente) | Ver la sección siguiente |
+
+### Revisión D-13 de AR0.2: correcciones
+
+- **`no_tool_escapes_the_root` es un falso positivo de entorno**, no un defecto del upstream. Está corregido en AR0.0 (fallo B, con la causa y las comprobaciones), en el pendiente 7 de AR0.1 y en la fila de puertas de AR0.2.
+- **A7 aplicado de verdad en `amaraza-identity`:**
+  - nuevo `crates/amaraza-identity/clippy.toml`: las 4 claves `allow-*-in-tests` de la raíz, porque clippy no fusiona configuraciones, más `cognitive-complexity-threshold = 15`;
+  - en `src/lib.rs`, `#![warn(clippy::cognitive_complexity)]`: el lint es de nursery, y `[lints] workspace = true` impide `[lints.clippy]`.
+- **Comprobación de A7:**
+  - `cargo clippy -p amaraza-identity --all-targets -- -D warnings` detectó `the function has a cognitive complexity of (16/15)` en la prueba `the_other_platforms_packages_use_the_app_id`. Eso demuestra que se lee el umbral 15 del crate, no el 25 por defecto.
+  - Se extrajo el recorrido de carpetas al ayudante `files_under`. Después: clippy con código 0 y `cargo test -p amaraza-identity` con 6 pruebas pasadas.
+- `.agents/rules/00-amaraza.md` §9 queda más corto, con el mecanismo de A7, y `docs/amaraza/EQUIVALENCIAS.md` describe A7 igual.
+- **Tamaño de los archivos de reglas** (límite: 12 000 caracteres):
+  - `.agents/rules/00-amaraza.md`: 11 679 caracteres (antes de compactar §9, 12 820);
+  - `.claude/rules/amaraza.md`: 178.
+- SHA de `2bcded2a68e5fd459c286715181b8d48168364e5` anotado en su fila.
+- **Puertas** (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`):
+  - fmt 0 (4 s);
+  - clippy 0 (11 s), también con `--all-targets` (16 s), que incluye las pruebas;
+  - assets ok (235 activos);
+  - pruebas (283 s): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el falso positivo de entorno.

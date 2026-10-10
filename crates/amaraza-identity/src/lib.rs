@@ -6,6 +6,8 @@
 //! No dependencies, so any layer may use it.
 
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+// A7 (.agents/rules/00-amaraza.md §9): the threshold, 15, is in this crate's clippy.toml.
+#![warn(clippy::cognitive_complexity)]
 
 /// The product name people see: window title, About, installer, shortcuts.
 pub const PRODUCT_NAME: &str = "Amaraza PDF";
@@ -191,25 +193,35 @@ mod tests {
         let plist = repo_file("packaging/macos/Info.plist.in");
         assert!(plist.contains(&format!("<string>{APP_ID}</string>")) && plist.contains(&format!("<string>{PRODUCT_NAME}</string>")), "Info.plist");
         // No packaging file names upstream's id, publisher, site or community, or its icon set.
-        let mut pending = vec![std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packaging")];
+        let files = files_under(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packaging"));
         let mut checked = 0;
+        for (path, text) in &files {
+            assert!(!path.to_string_lossy().to_lowercase().contains("storyteller"), "{}", path.display());
+            let Some(text) = text else { continue };
+            checked += 1;
+            for upstream in ["storyteller", "getartcraft", "discord.gg", "learning machines", "assets/app-icon"] {
+                assert!(!text.to_lowercase().contains(upstream), "{} still has {upstream:?}", path.display());
+            }
+        }
+        assert!(checked > 10, "only {checked} packaging files read");
+    }
+
+    /// Every file under `dir`, recursively, with its text when it is UTF-8.
+    fn files_under(dir: std::path::PathBuf) -> Vec<(std::path::PathBuf, Option<String>)> {
+        let mut out = Vec::new();
+        let mut pending = vec![dir];
         while let Some(dir) = pending.pop() {
             for entry in std::fs::read_dir(&dir).unwrap() {
                 let path = entry.unwrap().path();
                 if path.is_dir() {
                     pending.push(path);
-                    continue;
-                }
-                let name = path.to_string_lossy().to_lowercase();
-                assert!(!name.contains("storyteller"), "{}", path.display());
-                let Ok(text) = std::fs::read_to_string(&path) else { continue };
-                checked += 1;
-                for upstream in ["storyteller", "getartcraft", "discord.gg", "learning machines", "assets/app-icon"] {
-                    assert!(!text.to_lowercase().contains(upstream), "{} still has {upstream:?}", path.display());
+                } else {
+                    let text = std::fs::read_to_string(&path).ok();
+                    out.push((path, text));
                 }
             }
         }
-        assert!(checked > 10, "only {checked} packaging files read");
+        out
     }
 
     #[test]

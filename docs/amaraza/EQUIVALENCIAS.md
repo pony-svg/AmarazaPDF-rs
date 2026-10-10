@@ -53,7 +53,7 @@ Puntos donde PDForte es más estricto que PdfCraft y que piden una decisión del
 | Ref. | Regla de PDForte (resumen) | Clase | Dónde / motivo |
 |---|---|---|---|
 | 3.3.a | Dominio solo con biblioteca estándar, la aplicación no importa la interfaz, puertos y adaptadores | **Original** | Las capas L0–L8 de `xtask/src/layers.rs` (`cargo xtask layers`): nada por debajo de L7 depende de egui, winit, eframe ni rfd, y `cos`, `filters`, `crypt` y `arlington` son independientes (`CLAUDE.md`, "Layering"). `amaraza-identity` está registrado como `Standalone(0)`. |
-| 3.3.b | Funciones nuevas con complejidad ciclomática ≤ 15; no hacer crecer la ventana principal | **Nueva (A7)** | El original no fija límite de complejidad: `clippy.toml` solo relaja reglas en las pruebas. Sus archivos centrales son grandes (por ejemplo, `crates/ui-egui/src/lib.rs`). |
+| 3.3.b | Funciones nuevas con complejidad ciclomática ≤ 15; no hacer crecer la ventana principal | **Nueva (A7)** | El original no fija límite de complejidad: su `clippy.toml` solo relaja reglas en las pruebas. Sus archivos centrales son grandes (por ejemplo, `crates/ui-egui/src/lib.rs`). En `amaraza-identity` el límite ya está aplicado y detectó una prueba de complejidad 16, que se refactorizó. |
 
 ### §3.4 `modules/` (motor heredado): evolución controlada
 
@@ -129,7 +129,7 @@ Se aplican al código del fork (crates `amaraza-*`, `apps/amaraza` si existe y l
 | **A4** | Sin código consciente de las pruebas en producción: nada de `cfg!(test)`, de detectar dobles de prueba ni de identidades inventadas. Las pruebas inyectan lo que necesitan por parámetros. | 3.1.f |
 | **A5** | Documentos con firmas activas: toda mutación se rechaza por defecto con un error accionable. Solo con el consentimiento explícito del usuario, si se implementa esa preferencia, y diciendo cuántas firmas se verán afectadas. Firmar sobre un documento firmado siempre se permite (de forma incremental, con aviso). | 3.2.a, D-03 |
 | **A6** | Al listar certificados no se abre la clave privada ni se pide PIN; la clave solo se abre al firmar. Nunca exportarla. | 3.2.b, 3.2.c, RF-FIRMA-01 |
-| **A7** | Complejidad ≤ 15 por función (`clippy::cognitive_complexity` con ese umbral en los crates `amaraza-*`). No hacer crecer los archivos grandes del upstream: lo nuevo entra por los enganches de AR0.3. | 3.3.b |
+| **A7** | Complejidad ≤ 15 por función, también en las pruebas. Cada crate `amaraza-*` lleva su propio `clippy.toml`: clippy no fusiona configuraciones, así que repite las 4 claves `allow-*-in-tests` de la raíz y añade `cognitive-complexity-threshold = 15`. Además activa el lint, que es de nursery, con `#![warn(clippy::cognitive_complexity)]`, porque `[lints] workspace = true` impide añadir `[lints.clippy]` en el `Cargo.toml`. Ya está aplicado en `amaraza-identity`. No hacer crecer los archivos grandes del upstream: lo nuevo entra por los enganches de AR0.3. | 3.3.b |
 | **A8** | Los registros llevan `event=…` y, si hay error, `error_code=…` (y `operation_id=…` cuando exista ese identificador). | 3.5.b |
 | **A9** | En los registros, nada de rutas completas (como mucho, el nombre del archivo o una ruta relativa a una carpeta conocida), nombres de usuario, contenido de documentos ni secretos. | 3.5.c |
 | **A10** | Ningún `Result` se descarta en silencio: se propaga, se registra o lleva un comentario que diga por qué se puede ignorar. | 3.5.a |

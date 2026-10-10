@@ -111,20 +111,20 @@ Nunca: `push --force`, reescribir historial ya publicado; reescribir commits loc
 
 ## 9. Reglas heredadas de PDForte (AR0.2)
 
-La clasificación completa está en `docs/amaraza/EQUIVALENCIAS.md`. **Criterio:** en el código del original mandan sus reglas; en el código del fork (crates `amaraza-*`, `apps/amaraza` si existe y los enganches de AR0.3) se aplica la más estricta de las dos. Mientras el titular no decida otra cosa (EQUIVALENCIAS §4), estas reglas no obligan a cambiar el código del original.
+Detalle y motivos en `docs/amaraza/EQUIVALENCIAS.md`. En el código del original mandan sus reglas. En el código del fork (crates `amaraza-*` y enganches de AR0.3) se aplica la más estricta. Sin decisión del titular (EQUIVALENCIAS §4), estas reglas no obligan a cambiar el original.
 
-- **A1. Un solo camino de escritura, con verificación previa.** El código del fork no escribe el PDF del usuario por su cuenta: muta a través del motor y guarda por un único camino. El candidato va a un temporal de la misma carpeta, se verifica volviéndolo a abrir con el motor y solo después sustituye al original.
-- **A2. Barrera y copia.** Antes de sustituir: comprobar que el archivo en disco no cambió desde que se abrió (tamaño, fecha y huella) y conservar una copia del original hasta verificar la nueva versión. Un único ayudante compartido, nunca reimplementado en cada función.
-- **A3. Operaciones terminales** (censura, firma en el sitio, compresión en el sitio y similares): confirmación previa que avisa de que no se pueden deshacer, y vacían el historial de deshacer. Un fallo crítico no se revierte en silencio: se avisa y se conserva la copia de A2.
-- **A4. Sin código consciente de las pruebas** en producción: nada de `cfg!(test)`, de detectar dobles de prueba ni de identidades inventadas. Las pruebas inyectan lo que necesitan por parámetros.
-- **A5. Documentos firmados** (D-03): toda mutación de un documento con firmas activas se rechaza por defecto con un error accionable. Solo con el consentimiento explícito del usuario, si se implementa esa preferencia, diciendo cuántas firmas se verán afectadas. Firmar sobre un firmado siempre se permite (de forma incremental, con aviso).
-- **A6. Claves** (RF-FIRMA-01): al listar certificados no se abre la clave privada ni se pide PIN; solo se abre al firmar. Nunca exportarla (§5).
-- **A7. Complejidad** ≤ 15 por función (`clippy::cognitive_complexity` con ese umbral). No hacer crecer los archivos grandes del upstream: lo nuevo entra por los enganches de AR0.3.
-- **A8. Registros estructurados:** `event=…` y, si hay error, `error_code=…` (y `operation_id=…` cuando exista).
-- **A9. Registros sin datos personales:** nada de rutas completas (como mucho, el nombre del archivo o una ruta relativa a una carpeta conocida), nombres de usuario, contenido de documentos ni secretos.
-- **A10. Ningún `Result` se descarta en silencio:** se propaga, se registra o lleva un comentario que diga por qué se puede ignorar.
-- **A11. Las pruebas no escriben en las carpetas reales** de la app (`%APPDATA%\AmarazaPDF`, `%LOCALAPPDATA%\AmarazaPDF`): usan carpetas temporales con limpieza garantizada.
-- **A12. Colores solo de los tokens del tema** (`theme::Tokens`), sin `Color32` literales.
-- **A13. 800×560** (D-08): toda pantalla y diálogo nuevos se pueden usar en una ventana de ese tamaño.
-- **A14. Nada en claro en disco** (D-10): ninguna copia de un documento se escribe sin cifrar; los snapshots se cifran (AES-GCM, clave solo en memoria) y los restos se purgan a los 30 días. Una dependencia nueva se pide al titular (§6).
-- **A15. Instancia única** (D-12): una segunda apertura entrega sus archivos a la app ya abierta, que los abre en pestañas. Solo si el titular lo decide.
+- **A1** Se escribe solo a través del motor, por un único camino: el candidato va a un temporal de la misma carpeta y se verifica (reabriéndolo) antes de sustituir el original.
+- **A2** Antes de sustituir: comprobar que el archivo no cambió en disco y guardar una copia del original hasta verificar la versión nueva. Un único ayudante, compartido.
+- **A3** Operaciones terminales (censura, firma o compresión en el sitio): se confirman, avisan de que no se pueden deshacer y vacían el historial. Ningún fallo se revierte en silencio.
+- **A4** Nada de código consciente de las pruebas (`cfg!(test)`, detectar dobles de prueba).
+- **A5** Firmados (D-03): toda mutación se rechaza por defecto; el consentimiento explícito es opcional. Firmar sobre un firmado sí se permite.
+- **A6** Al listar certificados no se abre la clave ni se pide PIN. La clave nunca se exporta.
+- **A7** Complejidad ≤ 15. Cada crate `amaraza-*` tiene su `clippy.toml`: repite las 4 claves `allow-*-in-tests` de la raíz (clippy no fusiona configuraciones) y añade `cognitive-complexity-threshold = 15`. Además activa el lint, que es de nursery, con `#![warn(clippy::cognitive_complexity)]`, porque `[lints] workspace = true` impide `[lints.clippy]`. No hacer crecer los archivos grandes del upstream.
+- **A8** Los registros llevan `event=` y `error_code=`.
+- **A9** Los registros no llevan rutas completas, usuarios, contenido de documentos ni secretos.
+- **A10** Ningún `Result` se descarta sin propagarlo, registrarlo o explicar por qué.
+- **A11** Las pruebas no escriben en las carpetas reales de la app.
+- **A12** Los colores salen solo de `theme::Tokens`.
+- **A13** Toda pantalla y diálogo nuevos se pueden usar en 800×560.
+- **A14** Ningún documento queda en claro en disco: snapshots cifrados con AES-GCM y clave en memoria, purga a los 30 días.
+- **A15** Instancia única con pestañas, solo si el titular lo decide.
