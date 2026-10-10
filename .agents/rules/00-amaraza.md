@@ -10,7 +10,7 @@ Este repositorio es `pony-svg/AmarazaPDF-rs`, un **fork público** de `storytold
 
 1. Este archivo manda en el fork.
 2. `AGENTS.md` y `CLAUDE.md` del upstream siguen vigentes, salvo lo que §2 sustituye. Al empezar cada sesión, **léelos completos con la herramienta de lectura de archivos**, porque pueden llegar truncados como reglas.
-3. No edites `AGENTS.md` ni `CLAUDE.md` del upstream: cada cambio en ellos crea conflictos al sincronizar. Las reglas propias van en este archivo.
+3. No edites `AGENTS.md` ni `CLAUDE.md` del upstream: cada cambio en ellos crea conflictos al sincronizar. Las reglas propias van en este archivo y en `01-amaraza-heredadas.md` (las heredadas de PDForte).
 
 ## 1. Identidad y marca (obligación legal)
 

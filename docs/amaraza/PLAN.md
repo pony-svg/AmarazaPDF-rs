@@ -104,7 +104,9 @@ Es obligatorio por la licencia de marca del upstream y debe estar hecho antes de
   - el autor por defecto de los comentarios;
   - el título de los trabajos de impresión;
   - el nombre del servidor MCP.
-- Los 12 mensajes de la interfaz que dicen PdfCraft (lista en `REGISTRO.md`, "Pendiente"), con sus catálogos y los `sha256` de `ATTRIBUTION.toml`.
+- Los mensajes que dicen PdfCraft, con sus catálogos y los `sha256` de `ATTRIBUTION.toml`:
+  - los 12 de la lista de `REGISTRO.md` (AR0.1, "Pendiente");
+  - 3 nuevos de v0.5.0 (ARS.1): el aviso de GPU "PdfCraft is drawing without a graphics processor…" (`apps/pdfcraft/src/main.rs`); el error de OCR "…reinstall PdfCraft…" (`crates/ocr/src/lib.rs`) y su aviso en la interfaz "Text recognition isn't installed… Reinstall PdfCraft…" (`crates/ui-egui/src/ocr_ui.rs`).
 - Borrar las 12 capturas de `docs/images/` y sus entradas en `ATTRIBUTION.toml`.
 
 ### AR0.5. CI del fork (opcional, con autorización)

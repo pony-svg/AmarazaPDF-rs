@@ -1,6 +1,6 @@
 # Equivalencias PDForte → Amaraza PDF (Rust)
 
-Tarea AR0.2 (`docs/amaraza/PLAN.md`), 2026-10-09.
+Tarea AR0.2 (`docs/amaraza/PLAN.md`), 2026-10-09. Actualizado tras integrar el upstream v0.5.0 (ARS.1), el 2026-10-10: D-12 y A15.
 
 Este documento clasifica cada regla de §3.1–§3.8 del `AGENTS.md` de PDForte y cada decisión D-01…D-13 (más RF-FIRMA-01). PDForte se usa como referencia funcional: sus reglas se citan por número y se resumen, sin traer su código, actas ni auditorías (§3 de las reglas del fork).
 
@@ -22,7 +22,7 @@ Cuando el original cubre solo una parte, se dice en la columna "Dónde / motivo"
 | Origen | Original | Nueva | Descartada | Total |
 |---|---:|---:|---:|---:|
 | §3.1–§3.8 (30 reglas) | 11 | 16 | 3 | 30 |
-| D-01…D-13 y RF-FIRMA-01 | 6 | 6 | 2 | 14 |
+| D-01…D-13 y RF-FIRMA-01 | 7 | 5 | 2 | 14 |
 
 Puntos donde PDForte es más estricto que PdfCraft y que piden una decisión del titular sobre el código del original: la sección 4.
 
@@ -110,10 +110,10 @@ Puntos donde PDForte es más estricto que PdfCraft y que piden una decisión del
 | D-06 | Sin firma Authenticode en el piloto; reevaluar antes de la GA | **Original** | `packaging/windows/sign.ps1` firma solo si hay secretos; sin ellos produce artefactos sin firmar con un aviso. El MSI firmado está fuera del alcance de la prueba. |
 | D-07 | Repositorio privado; CI con GitHub Actions en `windows-latest` | **Descartada** | El repositorio del fork es público (AR-D1). La CI es AR0.5 (opcional, con autorización). |
 | D-08 | Ventana mínima de 800×560 | **Nueva (A13)** | Ver 3.8.c. |
-| D-09 | Internacionalización diferida (solo botones estándar de Qt) | **Original** (la supera) | 13 catálogos con pruebas de cobertura (`crates/ui-egui/src/i18n`), y la interfaz sigue el idioma de Windows. |
+| D-09 | Internacionalización diferida (solo botones estándar de Qt) | **Original** (la supera) | 15 catálogos con pruebas de cobertura (`crates/ui-egui/src/i18n`), y la interfaz sigue el idioma de Windows. |
 | D-10 | Snapshots cifrados con AES-GCM y clave solo en memoria; purga de restos a los 30 días | **Nueva (A14)** | **El original es menos estricto:** la recuperación (`crates/ui-egui/src/recovery.rs`) escribe la copia de trabajo **sin cifrar** en `%LOCALAPPDATA%\AmarazaPDF\Recovery`, salvo los PDF que ya estaban cifrados. No purga por antigüedad: cada entrada se borra al guardar, descartar o cerrar, y se ofrece recuperarla al arrancar. El historial de deshacer vive solo en memoria. Decisión pendiente: sección 4. |
 | D-11 | Autovalidaciones `--validate-*` ocultas tras `AMARAZA_DIAGNOSTICS=1` | **Original** (equivalente) | Los canales de diagnóstico y control del original están desactivados por defecto (`AGENTS.md` §3): `--control` (bucle local, token nuevo en cada arranque, archivo solo del propietario) y el servidor MCP, que solo arranca con `pdfcraft-cli mcp`. No hay `--validate-*`. |
-| D-12 | Instancia única: los PDF adicionales se abren en pestañas | **Nueva (A15)** | **El original no la tiene** en Windows ni en Linux: cada apertura lanza otro proceso. Sí tiene pestañas, y en macOS recibe los archivos en la app abierta (`apps/pdfcraft/src/apple_events.rs`). Decisión pendiente: sección 4. |
+| D-12 | Instancia única: los PDF adicionales se abren en pestañas | **Original** (en Windows, desde v0.5.0) | `apps/pdfcraft/src/single_instance.rs`: la primera instancia escucha en un socket local, y una apertura que solo nombra archivos se los entrega y termina sin ventana. No aplica en modo portátil. En el fork el socket va en `%LOCALAPPDATA%\AmarazaPDF` (`amaraza_identity::FOLDER_NAME`, ARS.1), así que nunca se entregan archivos a un PdfCraft abierto. En macOS los archivos llegan a la app abierta por Apple events (`apps/pdfcraft/src/apple_events.rs`); en Linux, cada apertura sigue lanzando otro proceso. |
 | D-13 | Revisor IA estricto, CI obligatoria y evidencia real del titular | **Nueva (ya escrita)** | `00-amaraza.md` §7.7 (revisión D-13 y evidencia del titular). La CI es AR0.5. |
 | RF-FIRMA-01 | Firmar con `CurrentUser\MY` (incluidos tokens) sin exportar la clave privada | **Original** | Ver 3.2.b. La parte "no abrir la clave al listar" es 3.2.c (A6), y la prueba con el token del titular es AR1.2. |
 
@@ -137,7 +137,7 @@ Se aplican al código del fork (crates `amaraza-*`, `apps/amaraza` si existe y l
 | **A12** | Colores solo de los tokens del tema (`theme::Tokens`): nada de `Color32` literales. | 3.8.a |
 | **A13** | Toda pantalla y diálogo nuevos se pueden usar en una ventana de 800×560. | 3.8.c, D-08 |
 | **A14** | Ninguna copia de un documento se escribe en claro en disco: los snapshots se cifran (AES-GCM, clave solo en memoria) y los restos se purgan a los 30 días. Si hace falta una dependencia nueva, se pide al titular (§6). | D-10 |
-| **A15** | Instancia única: una segunda apertura entrega sus archivos a la app ya abierta, que los abre en pestañas. Se implementa solo si el titular lo decide (sección 4). | D-12 |
+| **A15** | Instancia única: la cubre el original en Windows desde v0.5.0 (D-12). El código del fork no la reimplementa, y el socket sigue en la carpeta de Amaraza PDF. | D-12 |
 
 Reglas de PDForte que ya estaban escritas en el fork y no cambian: D-02 (§5 y §7.1), D-13 (§7.7), dependencias (§6), temporales (§8), estrategia de código y tabla de archivos modificados (3.4, `PLAN.md` y `REGISTRO.md`).
 
@@ -153,4 +153,3 @@ Según el criterio, en el código del original manda su regla. Estos son los pun
 | 3.1.d, censura | Confirmación y reescritura completa, pero el historial se conserva | Vacía el historial | Camino de la censura (`crates/ui-egui/src/redact_ui.rs` y el motor) |
 | 3.5.c, logs | Registra rutas completas | Sin rutas | Los mensajes de registro citados en 3.5.c |
 | D-08, ventana | Mínimo 820×520 | 800×560 | `apps/pdfcraft/src/main.rs` (y comprobar la interfaz en AR1.3) |
-| D-12, instancia única | Un proceso por apertura | Una sola instancia con pestañas | `apps/pdfcraft/src/main.rs` (nuevo mecanismo de comunicación entre procesos) |

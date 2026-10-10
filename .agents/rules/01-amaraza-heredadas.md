@@ -26,4 +26,4 @@ La clasificación completa está en `docs/amaraza/EQUIVALENCIAS.md`. **Criterio:
 - **A12. Colores solo de los tokens del tema** (`theme::Tokens`), sin `Color32` literales.
 - **A13. 800×560** (D-08): toda pantalla y diálogo nuevos se pueden usar en una ventana de ese tamaño.
 - **A14. Nada en claro en disco** (D-10): ninguna copia de un documento se escribe sin cifrar; los snapshots se cifran (AES-GCM, clave solo en memoria) y los restos se purgan a los 30 días. Una dependencia nueva se pide al titular (`00-amaraza.md` §6).
-- **A15. Instancia única** (D-12): una segunda apertura entrega sus archivos a la app ya abierta, que los abre en pestañas. Solo si el titular lo decide.
+- **A15. Instancia única** (D-12): la cubre el original en Windows desde v0.5.0 (`apps/pdfcraft/src/single_instance.rs`). El código del fork no la reimplementa, y su socket sigue en la carpeta de Amaraza PDF, para no entregar nunca archivos a PdfCraft ni a PDForte.

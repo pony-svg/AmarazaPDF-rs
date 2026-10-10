@@ -410,7 +410,7 @@ Los mensajes de commit no se editaron (`--no-edit`): el del commit de la comprob
 | `4e98829054c96afe092420a4fa4fc91ce73194aa` | `docs/amaraza/EQUIVALENCIAS.md` (solo documentación) | Ver la fila siguiente |
 | `2bcded2a68e5fd459c286715181b8d48168364e5` | Reglas A1–A15 (`.agents/rules/00-amaraza.md` §9) y este registro (solo documentación) | Puertas con `LANG=en_US.UTF-8` y `CARGO_BUILD_JOBS=6`, sobre el mismo código que `main`: fmt 0 (4 s), clippy 0 (8 s), assets ok (1 s, 235 activos); pruebas (305 s, portátil conectado a la corriente): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el falso positivo de entorno de la línea base (ver AR0.0, fallo B); con el inglés pasan las 9 pruebas que dependen del idioma |
 | `ece74322ada0423a28d6bf7ee0d84048db7818dd` | Correcciones de la revisión D-13 de AR0.2 (ver "Revisión D-13 de AR0.2: correcciones") | Ver esa sección |
-| *(siguiente)* | Correcciones pendientes de la revisión D-13 (ver "Revisión D-13 de `ece7432`: correcciones pendientes") | Ver esa sección |
+| `fc6a8c993377698bf1db0ac0aa18a0e5196c1657` | Correcciones pendientes de la revisión D-13 (ver "Revisión D-13 de `ece7432`: correcciones pendientes") | Ver esa sección. **Dictamen D-13 sobre `fc6a8c9`: aprobado; AR0.2 cerrada.** Puertas del revisor en inglés: 1582 pasadas, 1 fallida (`no_tool_escapes_the_root`, de entorno) y 6 ignoradas, como la línea base. Fusionada en `main` con `e9b9ee622d4dbf9720ef0c62c823ddb3a54decb0` |
 
 ### Revisión D-13 de AR0.2: correcciones
 
@@ -530,4 +530,34 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 |---|---|
 | `0664233c2c51aaa482a21ea78118a2f9cd83aacd` | Merge de `upstream/main` (`5d590604867fdac7ed71c555c40477ae3331a60a`) con los conflictos resueltos |
 | `fb919ac9afeb1da3d2872b83f5bf01ad153793b2` | Este registro (solo documentación) |
-| *(siguiente)* | Merge en `main` de AR0.2 (`fc6a8c993377698bf1db0ac0aa18a0e5196c1657`) y de esta sincronización, autorizado por el titular el 2026-10-10. Único conflicto: el final de este registro, donde se conservan las dos secciones |
+| `e9b9ee622d4dbf9720ef0c62c823ddb3a54decb0` | Merge en `main` de AR0.2 (`fc6a8c993377698bf1db0ac0aa18a0e5196c1657`) y de esta sincronización, autorizado por el titular el 2026-10-10. Único conflicto: el final de este registro, donde se conservan las dos secciones |
+
+## AR0.3. Puntos de enganche para los crates `amaraza-*` (2026-10-10)
+
+### Punto de partida
+
+- `git fetch origin`: `main` == `origin/main` == `e9b9ee622d4dbf9720ef0c62c823ddb3a54decb0` (`git cat-file -t` → `commit`), con AR0.2 y el upstream v0.5.0 (ARS.1) integrados.
+- `git config user.email`: el correo del proyecto.
+- Rama `ar0.3-enganches`, creada desde `main`. El worktree de la sincronización es del revisor y no se usa.
+- `AGENTS.md` y `CLAUDE.md` del upstream no cambiaron con ARS.1.
+
+### Puesta al día tras ARS.1 (primer commit)
+
+- **Registro:** el SHA de `fc6a8c9`, con el dictamen de AR0.2, y el de `e9b9ee6` (el merge en `main` de ARS.1).
+- **`00-amaraza.md` §0.3:** las reglas propias van en ese archivo y en `01-amaraza-heredadas.md`.
+- **EQUIVALENCIAS:**
+  - D-12 pasa a **Original**: desde v0.5.0, el original tiene instancia única en Windows (`apps/pdfcraft/src/single_instance.rs`), y el fork pone el socket en `%LOCALAPPDATA%\AmarazaPDF`.
+  - A15 deja de ser una decisión pendiente; sale de la sección 4.
+  - D-09 cuenta 15 catálogos (`ar` e `it` son nuevos en v0.5.0).
+  - Resumen de las decisiones: 7 original, 5 nuevas, 2 descartadas.
+- **`01-amaraza-heredadas.md` A15:** la cubre el original; el código del fork no la reimplementa ni cambia la carpeta del socket.
+- **`PLAN.md` AR0.4:** a los 12 mensajes que dicen PdfCraft se suman los 3 nuevos de v0.5.0:
+  - el aviso de GPU (`apps/pdfcraft/src/main.rs`);
+  - el error de OCR "reinstall PdfCraft…" (`crates/ocr/src/lib.rs`);
+  - su aviso en la interfaz (`crates/ui-egui/src/ocr_ui.rs`).
+
+### Commits de AR0.3
+
+| Commit | Contenido | Puertas |
+|---|---|---|
+| *(siguiente)* | Puesta al día tras ARS.1 (solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde; `clippy -p amaraza-identity --all-targets` en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `panels_with_hundreds_of_items_stay_within_the_frame_budget` (`--test perf`). La prueba de rendimiento es intermitente con la máquina cargada: aislada, falló 3 veces y pasó 2, la última con las dos de `perf` en verde. El cambio solo toca documentación |
