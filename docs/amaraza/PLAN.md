@@ -96,6 +96,7 @@ Es obligatorio por la licencia de marca del upstream y debe estar hecho antes de
   - menús y capas.
 - Demostración: un comando "hola Amaraza" con API, herramienta y prueba de extremo a extremo (`AGENTS.md` §3).
 - Cada enganche se anota en la tabla de archivos del upstream modificados de `REGISTRO.md`.
+- Diseño propuesto: `docs/amaraza/adr/0001-puntos-de-enganche.md` (pendiente de la revisión D-13).
 
 ### AR0.4. Identidad en metadatos y textos (antes de AR1.2)
 - Desde `amaraza-identity`:

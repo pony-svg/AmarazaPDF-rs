@@ -560,4 +560,22 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 
 | Commit | Contenido | Puertas |
 |---|---|---|
-| *(siguiente)* | Puesta al día tras ARS.1 (solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde; `clippy -p amaraza-identity --all-targets` en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `panels_with_hundreds_of_items_stay_within_the_frame_budget` (`--test perf`). La prueba de rendimiento es intermitente con la máquina cargada: aislada, falló 3 veces y pasó 2, la última con las dos de `perf` en verde. El cambio solo toca documentación |
+| `0f2f47fabfe80692523d9086e6cc4a07cb1a9959` | Puesta al día tras ARS.1 (solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde; `clippy -p amaraza-identity --all-targets` en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `panels_with_hundreds_of_items_stay_within_the_frame_budget` (`--test perf`). La prueba de rendimiento es intermitente con la máquina cargada: aislada, falló 3 veces y pasó 2, la última con las dos de `perf` en verde. El cambio solo toca documentación. **Dictamen D-13 sobre `0f2f47f`: aprobado.** Puertas del revisor: 1852 pasadas, 1 fallida y 7 ignoradas, como la línea base; `perf` pasó en su ejecución |
+| *(siguiente)* | ADR-0001, puntos de enganche (solo diseño, para la revisión D-13; ver "ADR-0001 (segundo commit)") | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents` (`--test recovery`), la intermitente del Pendiente 9 de AR0.1, que aislada pasó 5 de 5 veces. El cambio solo toca documentación |
+
+### ADR-0001 (segundo commit)
+
+- `docs/amaraza/adr/0001-puntos-de-enganche.md`, solo diseño. La demostración no se implementa hasta que lo apruebe el revisor.
+- Cubre, sobre el código de v0.5.0:
+  - cómo registra un crate `amaraza-*` comandos, herramientas, menús y capas;
+  - los pasos del asistente de acciones como enganche, con el diseño del paso "Firmar" por lote (A5, A6 y RF-FIRMA-01);
+  - la demostración "hola Amaraza" como plan de verificación;
+  - las alternativas, los riesgos y cómo se revierte.
+- **Fase 1** (la demostración): 12 archivos del upstream, con 43 líneas insertadas y 4 modificadas, más `ATTRIBUTION.*` y `Cargo.lock`. La tabla línea a línea está en el §3 del ADR. Se copiará a "Archivos del upstream modificados" cuando se implemente.
+- Se comprobaron en archivos fuera del repositorio, con rustc 1.99:
+  - la concatenación `const` de `COMMANDS`: compila, clippy (`all` y `pedantic`) no da avisos y un `N` erróneo detiene la compilación;
+  - la guarda `if let` antes del `match` de `Step::arg_mut`: el préstamo `&mut` compila y su prueba pasa.
+- **Decisiones que se piden al titular** (§10 del ADR):
+  - crear `crates/amaraza-ext`, con dependencias internas (`Cargo.lock` cambia solo con el paquete interno);
+  - la política de las filas "sin traducir" en la capa de idiomas del fork;
+  - para la fase 2: `pdfcraft-sign` y, si AR1.2 lo exige, `rustls-cng`.
