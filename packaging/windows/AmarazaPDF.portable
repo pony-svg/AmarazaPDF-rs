@@ -1,0 +1,10 @@
+Amaraza PDF: modo portátil
+
+Mientras este archivo esté junto a AmarazaPDF.exe, Amaraza PDF guarda sus ajustes, registros,
+copias de recuperación y nuevos identificadores digitales en la carpeta AmarazaPDFData, a su lado,
+y no escribe nada en %APPDATA% ni en %LOCALAPPDATA%. Copia la carpeta entera para llevarte
+Amaraza PDF con sus ajustes.
+
+Borra este archivo para usar las carpetas normales del usuario (%APPDATA%\AmarazaPDF y
+%LOCALAPPDATA%\AmarazaPDF). Si AmarazaPDFData no se puede escribir (por ejemplo, en una unidad de
+solo lectura), Amaraza PDF lo avisa y usa las carpetas del usuario.

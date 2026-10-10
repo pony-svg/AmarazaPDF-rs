@@ -38,6 +38,11 @@ pub const PORTABLE_DATA_DIR: &str = "AmarazaPDFData";
 /// information.
 pub const MANUFACTURER: &str = "Amaraza";
 
+/// The MSI `UpgradeCode` (packaging/windows/pdfcraft.wxs): fixed for ever, so every Amaraza PDF
+/// installer upgrades the previous one. Never PdfCraft's or PDForte's: a shared code would let
+/// one app's installer remove the other.
+pub const MSI_UPGRADE_CODE: &str = "B023D7AF-E898-4990-9855-B539545099F3";
+
 /// The source repository.
 pub const REPOSITORY: &str = "https://github.com/pony-svg/AmarazaPDF-rs";
 
@@ -125,6 +130,49 @@ mod tests {
         let repo = REPOSITORY.strip_prefix("https://github.com/").unwrap_or_default();
         assert_eq!(LATEST_RELEASE_API, format!("https://api.github.com/repos/{repo}/releases/latest"));
         assert!(BASED_ON.contains(UPSTREAM_NAME), "{BASED_ON}");
+    }
+
+    fn repo_file(path: &str) -> String {
+        let full = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(path);
+        std::fs::read_to_string(&full).unwrap_or_else(|e| panic!("{}: {e}", full.display()))
+    }
+
+    #[test]
+    fn the_windows_installer_is_amarazas() {
+        let wxs = repo_file("packaging/windows/pdfcraft.wxs");
+        assert!(wxs.contains(&format!("UpgradeCode=\"{MSI_UPGRADE_CODE}\"")), "UpgradeCode");
+        assert!(wxs.contains(&format!("Name=\"{PRODUCT_NAME}\"")), "product name");
+        assert!(wxs.contains(&format!("Manufacturer=\"{MANUFACTURER}\"")), "manufacturer");
+        assert!(wxs.contains(&format!("Name=\"{EXE_NAME}\"")), "installed executable name");
+        assert!(wxs.contains(&format!("Id=\"INSTALLFOLDER\" Name=\"{FOLDER_NAME}\"")), "install folder");
+        assert!(wxs.contains(REPOSITORY), "Add/Remove Programs links");
+        // PdfCraft's identity: its UpgradeCode and component GUIDs, publisher, ProgId, registered
+        // application, links and install folder.
+        for upstream in [
+            "EA00C367-7270-4C50-9D8B-A7A5C88AD27F",
+            "E724C1C6-091F-4E21-A685-80D089FDBE21",
+            "DC028192-C233-4F99-9A77-ED458C60DF26",
+            "F6948627-32AB-4D78-8865-0FDF417CE442",
+            "Learning Machines",
+            "PdfCraft.Document",
+            "PdfCraft.CreatePdf",
+            "Software\\PdfCraft",
+            "getartcraft",
+            "discord",
+            "Name=\"PdfCraft\"",
+        ] {
+            assert!(!wxs.contains(upstream), "pdfcraft.wxs still has {upstream:?}");
+        }
+        let package = repo_file("packaging/windows/package.ps1");
+        assert!(
+            package.contains(EXE_NAME) && package.contains(PORTABLE_MARKERS[0]) && package.contains(LOGO_ICO_PATH.replace('/', "\\").as_str()),
+            "package.ps1"
+        );
+        assert!(!package.contains("'portable.txt'") && !package.contains("app-icon"), "package.ps1 still ships PdfCraft's marker or icon");
+        let marker = repo_file(&format!("packaging/windows/{}", PORTABLE_MARKERS[0]));
+        assert!(marker.contains(PORTABLE_DATA_DIR) && !marker.contains("PdfCraft"), "portable marker text");
+        let test_msi = repo_file("packaging/windows/test-msi.ps1");
+        assert!(test_msi.contains(MSI_UPGRADE_CODE) && test_msi.contains(&format!("'{MANUFACTURER}'")), "test-msi.ps1 checks the identity");
     }
 
     #[test]
