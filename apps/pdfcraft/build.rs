@@ -6,19 +6,22 @@
 //! into an error (for release builds).
 
 fn main() {
+    // Amaraza PDF identity (crates/amaraza-identity; a build script can't use it, so a test in
+    // src/main.rs keeps these values in step): name, publisher, installed file name and logo.
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=../../assets/app-icon/pdfcraft.ico");
+    println!("cargo:rerun-if-changed=../../docs/brand/amaraza-logo.ico");
     println!("cargo:rerun-if-env-changed=PDFCRAFT_REQUIRE_WINRES");
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
         return;
     }
     let mut res = winresource::WindowsResource::new();
-    res.set_icon("../../assets/app-icon/pdfcraft.ico")
-        .set("ProductName", "PdfCraft")
-        .set("FileDescription", "PdfCraft PDF workbench")
-        .set("LegalCopyright", "Copyright (c) the PdfCraft contributors. MIT OR Apache-2.0.")
-        .set("OriginalFilename", "pdfcraft.exe")
-        .set("InternalName", "pdfcraft");
+    res.set_icon("../../docs/brand/amaraza-logo.ico")
+        .set("ProductName", "Amaraza PDF")
+        .set("FileDescription", "Amaraza PDF")
+        .set("CompanyName", "Amaraza")
+        .set("LegalCopyright", "Amaraza PDF, basado en PdfCraft. Copyright (c) the PdfCraft contributors. MIT OR Apache-2.0.")
+        .set("OriginalFilename", "AmarazaPDF.exe")
+        .set("InternalName", "AmarazaPDF");
     if let Err(e) = res.compile() {
         if std::env::var_os("PDFCRAFT_REQUIRE_WINRES").is_some() {
             println!("cargo::error=embedding Windows resources failed: {e}");

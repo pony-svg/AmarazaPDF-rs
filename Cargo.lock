@@ -3453,6 +3453,7 @@ dependencies = [
 name = "pdfcraft"
 version = "0.4.0"
 dependencies = [
+ "amaraza-identity",
  "eframe",
  "egui",
  "fmv-macos-events",

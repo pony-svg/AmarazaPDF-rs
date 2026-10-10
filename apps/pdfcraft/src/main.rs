@@ -32,53 +32,23 @@ mod updates;
 /// Freedesktop app id: the `.desktop` file name and the hicolor icon name.
 const APP_ID: &str = "ai.storyteller.pdfcraft";
 
-/// The app icon (assets/app-icon/README.md). macOS gets the version on Apple's icon grid, with a
-/// transparent margin; Windows and Linux get the full-bleed tile.
-#[cfg(target_os = "macos")]
-const APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/pdfcraft-1024.png");
-#[cfg(not(target_os = "macos"))]
-const APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.pdfcraft.png");
+/// The app icon: the Amaraza PDF logo (amaraza_identity, docs/brand/), on every platform.
+const APP_ICON_PNG: &[u8] = amaraza_identity::LOGO_PNG;
 
 /// The app was called PrintCraft before; settings saved then are under this key.
 const LEGACY_STORAGE_KEY: &str = "printcraft";
 
 /// The settings folder: `app.ron` and the `logs` folder (docs/development.md). In portable mode
-/// it is `PdfCraftData` beside the executable (#157). eframe would otherwise derive it from the
-/// app id; keep it under "PdfCraft".
+/// it is `AmarazaPDFData` beside the executable (#157). eframe would otherwise derive it from the
+/// app id; keep it under "AmarazaPDF" (amaraza_identity::FOLDER_NAME).
+///
+/// Amaraza PDF never reads, moves or migrates another app's folders (PdfCraft, PrintCraft,
+/// PDForte), so upstream's one-time PrintCraft migration is gone (.agents/rules/00-amaraza.md §1).
 fn settings_dir() -> Option<std::path::PathBuf> {
     if let Some(dir) = pdfcraft_ui_egui::portable::data_dir() {
         return Some(dir.to_path_buf());
     }
-    eframe::storage_dir("PdfCraft")
-}
-
-/// Move the settings and crash-recovery folders of the app's former name, PrintCraft, to the new
-/// name once, so an upgrade keeps recent files, preferences and unsaved work. Best effort: a
-/// folder is left alone when the new one already exists or the move fails. A portable copy leaves
-/// the per-user folders alone.
-fn migrate_legacy_folders() {
-    if pdfcraft_ui_egui::portable::data_dir().is_some() {
-        return;
-    }
-    let mut moves = vec![(eframe::storage_dir("PrintCraft"), settings_dir())];
-    // Recovery lives in the settings folder except on Windows, where it is under %LOCALAPPDATA%.
-    if cfg!(windows) {
-        let local = std::env::var_os("LOCALAPPDATA").filter(|v| !v.is_empty()).map(std::path::PathBuf::from);
-        moves.push((local.as_ref().map(|d| d.join("PrintCraft")), local.map(|d| d.join("PdfCraft"))));
-    }
-    for (old, new) in moves {
-        let (Some(old), Some(new)) = (old, new) else { continue };
-        if !old.is_dir() || new.exists() {
-            continue;
-        }
-        if let Some(parent) = new.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        match std::fs::rename(&old, &new) {
-            Ok(()) => log::info!("moved {} to {}", old.display(), new.display()),
-            Err(e) => log::warn!("moving {} to {}: {e}", old.display(), new.display()),
-        }
-    }
+    eframe::storage_dir(amaraza_identity::FOLDER_NAME)
 }
 
 /// Desktop launchers (GNOME Files, KDE Dolphin…) only recognise an app as the default handler for a
@@ -140,7 +110,7 @@ fn main() -> eframe::Result {
     while let Some(a) = args.next() {
         match a.as_str() {
             "--version" => {
-                println!("pdfcraft {}", env!("CARGO_PKG_VERSION"));
+                println!("{} {}", amaraza_identity::PRODUCT_NAME, env!("CARGO_PKG_VERSION"));
                 return Ok(());
             }
             "--control" => control_file = args.next(),
@@ -153,13 +123,11 @@ fn main() -> eframe::Result {
         }
     }
     let integrated = cfg!(target_os = "macos");
-    migrate_legacy_folders();
     // The log file lives in the settings folder; opened after the arguments (so `--version` leaves
-    // no file behind) and after the PrintCraft migration (which a fresh folder would block).
-    // Records logged until now are written to it first.
+    // no file behind). Records logged until now are written to it first.
     if let (Some(logger), Some(dir)) = (logger, settings_dir()) {
         match logger.attach_dir(&dir.join("logs")) {
-            Ok(path) => log::info!("PdfCraft {}, log file {}", env!("CARGO_PKG_VERSION"), path.display()),
+            Ok(path) => log::info!("{} {}, log file {}", amaraza_identity::PRODUCT_NAME, env!("CARGO_PKG_VERSION"), path.display()),
             // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
             Err(e) => log::warn!("no log file: {e}"),
         }
@@ -174,7 +142,7 @@ fn main() -> eframe::Result {
     let started = Rc::new(Cell::new(false));
     let first = if choice == RendererChoice::Gl { eframe::Renderer::Glow } else { eframe::Renderer::Wgpu };
     let result = eframe::run_native(
-        "PdfCraft",
+        amaraza_identity::PRODUCT_NAME,
         native_options(integrated, first),
         app_creator(
             launch.clone(),
@@ -191,7 +159,7 @@ fn main() -> eframe::Result {
             // usually still works there, so that's better than quitting.
             log::error!("the GPU renderer (wgpu) didn't start: {e}. Starting with OpenGL instead; set PDFCRAFT_RENDERER=gl to skip wgpu.");
             eframe::run_native(
-                "PdfCraft",
+                amaraza_identity::PRODUCT_NAME,
                 native_options(integrated, eframe::Renderer::Glow),
                 app_creator(
                     launch,
@@ -233,7 +201,7 @@ fn retry_with_gl(choice: RendererChoice, app_started: bool) -> bool {
 /// The window and renderer settings for one run.
 fn native_options(integrated: bool, renderer: eframe::Renderer) -> eframe::NativeOptions {
     let mut viewport = egui::ViewportBuilder::default()
-        .with_title("PdfCraft")
+        .with_title(amaraza_identity::PRODUCT_NAME)
         .with_inner_size([1440.0, 920.0])
         .with_min_inner_size([820.0, 520.0])
         .with_drag_and_drop(true)
@@ -533,6 +501,31 @@ mod tests {
         assert_eq!(super::path_from_arg("https://example.com/report.pdf".to_string()), "https://example.com/report.pdf");
         assert_eq!(super::path_from_arg("file://server/share/a.pdf".to_string()), "file://server/share/a.pdf");
         assert_eq!(super::path_from_arg("file://".to_string()), "file://");
+    }
+
+    #[test]
+    fn settings_live_in_amarazas_own_folder() {
+        // Never PdfCraft's, PrintCraft's or PDForte's folders (.agents/rules/00-amaraza.md §1).
+        if pdfcraft_ui_egui::portable::data_dir().is_some() {
+            return;
+        }
+        let dir = super::settings_dir().expect("a per-user data folder");
+        let names: Vec<String> = dir.components().map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
+        assert!(names.iter().any(|n| n == amaraza_identity::FOLDER_NAME), "{}", dir.display());
+        assert!(!names.iter().any(|n| ["PdfCraft", "PrintCraft", "PDForte"].contains(&n.as_str())), "{}", dir.display());
+    }
+
+    #[test]
+    fn the_executable_carries_amarazas_name_publisher_and_icon() {
+        // build.rs can't use amaraza-identity: keep its Windows resources in step with it.
+        let build = include_str!("../build.rs");
+        for value in [amaraza_identity::PRODUCT_NAME, amaraza_identity::MANUFACTURER, amaraza_identity::EXE_NAME, amaraza_identity::LOGO_ICO_PATH] {
+            assert!(build.contains(value), "build.rs lacks {value:?}");
+        }
+        for upstream in ["PdfCraft PDF workbench", "\"pdfcraft.exe\"", "assets/app-icon/"] {
+            assert!(!build.contains(upstream), "build.rs still has {upstream:?}");
+        }
+        assert_eq!(super::APP_ICON_PNG, amaraza_identity::LOGO_PNG);
     }
 
     #[test]

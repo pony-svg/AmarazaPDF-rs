@@ -1,8 +1,11 @@
 //! Portable mode (#157): a marker file beside the executable ([`MARKERS`]) keeps the settings,
-//! log files, crash-recovery autosaves and new digital IDs in `<exe dir>/PdfCraftData`, so a
+//! log files, crash-recovery autosaves and new digital IDs in `<exe dir>/AmarazaPDFData`, so a
 //! portable copy (on a USB stick, say) writes nothing to `%APPDATA%` or `%LOCALAPPDATA%`. The
-//! Windows portable zip ships with `portable.txt`; the MSI doesn't. PhotoCraft uses the same
+//! Windows portable zip ships with `AmarazaPDF.portable`; the MSI doesn't. PhotoCraft uses the same
 //! scheme (`photocraft/apps/photocraft/src/app_dirs.rs`).
+//!
+//! The marker and the folder are Amaraza PDF's own (amaraza_identity), never PdfCraft's
+//! `portable.txt`, `PdfCraft.portable` or `PdfCraftData`.
 //!
 //! If that folder can't be written (read-only medium, Program Files), portable mode stays off, the
 //! per-user folders are used and the app says why.
@@ -10,15 +13,15 @@
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-/// Files beside the executable that switch on portable mode (either one; contents are ignored).
-pub const MARKERS: [&str; 2] = ["portable.txt", "PdfCraft.portable"];
+/// Files beside the executable that switch on portable mode (any one; contents are ignored).
+pub const MARKERS: &[&str] = amaraza_identity::PORTABLE_MARKERS;
 /// The data folder created beside the executable in portable mode.
-pub const DATA_DIR: &str = "PdfCraftData";
+pub const DATA_DIR: &str = amaraza_identity::PORTABLE_DATA_DIR;
 
 /// The outcome of looking for a portable marker.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Portable {
-    /// `<exe dir>/PdfCraftData` when portable mode is on, `None` otherwise.
+    /// `<exe dir>/AmarazaPDFData` when portable mode is on, `None` otherwise.
     pub dir: Option<PathBuf>,
     /// Set when a marker was found but its data folder can't be written.
     pub unwritable: Option<Unwritable>,
@@ -132,7 +135,7 @@ mod tests {
     #[test]
     fn an_existing_data_folder_is_reused() {
         let exe = temp("reuse");
-        std::fs::write(exe.join("portable.txt"), b"PdfCraft portable mode").unwrap();
+        std::fs::write(exe.join(MARKERS[0]), b"Amaraza PDF portable mode").unwrap();
         std::fs::create_dir_all(exe.join(DATA_DIR)).unwrap();
         std::fs::write(exe.join(DATA_DIR).join("app.ron"), b"()").unwrap();
         assert_eq!(resolve(Some(&exe)).dir, Some(exe.join(DATA_DIR)));
@@ -143,7 +146,7 @@ mod tests {
     #[test]
     fn a_marker_folder_is_not_a_marker() {
         let exe = temp("dir-marker");
-        std::fs::create_dir_all(exe.join("portable.txt")).unwrap();
+        std::fs::create_dir_all(exe.join(MARKERS[0])).unwrap();
         assert_eq!(resolve(Some(&exe)), Portable::default());
         let _ = std::fs::remove_dir_all(&exe);
     }
@@ -151,13 +154,13 @@ mod tests {
     #[test]
     fn unwritable_data_folder_turns_portable_mode_off_and_says_why() {
         let exe = temp("unwritable");
-        std::fs::write(exe.join("portable.txt"), b"").unwrap();
+        std::fs::write(exe.join(MARKERS[0]), b"").unwrap();
         // A file where the data folder should go: it can't be created, on every platform.
         std::fs::write(exe.join(DATA_DIR), b"in the way").unwrap();
         let p = resolve(Some(&exe));
         assert_eq!(p.dir, None);
         let unwritable = p.unwritable.unwrap();
-        assert_eq!(unwritable.marker, exe.join("portable.txt"));
+        assert_eq!(unwritable.marker, exe.join(MARKERS[0]));
         assert_eq!(unwritable.folder, exe.join(DATA_DIR));
         let message = unwritable.to_string();
         assert!(message.contains("portable mode is off") && message.contains("can't be written"), "{message}");
@@ -167,5 +170,20 @@ mod tests {
     #[test]
     fn no_exe_dir_leaves_portable_mode_off() {
         assert_eq!(resolve(None), Portable::default());
+    }
+
+    #[test]
+    fn pdfcraft_portable_markers_and_data_are_left_alone() {
+        // A PdfCraft portable copy unpacked into the same folder must not turn Amaraza PDF portable,
+        // and Amaraza PDF never uses PdfCraft's data folder (.agents/rules/00-amaraza.md §1).
+        let exe = temp("pdfcraft");
+        for marker in ["portable.txt", "PdfCraft.portable"] {
+            std::fs::write(exe.join(marker), b"").unwrap();
+        }
+        std::fs::create_dir_all(exe.join("PdfCraftData")).unwrap();
+        assert_eq!(resolve(Some(&exe)), Portable::default());
+        assert!(!exe.join(DATA_DIR).exists());
+        assert_eq!(std::fs::read_dir(exe.join("PdfCraftData")).unwrap().count(), 0, "PdfCraft's folder is untouched");
+        let _ = std::fs::remove_dir_all(&exe);
     }
 }
