@@ -5,8 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * *" # nightly fuzzing
+  # Amaraza PDF fork: no scheduled runs (docs/amaraza/PLAN.md, AR0.1).
 
 env:
   CARGO_TERM_COLOR: always
