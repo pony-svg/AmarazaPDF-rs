@@ -36,7 +36,7 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `crates/ui-egui/src/sign_ui.rs` | Solo el comentario de la carpeta de identificadores digitales | Exactitud | AR0.1 |
 | `crates/ui-egui/tests/accessibility.rs`, `crates/ui-egui/tests/viewer.rs` | Título esperado "… — Amaraza PDF" | Ídem | AR0.1 |
 | `packaging/windows/pdfcraft.wxs` | `Name`/`Title` "Amaraza PDF", `Manufacturer` "Amaraza", **`UpgradeCode` nuevo** (`B023D7AF-E898-4990-9855-B539545099F3`) y GUID nuevos de los 3 componentes con GUID fijo; el `.exe` se instala como `AmarazaPDF.exe` en `Program Files\AmarazaPDF`; App Paths, ProgId `AmarazaPDF.Document`, `Software\AmarazaPDF\Capabilities`, `RegisteredApplications`, menú contextual `AmarazaPDF.CreatePdf` ("Crear PDF con Amaraza PDF…"), accesos directos y enlaces de Agregar o quitar programas del fork. Los Id internos de WiX (`PdfcraftExe`…) no cambian | Identificadores propios del instalador | AR0.1 |
-| `packaging/windows/package.ps1` | Artefactos `AmarazaPDF-<versión>-windows-<arch>.msi` y `-portable.zip`; el zip lleva `AmarazaPDF.exe` y el marcador `AmarazaPDF.portable`; icono `docsrandmaraza-logo.ico` | Ídem | AR0.1 |
+| `packaging/windows/package.ps1` | Artefactos `AmarazaPDF-<versión>-windows-<arch>.msi` y `-portable.zip`; el zip lleva `AmarazaPDF.exe` y el marcador `AmarazaPDF.portable`; icono `docs\brand\amaraza-logo.ico` | Ídem | AR0.1 |
 | `packaging/windows/portable.txt` → `packaging/windows/AmarazaPDF.portable` | **Renombrado**; texto en español con las carpetas de Amaraza | Marcador portátil propio | AR0.1 |
 | `packaging/windows/test-msi.ps1` | Comprueba fabricante "Amaraza", nombre del producto, `UpgradeCode`, `AmarazaPDF.exe`, carpeta de instalación y el menú contextual nuevo | Verificar la identidad en el MSI compilado | AR0.1 |
 | `packaging/windows/sign.ps1` | Descripción y URL de la firma Authenticode: Amaraza PDF y el repositorio del fork | Ídem (la firma no se usa en la prueba) | AR0.1 |
@@ -230,9 +230,73 @@ Cada commit pasa las cuatro puertas (`cargo fmt --check`, `cargo clippy --worksp
 | `fca0f5058fd11a70046e54087fa4dc8a5ae25e21` | Instalador de Windows y zip portátil con la identidad Amaraza (`UpgradeCode` y GUID nuevos, `AmarazaPDF.exe`, marcador `AmarazaPDF.portable`); `MSI_UPGRADE_CODE` y una prueba de coherencia en `amaraza-identity` | fmt 0, clippy 0, assets ok; pruebas: 1572 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; los scripts de PowerShell se analizan sin errores y el XML de WiX es válido. **El MSI no se compiló**: WiX no está instalado en el equipo (instalarlo requiere autorización) |
 | `dfce1d4b646f5ec9e8db93166a56df70ab954e5e` | `APP_ID` = `io.github.pony_svg.AmarazaPDF` y empaquetado de Linux, Flatpak, macOS y FreeBSD adaptado; fuera el icono de PdfCraft (`assets/app-icon/`), `packaging/icons.sh` y el fondo del DMG; prueba de coherencia del empaquetado en `amaraza-identity` | fmt 0, clippy 0, assets ok (235 activos); pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; `bash -n` sin errores en los 4 scripts, YAML y XML válidos. **No se empaquetó en esas plataformas** (no hay Linux, macOS ni FreeBSD en este equipo) |
 | `538746aad3c33d40ad6076fb4b4abe3d4e0d600e` | CI: fuera `release.yml` y los `schedule` de `ci.yml` y `windows-arm64.yml`; la prueba ARM64 usa los nombres de Amaraza. Actions no se activa | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; YAML válido |
-| *(siguiente)* | README propio, notas en `docs/releasing.md` y `docs/development.md`, comentarios sin la marca | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas |
+| `cab1c1bd1330ab64d2949085a790e118d4738d47` | README propio, notas en `docs/releasing.md` y `docs/development.md`, comentarios sin la marca | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas |
+| *(siguiente)* | Comprobación final y este registro (solo documentación) | Puertas finales sobre `cab1c1bd1330ab64d2949085a790e118d4738d47` con `CARGO_BUILD_JOBS=6`: fmt 0 (4 s), clippy 0 (2 s), assets ok (1 s, 235 activos); pruebas (103 s): **1573 pasadas, 10 fallidas, 6 ignoradas**, en 129 binarios. Los 10 fallos son exactamente los de la línea base; las pruebas de rendimiento pasan. Con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una ejecución completa anterior tuvo además el fallo intermitente de `--test recovery` (ver Pendiente) |
 
 **Nota sobre las pruebas de rendimiento** (`pdfcraft-ui-egui --test perf`: `scrolling_a_500_page_document_stays_within_the_frame_budget` y `panels_with_hundreds_of_items_stay_within_the_frame_budget`):
 - Miden el tiempo medio por fotograma contra un presupuesto fijo de 40 ms. En Windows no pueden leer la carga del sistema, así que nunca se saltan.
 - En la línea base pasaron (7,4 s). Desde las 20:00 fallan siempre, también aisladas (dos repeticiones: unos 60 ms por fotograma). En ese momento el portátil funcionaba con batería (26 %, descargándose, plan "Equilibrado").
 - El crate de identidad no lo usa todavía ningún otro crate, así que no puede afectarlas. Se tratan como dependientes del entorno y se repiten con el equipo conectado a la corriente antes de cerrar AR0.1.
+- Resultado: pasaron en todas las ejecuciones completas siguientes (enlaces, marca, identidad de la app, instalador, empaquetado, CI, documentación y puertas finales), con el equipo ya cargando.
+
+### Comprobación final (sobre `cab1c1bd1330ab64d2949085a790e118d4738d47`)
+
+**Búsqueda de la marca** (el mismo comando del inventario inicial):
+
+```
+grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir=target --exclude-dir=.git .
+```
+
+- Antes: 302 líneas en 53 archivos, y 22 archivos rastreados con la marca en el nombre.
+- Después: **35 líneas en 12 archivos sin contar este registro** (64 en 13 contándolo, medido antes de redactar esta sección), **y ningún nombre de archivo** (`git ls-files | grep -iE "artcraft|storyteller"` no devuelve nada). Ninguna línea es un logotipo, un enlace al sitio o a la comunidad de ArtCraft, ni un identificador del upstream.
+
+| Archivo | Líneas | Qué queda | Clase |
+|---|---:|---|---|
+| `LICENSE-MIT` | 1 | Copyright "ArtCraft Team and the PdfCraft contributors" | Permitida por el plan (copyright) |
+| `NOTICE` | 3 | Atribución "Basado en PdfCraft, del equipo ArtCraft", el copyright y la frase de que las marcas ArtCraft no forman parte de Amaraza PDF | Permitida (copyright y atribución); la tercera es una declaración de no afiliación en texto plano |
+| `README.md` | 2 | La atribución en texto plano y la frase de no afiliación | Permitida (atribución) y declaración de no afiliación |
+| `crates/amaraza-identity/src/lib.rs` | 5 | La constante `BASED_ON` (la atribución) y las listas de cadenas prohibidas de sus pruebas | Atribución y guardas de prueba |
+| `docs/brand/LICENSE-brand.txt` | 3 | El apartado "Relación con PdfCraft" de la licencia aprobada por el titular | Texto aprobado por el titular (no afiliación) |
+| `crates/engine/src/links.rs`, `crates/ui-egui/tests/links.rs`, `xtask/src/assets.rs` | 1 + 2 + 2 | Pruebas que fallan si vuelve un enlace, una etiqueta o un activo de la marca | Guardas de prueba: necesitan la palabra literal |
+| `AGENTS.md` | 1 | La excepción de marca del upstream (§1.2) | Archivo del upstream que las reglas del fork prohíben editar (§0.3); §2 de las reglas la sustituye |
+| `ROADMAP.md` | 1 | Entrada histórica del upstream: "bundle id `ai.storyteller.pdfcraft`" (2026-10-07) | Historial del upstream; las reglas (§2) piden no tocar `ROADMAP.md` sin una tarea que lo pida |
+| `.agents/rules/00-amaraza.md`, `docs/amaraza/PLAN.md`, `docs/amaraza/REGISTRO.md` | 6 + 8 + el registro | Las reglas, el plan y este registro, que tratan de la marca | Documentos propios del fork |
+
+**Binario:** `cargo build -p pdfcraft -p pdfcraft-cli`; búsqueda de cadenas en `target/debug/pdfcraft.exe`:
+- `getartcraft` 0, `discord.gg` 0, `aria-label="ArtCraft"` 0, `artcraft-mark` 0, `storyteller` 0, `Learning Machines` 0, `storytold/pdfcraft/releases` 0.
+- `ArtCraft` 1, que es la atribución "Basado en PdfCraft, del equipo ArtCraft" del diálogo "Acerca de".
+- Propiedades del `.exe`: `ProductName` y `FileDescription` "Amaraza PDF", `CompanyName` "Amaraza", `OriginalFilename` `AmarazaPDF.exe`, `InternalName` `AmarazaPDF`, `LegalCopyright` "Amaraza PDF, basado en PdfCraft. Copyright (c) the PdfCraft contributors. MIT OR Apache-2.0.".
+- `pdfcraft.exe --version` → `Amaraza PDF 0.4.0`.
+
+### Pendiente (fuera del alcance de AR0.1 o sin poder comprobarse aquí)
+
+1. **Textos heredados que nombran PdfCraft:** 12 mensajes de la interfaz, con sus traducciones en 12 catálogos. Por ejemplo, "PdfCraft {v} is available.", "PdfCraft didn't shut down normally…", "Files you open in PdfCraft appear here…", los avisos de formularios XFA y de envío de formularios, y los del almacén de certificados. Lista completa: las entradas de `crates/ui-egui/src/i18n/es.tsv` cuya fuente contiene "PdfCraft", salvo "PdfCraft on GitHub", que es el enlace de atribución. Es trabajo de traducción, una tarea aparte (§8).
+2. **Metadatos que siguen diciendo PdfCraft** (fuera del alcance que eligió el titular): el `Producer` de los PDF creados (`crates/create/src/lib.rs`), el nombre de la app en las firmas (`crates/sign/src/pdf.rs`), el autor por defecto de los comentarios (`crates/automation/src/comments.rs`), el título de los trabajos de impresión (`crates/print/src/spool.rs`) y el nombre del servidor MCP (`crates/automation/src/mcp.rs`).
+3. **Capturas de `docs/images/`:** muestran la interfaz de PdfCraft con su botón de Discord. Ya no las usa el README. Para regenerarlas hace falta `cargo xtask screenshots` (necesita Chrome para el PDF de demostración).
+4. **Nombres de binario:** en Linux, macOS y FreeBSD el ejecutable sigue siendo `pdfcraft`, y la CLI es `pdfcraft-cli` en todas las plataformas.
+5. **Instalador sin compilar:** WiX v5 no está instalado. El MSI y su `test-msi.ps1` no se han ejecutado.
+6. **Empaquetado de Linux, Flatpak, macOS y FreeBSD:** no se ha probado (solo `bash -n`, YAML y XML).
+7. **Defecto del upstream `no_tool_escapes_the_root`** (escritura fuera de `--root` a través de un enlace simbólico en Windows): el titular decide si se corrige en el fork o se comunica al upstream.
+8. **9 pruebas de interfaz dependen del idioma de Windows:** se podría fijar el idioma en sus arneses (tarea propia del fork) o comunicarlo al upstream.
+9. **Prueba intermitente** `saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents` (`--test recovery`): falló una vez en la penúltima ejecución completa y pasó en las otras 10 ejecuciones completas y en 8 repeticiones aisladas. Usa su propia carpeta temporal, no la carpeta de recuperación que cambia AR0.1.
+10. `LEGACY_STORAGE_KEY` (`"printcraft"`) sigue leyendo esa clave dentro del propio `app.ron` de Amaraza. Nunca existe y no toca carpetas de otra app.
+11. Un comentario de `.github/workflows/ci.yml` todavía menciona `release.yml`, y su trabajo de fuzzing conserva la condición `schedule` (inofensiva sin `schedule`).
+
+### Evidencia que debe aportar el titular
+
+- **App real (Windows):** `cargo run -p pdfcraft` (o el `.exe` instalado) y una captura con la barra de título de Windows visible que muestre:
+  - el título "Amaraza PDF" y, con un documento abierto, "documento.pdf — Amaraza PDF";
+  - el logotipo Amaraza en la barra de tareas y en Alt+Tab;
+  - la pantalla de inicio sin la tarjeta de comunidad, y la barra superior sin el botón de Discord;
+  - Ayuda ▸ "Acerca de Amaraza PDF" con el logotipo, "Basado en PdfCraft, del equipo ArtCraft" y los dos enlaces;
+  - Ayuda ▸ "Amaraza PDF en GitHub", que abre el repositorio del fork;
+  - Ayuda ▸ "Buscar actualizaciones…", que consulta las releases del fork (hoy no hay ninguna).
+- **Carpetas:** después de usar la app existen `%APPDATA%\AmarazaPDF` y, tras editar un documento, `%LOCALAPPDATA%\AmarazaPDF\Recovery`; no se crea ni se modifica nada en `%APPDATA%\PdfCraft` ni en `%LOCALAPPDATA%\PdfCraft`. Con un archivo `AmarazaPDF.portable` junto al `.exe`, todo va a `AmarazaPDFData`.
+- **Propiedades del `.exe`** (clic derecho ▸ Propiedades ▸ Detalles): nombre del producto "Amaraza PDF", compañía "Amaraza", nombre de archivo original `AmarazaPDF.exe` y el icono Amaraza en el Explorador.
+- **Instalador** (requiere WiX v5 y autorización para instalarlo): `pwsh packaging/windows/package.ps1 -Arch x64` debe producir `AmarazaPDF-0.4.0-windows-x64.msi`, y `test-msi.ps1` debe pasar. Al instalarlo, comprobar:
+  - "Amaraza PDF" en Agregar o quitar programas, con el fabricante "Amaraza" y los enlaces al repositorio del fork;
+  - `C:\Program Files\AmarazaPDF\AmarazaPDF.exe`;
+  - los accesos directos "Amaraza PDF" en el menú Inicio y el escritorio;
+  - "Abrir con ▸ Amaraza PDF" en un PDF, y "Crear PDF con Amaraza PDF…" en una imagen;
+  - que un PdfCraft instalado en paralelo **no** se desinstala (`UpgradeCode` distinto);
+  - que el zip portátil trae `AmarazaPDF.exe` y `AmarazaPDF.portable`.
