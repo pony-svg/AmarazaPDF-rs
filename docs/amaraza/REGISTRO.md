@@ -232,7 +232,8 @@ Cada commit pasa las cuatro puertas (`cargo fmt --check`, `cargo clippy --worksp
 | `27d294b4f705c614b0f43b14fa67ef467d75d7dd` | CI: fuera `release.yml` y los `schedule` de `ci.yml` y `windows-arm64.yml`; la prueba ARM64 usa los nombres de Amaraza. Actions no se activa | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; YAML válido |
 | `cb99da959ccf3a77278d8e467aa0130761dd17e5` | README propio, notas en `docs/releasing.md` y `docs/development.md`, comentarios sin la marca | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas |
 | `dbef6b626824382ea96d396f891ebaea6e3ad121` | Comprobación final y este registro (solo documentación) | Puertas finales sobre `cb99da959ccf3a77278d8e467aa0130761dd17e5` con `CARGO_BUILD_JOBS=6`: fmt 0 (4 s), clippy 0 (2 s), assets ok (1 s, 235 activos); pruebas (103 s): **1573 pasadas, 10 fallidas, 6 ignoradas**, en 129 binarios. Los 10 fallos son exactamente los de la línea base; las pruebas de rendimiento pasan. Con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una ejecución completa anterior tuvo además el fallo intermitente de `--test recovery` (ver Pendiente) |
-| *(siguiente)* | Corrección de autoría: los 11 commits de `origin/main..ar0.1-identidad` reescritos con el autor del proyecto (ver la sección siguiente) y este registro con los SHA nuevos | Sin cambios de contenido: `git diff` entre el extremo anterior y el nuevo, vacío |
+| `2f219c37c4734a00291dadf8ff186335b068d296` | Corrección de autoría: los 11 commits de `origin/main..ar0.1-identidad` reescritos con el autor del proyecto (ver "Corrección de autoría") y este registro con los SHA nuevos | Sin cambios de contenido: `git diff` entre el extremo anterior y el nuevo, vacío; fmt 0, clippy 0, assets ok |
+| `6fcbb19089fc5deca6395e5cb1cc46fa316bae9b` | Reglas: §6 (reescribir solo commits locales no subidos y con autorización expresa) y §7.1 (comprobar `git config user.email` antes del primer commit) | Solo documentación; fmt 0, assets ok |
 
 **Nota sobre las pruebas de rendimiento** (`pdfcraft-ui-egui --test perf`: `scrolling_a_500_page_document_stays_within_the_frame_budget` y `panels_with_hundreds_of_items_stay_within_the_frame_budget`):
 - Miden el tiempo medio por fotograma contra un presupuesto fijo de 40 ms. En Windows no pueden leer la carga del sistema, así que nunca se saltan.
@@ -301,6 +302,19 @@ grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir
   - "Abrir con ▸ Amaraza PDF" en un PDF, y "Crear PDF con Amaraza PDF…" en una imagen;
   - que un PdfCraft instalado en paralelo **no** se desinstala (`UpgradeCode` distinto);
   - que el zip portátil trae `AmarazaPDF.exe` y `AmarazaPDF.portable`.
+
+### Revisión D-13 y evidencia del titular (2026-10-09)
+
+- **Revisión D-13** de AR0.0 y AR0.1 (sesión distinta de la que implementó): aprobada, con una corrección obligatoria antes del push (la autoría; ver "Corrección de autoría").
+- **Publicación:** el titular subió `main` a `origin`. Al empezar AR0.2 se comprobó que `main` == `origin/main` == `dbfd8249258b790f5f48d000ac1c0ea1d3b84f70` y que `git config user.email` es el correo del proyecto.
+- **Evidencia real del titular** (captura de la aplicación en Windows, tomada por el titular):
+  - título de la ventana "… — Amaraza PDF", con el icono de Amaraza;
+  - sin el botón de Discord;
+  - menú Ayuda con "Amaraza PDF en GitHub", "PdfCraft en GitHub" (la traducción al español de `help.upstream`), "Buscar actualizaciones…" y "Acerca de Amaraza PDF".
+- **Carpetas:** se creó `%APPDATA%\AmarazaPDF`, y no hay carpetas de PdfCraft ni de PrintCraft.
+- **Pendiente de evidencia:**
+  - la captura del diálogo "Acerca de";
+  - el MSI, que necesita WiX v5 (no instalado).
 
 ## Corrección de autoría (2026-10-09)
 
