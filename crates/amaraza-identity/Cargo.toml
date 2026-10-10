@@ -1,0 +1,12 @@
+[package]
+name = "amaraza-identity"
+description = "Amaraza PDF identity: product name, app id, data folders, portable markers and web addresses"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]

@@ -10,7 +10,8 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 
 | Archivo | Cambio | Motivo | Tarea |
 |---|---|---|---|
-| *(ninguno todavía)* | | | |
+| `Cargo.lock` | Entrada local `amaraza-identity` (y su uso por los crates que la llaman); sin dependencias de terceros | Crate de identidad del fork | AR0.1 |
+| `xtask/src/layers.rs` | `amaraza-identity` registrado como `Standalone(0)` en `TABLE` | La comprobación de capas exige registrar cada crate | AR0.1 |
 
 ## AR0.0. Entorno y línea base (2026-10-09)
 
@@ -164,3 +165,17 @@ Archivos rastreados cuyo **nombre** contiene la marca (`git ls-files | grep -iE 
 - `packaging/linux/ai.storyteller.pdfcraft.{desktop,metainfo.xml.in,mime.xml}` y `packaging/linux/flatpak/ai.storyteller.pdfcraft{,.bundle}.yml` (5).
 
 Además, la identidad de PdfCraft aparece sin la palabra "ArtCraft": el título de la ventana y el nombre de la app ("PdfCraft"), `eframe::storage_dir("PdfCraft")`, `%LOCALAPPDATA%\PdfCraft\Recovery`, los marcadores portátiles `portable.txt` y `PdfCraft.portable`, la carpeta `PdfCraftData`, `migrate_legacy_folders` (que mueve las carpetas de PrintCraft), el icono `assets/app-icon/pdfcraft.*`, los recursos del `.exe` (`apps/pdfcraft/build.rs`), la comprobación de actualizaciones contra `storytold/pdfcraft` (`apps/pdfcraft/src/updates.rs`) y el instalador (`Name`, `Manufacturer`, `UpgradeCode`, GUID de componentes, ProgId `PdfCraft.Document`, `RegisteredApplications`, accesos directos).
+
+### Commits de AR0.1
+
+Cada commit pasa las cuatro puertas (`cargo fmt --check`, `cargo clippy --workspace -- -D warnings`, `cargo test --workspace --no-fail-fast` y `cargo xtask assets`). Los fallos de prueba se comparan con la línea base de AR0.0.
+
+| Commit | Contenido | Puertas |
+|---|---|---|
+| `36312494802acec1e78514121ed0fc2d31063ebb` | Decisiones del titular e inventario inicial (solo documentación) | fmt 0, clippy 0, assets ok; las pruebas no cambian respecto a la línea base |
+| *(siguiente)* | Crate `crates/amaraza-identity` (constantes y 3 pruebas), registrado en `xtask/src/layers.rs` | fmt 0, clippy 0, assets ok; pruebas: 1564 pasadas, 12 fallidas, 6 ignoradas. Son los 10 fallos de la línea base más los 2 de rendimiento (ver la nota) |
+
+**Nota sobre las pruebas de rendimiento** (`pdfcraft-ui-egui --test perf`: `scrolling_a_500_page_document_stays_within_the_frame_budget` y `panels_with_hundreds_of_items_stay_within_the_frame_budget`):
+- Miden el tiempo medio por fotograma contra un presupuesto fijo de 40 ms. En Windows no pueden leer la carga del sistema, así que nunca se saltan.
+- En la línea base pasaron (7,4 s). Desde las 20:00 fallan siempre, también aisladas (dos repeticiones: unos 60 ms por fotograma). En ese momento el portátil funcionaba con batería (26 %, descargándose, plan "Equilibrado").
+- El crate de identidad no lo usa todavía ningún otro crate, así que no puede afectarlas. Se tratan como dependientes del entorno y se repiten con el equipo conectado a la corriente antes de cerrar AR0.1.
