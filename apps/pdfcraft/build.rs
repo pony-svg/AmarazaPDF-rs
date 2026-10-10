@@ -5,17 +5,22 @@
 //! cross-compile from macOS or Linux still links, unless `PDFCRAFT_REQUIRE_WINRES=1` turns it
 //! into an error (for release builds).
 
+#[path = "src/windows_manifest.rs"]
+mod windows_manifest;
+
 fn main() {
     // Amaraza PDF identity (crates/amaraza-identity; a build script can't use it, so a test in
     // src/main.rs keeps these values in step): name, publisher, installed file name and logo.
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=../../docs/brand/amaraza-logo.ico");
+    println!("cargo:rerun-if-changed=src/windows_manifest.rs");
     println!("cargo:rerun-if-env-changed=PDFCRAFT_REQUIRE_WINRES");
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
         return;
     }
     let mut res = winresource::WindowsResource::new();
     res.set_icon("../../docs/brand/amaraza-logo.ico")
+        .set_manifest(windows_manifest::WINDOWS_MANIFEST)
         .set("ProductName", "Amaraza PDF")
         .set("FileDescription", "Amaraza PDF")
         .set("CompanyName", "Amaraza")

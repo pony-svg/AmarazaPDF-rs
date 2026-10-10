@@ -5,7 +5,7 @@
 .DESCRIPTION
   Produces, in $env:DIST (default: dist/release):
     AmarazaPDF-<version>-windows-<arch>.msi            per-machine installer (WiX v5)
-    AmarazaPDF-<version>-windows-<arch>-portable.zip   AmarazaPDF.exe + pdfcraft-cli.exe + AmarazaPDF.portable
+    AmarazaPDF-<version>-windows-<arch>-portable.zip   AmarazaPDF.exe + pdfcraft-cli.exe + models\ + AmarazaPDF.portable
 
   Cargo builds pdfcraft.exe; both packages install it as AmarazaPDF.exe (crates/amaraza-identity).
 
@@ -13,7 +13,7 @@
   zip needs the Visual C++ redistributable. Signing is delegated to sign.ps1 (skipped with a
   warning when no signing secrets are set).
 
-  Needs: Rust (MSVC toolchain + the target), the Windows SDK (rc.exe, signtool.exe),
+  Needs: Rust (MSVC toolchain + the target), curl and the network (the OCR models), the Windows SDK (rc.exe, signtool.exe),
   and WiX v5: dotnet tool install --global wix --version 5.0.2
 
 .EXAMPLE
@@ -92,12 +92,24 @@ Copy-Item (Join-Path $Bin 'pdfcraft.exe'), (Join-Path $Bin 'pdfcraft-cli.exe') $
 
 & (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'pdfcraft.exe') (Join-Path $Stage 'pdfcraft-cli.exe')
 
+# OCR models (#103): the app looks in models\ beside pdfcraft.exe. `cargo xtask models` fetches every
+# ATTRIBUTION.toml `kind = "model"` file (verified by SHA-256) with its licence and ATTRIBUTION.txt;
+# the MSI and the portable zip take the whole folder, so new models ship without naming them here.
+$Models = Join-Path $Stage 'models'
+New-Item -ItemType Directory -Force -Path $Models | Out-Null
+Push-Location $Root
+try { Invoke-Native 'cargo xtask models' { cargo xtask models $Models } } finally { Pop-Location }
+Remove-Item -Force (Join-Path $Models '*.part') -ErrorAction SilentlyContinue
+if (-not (Test-Path (Join-Path $Models 'ATTRIBUTION.txt')) -or -not (Get-ChildItem (Join-Path $Models '*.LICENCE.txt'))) {
+  throw "no OCR models in $Models after cargo xtask models"
+}
+
 # ---- MSI ---------------------------------------------------------------------------------------
 $Msi = Join-Path $Dist "AmarazaPDF-$Version-windows-$Arch.msi"
 Invoke-Native 'wix build' {
   wix build (Join-Path $PSScriptRoot 'pdfcraft.wxs') -arch $Arch `
     (Join-Path $PSScriptRoot 'installer-ui.wxs') `
-    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'docs\brand\amaraza-logo.ico')" `
+    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "ModelsDir=$Models" -d "IconPath=$(Join-Path $Root 'docs\brand\amaraza-logo.ico')" `
     -o $Msi
 }
 # Inspect the built MSI, not just the XML, before signing/publishing it. In a child process, so
@@ -113,6 +125,7 @@ Remove-Item -Recurse -Force $Portable -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Portable | Out-Null
 Copy-Item (Join-Path $Stage 'pdfcraft.exe') (Join-Path $Portable 'AmarazaPDF.exe')
 Copy-Item (Join-Path $Stage 'pdfcraft-cli.exe') $Portable
+Copy-Item -Recurse $Models (Join-Path $Portable 'models')
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE') {
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }

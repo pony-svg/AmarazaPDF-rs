@@ -62,6 +62,13 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `xtask/src/assets.rs` | `BRAND_LICENCE` = `LicenseRef-Amaraza-Trademark`; su prueba usa el logotipo Amaraza; nueva prueba que rechaza `LicenseRef-Storyteller-Trademark` | Que una sincronización no pueda volver a traer marcas ArtCraft | AR0.1 |
 | `xtask/src/screenshots.rs` | Sin el texto de la marca ArtCraft en la pantalla de inicio | Ya no aparece | AR0.1 |
 | `NOTICE` | Cabecera de Amaraza PDF con la atribución, aviso de archivos modificados (Apache-2.0 §4(b)) y marca Amaraza en lugar de la ArtCraft | Licencia Apache-2.0 y de marca | AR0.1 |
+| `apps/pdfcraft/src/single_instance.rs` (nuevo en el upstream) | Socket de la instancia única en la carpeta de Amaraza PDF (`amaraza_identity::FOLDER_NAME`) en lugar de `%LOCALAPPDATA%\PdfCraft`; prueba `the_socket_is_in_amaraza_pdfs_own_folder` | No tocar carpetas de PdfCraft ni entregar archivos a un PdfCraft abierto | ARS.1 |
+| `apps/pdfcraft-cli/build.rs` (nuevo en el upstream), `apps/pdfcraft-cli/tests/version_resource.rs` | Recursos de `pdfcraft-cli.exe`: `ProductName` "Amaraza PDF", `FileDescription` "Amaraza PDF, herramienta de línea de comandos", `CompanyName` "Amaraza" y el copyright de `pdfcraft.exe`; el nombre del archivo no cambia | Identidad (lo que muestra el Explorador) | ARS.1 |
+| `apps/pdfcraft/build.rs`, `apps/pdfcraft/src/updates.rs`, `crates/ui-egui/src/chrome.rs`, `packaging/windows/{pdfcraft.wxs,package.ps1,test-msi.ps1}`, `packaging/linux/package.sh`, `packaging/linux/flatpak/io.github.pony_svg.AmarazaPDF.bundle.yml`, `packaging/freebsd/package.sh` | Conflictos de ARS.1: la identidad de AR0.1 más lo nuevo del upstream (manifiesto de Windows, estados HTTP de GitHub, pestañas que se encogen con el ancho reservado sin Discord, modelos de OCR junto a `AmarazaPDF.exe` y en `share/pdfcraft/models`) | Ídem AR0.1 | ARS.1 |
+| `crates/ui-egui/src/i18n/{ar,it,pt-br}.tsv` | El cambio de AR0.1 en los catálogos nuevos o ampliados por el upstream: fuera Discord, ArtCraft, "PdfCraft web page" y "Part of"; "Welcome to PdfCraft" y "About PdfCraft" pasan a las fuentes en español; nueva "Amaraza PDF en GitHub" | Ídem AR0.1 | ARS.1 |
+| `crates/ui-egui/tests/{ui,pickers,viewer}.rs`, `crates/ui-egui/src/i18n/mod.rs` (solo su módulo de pruebas) | Pruebas nuevas del upstream adaptadas: "Keyboard shortcuts" en lugar del botón de Discord, título de inicio y de ventana de Amaraza PDF, "Acerca de Amaraza PDF" en árabe | Pruebas del comportamiento del fork | ARS.1 |
+| `Cargo.lock` | `amaraza-identity` 0.5.0 (la versión del workspace) | Merge de la versión 0.5.0 del upstream | ARS.1 |
+| `ATTRIBUTION.toml`, `ATTRIBUTION.md` | `sha256` de los 15 catálogos; `ATTRIBUTION.md` regenerado | `cargo xtask assets` | ARS.1 |
 
 ## AR0.0. Entorno y línea base (2026-10-09)
 
@@ -445,3 +452,82 @@ Dictamen sobre `ece74322ada0423a28d6bf7ee0d84048db7818dd`: aprobado con correcci
   - `.agents/rules/01-amaraza-heredadas.md`: 4 069;
   - `.claude/rules/amaraza.md`: 223.
 - **Puertas** (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`): `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0; `cargo clippy -p amaraza-identity --all-targets -- -D warnings` 0; `cargo xtask assets` ok (235 activos). No se ejecutó la suite completa: solo cambian documentación y comentarios.
+
+## ARS.1. Sincronización con el upstream (2026-10-10)
+
+La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
+
+**Autorización del titular (2026-10-10):** integrar los cambios del upstream sin perder la identidad Amaraza, y aceptar sus dependencias si las licencias son permisivas. No incluye el push ni el merge a `main`.
+
+### Punto de partida
+
+- `main` = `dbfd8249258b790f5f48d000ac1c0ea1d3b84f70`. AR0.2 sigue en su rama, aprobada y sin fusionar.
+- `git fetch upstream`: `upstream/main` = `5d590604867fdac7ed71c555c40477ae3331a60a` (`git cat-file -t` → `commit`), con la etiqueta `v0.5.0`. Son 94 commits desde la base común `90bb2f14ad4c60f84d900c1389e289e51a5ce7a6`.
+- Worktree aparte, con su propio `target/`. Rama `sync/upstream-2026-10-10` creada desde `main`, y `git merge --no-ff upstream/main` (sin rebase).
+
+### Conflictos (13)
+
+| Archivo | Resolución |
+|---|---|
+| `.github/workflows/release.yml` | Borrado en el fork y modificado en el upstream: sigue borrado |
+| `README.md` | El del fork |
+| `ATTRIBUTION.toml` | Las entradas del upstream (catálogos nuevos `it` y `ar`) y los `sha256` recalculados de los 15 catálogos |
+| `ATTRIBUTION.md` | Regenerado con `cargo xtask assets --write` |
+| `apps/pdfcraft/build.rs` | Recursos de Amaraza PDF más el manifiesto de Windows del upstream |
+| `apps/pdfcraft/src/updates.rs` | `User-Agent` `AmarazaPDF/…` más la lectura de los estados HTTP (límite de peticiones de GitHub) |
+| `crates/ui-egui/src/chrome.rs` | La barra de pestañas nueva del upstream, con el ancho reservado de los dos botones de la derecha, sin Discord |
+| `packaging/windows/{pdfcraft.wxs,package.ps1,test-msi.ps1}`, `packaging/linux/package.sh`, `packaging/linux/flatpak/io.github.pony_svg.AmarazaPDF.bundle.yml`, `packaging/freebsd/package.sh` | La identidad de AR0.1 más los modelos de OCR |
+
+### Identidad en el código nuevo del upstream (sin conflicto)
+
+- **Instancia única** (`apps/pdfcraft/src/single_instance.rs`, nuevo): el socket iba en `%LOCALAPPDATA%\PdfCraft`. Sin el cambio, Amaraza PDF crearía una carpeta de PdfCraft y podría entregar sus archivos a un PdfCraft abierto. Ahora va en la carpeta de Amaraza PDF, con una prueba de regresión.
+- **Recursos de la CLI** (`apps/pdfcraft-cli/build.rs`, nuevo): el producto y el fabricante de Amaraza, como en `pdfcraft.exe`.
+- **Catálogos** `ar`, `it` y `pt-br`: el mismo cambio que AR0.1 hizo en los otros 12.
+- **Pruebas nuevas del upstream** que buscaban la identidad de PdfCraft (`ui`, `pickers`, `viewer` e `i18n`): adaptadas.
+
+### Búsqueda de la marca
+
+`git grep -niE "artcraft|getartcraft|storyteller"`, sin `vendor/`:
+- Los mismos 13 archivos que al cerrar AR0.1.
+- Uno nuevo, `xtask/src/macos_integration.rs` (2 líneas): `ai.storyteller.pdfcraft` en el plist de ejemplo de una prueba del diagnóstico de macOS del upstream. Es un archivo del upstream que el fork no toca y no se distribuye.
+- Ningún nombre de archivo, y ningún catálogo con Discord ni ArtCraft.
+
+### Dependencias
+
+- 12 crates nuevos, ninguno quitado ni actualizado. Licencias leídas con `cargo metadata` (`cargo-deny` no está instalado):
+  - `bp256` 0.14.0, `bp384` 0.14.0, `p521` 0.14.0, `ed25519` 3.0.0, `keccak` 0.2.2, `ripemd` 0.2.0, `sha3` 0.12.0 y `sponge-cursor` 0.1.0: MIT o Apache-2.0 (RustCrypto);
+  - `curve25519-dalek` 5.0.0 y `ed25519-dalek` 3.0.0: BSD-3-Clause; `curve25519-dalek-derive` 0.1.1: MIT o Apache-2.0;
+  - `winsafe` 0.0.29: MIT.
+- `winsafe` es una dependencia directa de `apps/pdfcraft`, solo en Windows. Los criptográficos llegan a través de `pdfcraft-sign`.
+- No hay APIs de exportación de claves (§5) ni `unsafe` en el código del workspace.
+
+### Puertas (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`)
+
+- `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0 (y `--all-targets` en `pdfcraft-ui-egui`, `pdfcraft` y `pdfcraft-cli`); `cargo xtask assets` ok, con 238 activos.
+- `cargo test --workspace --no-fail-fast` (2243 s, con la compilación en frío): 148 binarios, **1847 pasadas, 6 fallidas y 7 ignoradas**.
+  - Las 3 que buscaban la identidad de PdfCraft se adaptaron y, repetidas, pasan: lib 197, `pickers` 34, `viewer` 22.
+  - `no_tool_escapes_the_root`: el falso positivo de entorno (AR0.0, fallo B).
+  - `perf` (`scrolling_a_500_page_document_stays_within_the_frame_budget`, unos 80 ms por fotograma): portátil en batería (del 25 % al 16 %). **Hay que repetirla con el equipo conectado a la corriente** antes de la revisión.
+  - `recovery` (`saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents`): la prueba intermitente del Pendiente 9 de AR0.1. Pasa 5 de 5 veces por separado.
+  - La ignorada nueva (`a_windows_store_identity_signs_with_its_issuers`) escribe en el almacén de certificados real y no se ejecuta (§6).
+
+### Cambios del upstream que afectan a otros documentos (para la sesión implementadora)
+
+- **EQUIVALENCIAS D-12 y A15:** el original ya tiene instancia única en Windows (`apps/pdfcraft/src/single_instance.rs`).
+- **AR0.4:** hay mensajes nuevos que nombran PdfCraft:
+  - el aviso "PdfCraft is drawing without a graphics processor…" (`apps/pdfcraft/src/main.rs`);
+  - el error "the text recognition models are not installed (reinstall PdfCraft, or set PDFCRAFT_MODELS…)" (`crates/ocr/src/lib.rs`). Lo encontró la revisión de la sesión implementadora.
+- La versión pasa a 0.5.0.
+
+### Revisión D-13 (sesión implementadora, 2026-10-10)
+
+- **Aprobada**, sin hallazgos bloqueantes. Puertas en el worktree de sincronización, con el portátil conectado a la corriente: 1852 pasadas, 1 fallida (`no_tool_escapes_the_root`, de entorno) y 7 ignoradas.
+- La sesión revisora repitió `cargo test -p pdfcraft-ui-egui --test perf` con corriente: 2 pasadas en 9,8 s.
+
+### Commits
+
+| Commit | Contenido |
+|---|---|
+| `0664233c2c51aaa482a21ea78118a2f9cd83aacd` | Merge de `upstream/main` (`5d590604867fdac7ed71c555c40477ae3331a60a`) con los conflictos resueltos |
+| `fb919ac9afeb1da3d2872b83f5bf01ad153793b2` | Este registro (solo documentación) |
+| *(siguiente)* | Merge en `main` de AR0.2 (`fc6a8c993377698bf1db0ac0aa18a0e5196c1657`) y de esta sincronización, autorizado por el titular el 2026-10-10. Único conflicto: el final de este registro, donde se conservan las dos secciones |
