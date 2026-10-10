@@ -71,7 +71,44 @@ Es obligatorio por la licencia de marca del upstream y debe estar hecho antes de
    - Todas las puertas de calidad en verde.
    - La captura real del titular con la ventana y el instalador renombrados es evidencia del titular.
 
-### AR0.2. CI del fork (opcional, con autorización)
+### AR0.2. Equivalencias PDForte → Rust
+- Documento `docs/amaraza/EQUIVALENCIAS.md`. Clasifica cada regla de §3.1–§3.8 del `AGENTS.md` de PDForte y cada decisión D-01…D-13 en una de tres clases:
+  - **la cubre el original** (dónde: archivo, prueba o regla del upstream);
+  - **regla nueva de Amaraza**;
+  - **descartada** (motivo).
+- **Criterio:** en el código del original mandan sus reglas; en los crates `amaraza-*` se aplica la más estricta de las dos.
+- Cubre como mínimo:
+  - D-03: PDForte bloquea por defecto toda edición de documentos firmados, y PdfCraft permite las incrementales;
+  - la publicación con verificación previa y copia `rec_*`;
+  - las operaciones terminales;
+  - los logs sin rutas;
+  - la ventana mínima de 800×560;
+  - la instancia única;
+  - los snapshots cifrados;
+  - la complejidad.
+- PDForte se usa como referencia funcional: se citan sus reglas y decisiones por su número, sin traer su código, actas ni auditorías (§3 de las reglas).
+- Las reglas nuevas se añaden a `.agents/rules/00-amaraza.md`.
+
+### AR0.3. Puntos de enganche para los crates `amaraza-*`
+- Un ADR en `docs/amaraza/adr/` con el diseño mínimo para registrar desde crates `amaraza-*`, tocando el upstream solo en el enganche:
+  - comandos (`COMMANDS` en `crates/engine/src/commands.rs`);
+  - herramientas (`tools()` en `crates/automation/src/tools.rs`);
+  - menús y capas.
+- Demostración: un comando "hola Amaraza" con API, herramienta y prueba de extremo a extremo (`AGENTS.md` §3).
+- Cada enganche se anota en la tabla de archivos del upstream modificados de `REGISTRO.md`.
+
+### AR0.4. Identidad en metadatos y textos (antes de AR1.2)
+- Desde `amaraza-identity`:
+  - el `Producer` de los PDF creados;
+  - el nombre de la app en las firmas;
+  - el autor por defecto de los comentarios;
+  - el título de los trabajos de impresión;
+  - el nombre del servidor MCP.
+- Los 12 mensajes de la interfaz que dicen PdfCraft (lista en `REGISTRO.md`, "Pendiente"), con sus catálogos y los `sha256` de `ATTRIBUTION.toml`.
+- Borrar las 12 capturas de `docs/images/` y sus entradas en `ATTRIBUTION.toml`.
+
+### AR0.5. CI del fork (opcional, con autorización)
+Es la antigua AR0.2.
 - Un flujo mínimo en `windows-latest` con `fmt`, `clippy`, `test` y `xtask assets` en push y PR.
 
 ## Sincronización con el upstream (tarea `ARS.n`, a partir de AR0.1)
@@ -82,9 +119,11 @@ El upstream avanza muy rápido, a veces más de 60 commits al día. Conviene sin
 2. Crear la rama `sync/upstream-AAAA-MM-DD` desde `main` y ejecutar `git merge upstream/main`.
    - Se hace con **merge**: nunca rebase de ramas publicadas ni `push --force`.
 3. Resolver los conflictos conservando la identidad Amaraza. Usar como guía la tabla de archivos modificados de `REGISTRO.md`.
+   - Tras resolver conflictos en los catálogos i18n (`crates/ui-egui/src/i18n/*.tsv`), recalcular sus `sha256` en `ATTRIBUTION.toml`.
 4. **Volver a buscar la marca**, porque el código nuevo del upstream puede traer marcas o enlaces de ArtCraft. Usar la búsqueda de la comprobación final de AR0.1 y retirar lo nuevo antes de cerrar.
 5. Listar las dependencias nuevas o actualizadas (diff de `Cargo.lock`) y sus licencias. Si `cargo-deny` está instalado, ejecutar `cargo deny check licenses`.
 6. Pasar las puertas de calidad completas.
+   - En este equipo, las puertas se ejecutan con `LANG=en_US.UTF-8`, porque 9 pruebas de interfaz dependen del idioma de Windows, y se anota en `REGISTRO.md`.
 7. Registrar en `REGISTRO.md` los SHA del upstream integrado y del merge, los conflictos y las dependencias.
 8. Revisión (D-13). Después, merge a `main` y push con autorización del titular.
 
