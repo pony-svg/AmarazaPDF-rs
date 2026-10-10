@@ -88,3 +88,79 @@ En este equipo, la puerta `cargo test --workspace` se compara contra esta línea
 ### Commit
 
 `AR0.0: reglas, plan y línea base del fork Amaraza`, con `.agents/rules/00-amaraza.md`, `.claude/rules/amaraza.md`, `docs/amaraza/PLAN.md` y este registro. Su SHA se anota en la entrada de AR0.1.
+
+## AR0.1. Retirar la marca ArtCraft y poner la identidad Amaraza (2026-10-09)
+
+- Rama `ar0.1-identidad`, creada desde `main` en `2a6fa369a938d43f6f18ac8ff46d04791f5577bc` (`git cat-file -t` → `commit`). Ese es el commit de AR0.0.
+
+### Decisiones del titular (2026-10-09)
+
+| Tema | Decisión |
+|---|---|
+| Id de la app (`APP_ID`) | `io.github.pony_svg.AmarazaPDF` |
+| Ejecutable y carpetas de datos | `AmarazaPDF`. El ejecutable se renombra **solo al empaquetar** (instalador y zip portátil); `cargo` sigue produciendo `pdfcraft.exe` |
+| Fabricante | `Amaraza` |
+| Logotipo | `app_icon.svg`, `app_icon.png` (512 px) y `app_icon.ico` (8 tamaños) del titular, que confirmó que son obra suya |
+| Licencia de la marca | Borrador en español aprobado tal cual (`docs/brand/LICENSE-brand.txt`, `LicenseRef-Amaraza-Trademark`) |
+| Empaquetado de Linux, Flatpak, macOS y FreeBSD | Se adapta al nuevo id. No se prueba en esas plataformas durante la prueba de concepto |
+| Dónde va la identidad | Un crate propio, `crates/amaraza-identity`, sin dependencias. Alcance: app, interfaz e instalador |
+| Fuera de este alcance (pendiente) | El `Producer` de los PDF creados, el nombre de la app en las firmas y el autor por defecto de los comentarios siguen diciendo "PdfCraft" |
+
+### Inventario inicial (búsqueda de la comprobación final, antes de cambiar nada)
+
+Comando, sobre `2a6fa369a938d43f6f18ac8ff46d04791f5577bc`:
+
+```
+grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir=target --exclude-dir=.git .
+```
+
+Resultado: **302 líneas en 53 archivos** (`vendor/` no tiene ninguna). La columna cuenta líneas que coinciden (`grep -c`).
+
+| Líneas | Archivo |
+|---:|---|
+| 6 | `.agents/rules/00-amaraza.md` |
+| 6 | `.github/workflows/packaging-lint.yml` |
+| 1 | `.github/workflows/release.yml` |
+| 1 | `AGENTS.md` |
+| 23 | `ATTRIBUTION.md` |
+| 81 | `ATTRIBUTION.toml` |
+| 1 | `LICENSE-MIT` |
+| 2 | `NOTICE` |
+| 33 | `README.md` |
+| 1 | `ROADMAP.md` |
+| 1 | `apps/pdfcraft-cli/src/main.rs` |
+| 4 | `apps/pdfcraft/src/main.rs` |
+| 1 | `assets/app-icon/LICENSE.txt` |
+| 4 | `assets/app-icon/README.md` |
+| 2 | `crates/engine/src/commands.rs` |
+| 8 | `crates/engine/src/links.rs` |
+| 2 | `crates/ui-egui/src/dialogs.rs` |
+| 2 | `crates/ui-egui/src/home.rs` |
+| 2–3 cada uno | `crates/ui-egui/src/i18n/{bg,cs,de,es,fr,hu,ja,ru,te,uk,zh-hans,zh-hant}.tsv` (12 archivos, 35 en total) |
+| 9 | `crates/ui-egui/src/widgets.rs` |
+| 6 | `crates/ui-egui/tests/links.rs` |
+| 8 | `docs/amaraza/PLAN.md` |
+| 14 | `docs/brand/LICENSE-brand.txt` |
+| 2 cada uno | `docs/brand/artcraft-{logo,logo-white,mark,mark-black}.svg` |
+| 4 | `docs/releasing.md` |
+| 1 | `packaging/freebsd/package.sh` |
+| 1 | `packaging/icons.sh` |
+| 1 | `packaging/linux/ai.storyteller.pdfcraft.desktop` |
+| 6 | `packaging/linux/ai.storyteller.pdfcraft.metainfo.xml.in` |
+| 2 | `packaging/linux/flatpak-bundle.sh` |
+| 5 | `packaging/linux/flatpak/ai.storyteller.pdfcraft.bundle.yml` |
+| 7 | `packaging/linux/flatpak/ai.storyteller.pdfcraft.yml` |
+| 1 | `packaging/linux/nfpm.yaml` |
+| 2 | `packaging/linux/package.sh` |
+| 1 | `packaging/macos/Info.plist.in` |
+| 3 | `packaging/windows/pdfcraft.wxs` |
+| 5 | `xtask/src/assets.rs` |
+| 2 | `xtask/src/gates.rs` |
+| 2 | `xtask/src/screenshots.rs` |
+
+Archivos rastreados cuyo **nombre** contiene la marca (`git ls-files | grep -iE "artcraft|storyteller"`), 22 en total:
+- `docs/brand/artcraft-{logo,logo-white,mark,mark-black}.{svg,png}` (8);
+- `assets/app-icon/hicolor/{16,24,32,48,64,128,256,512}x…/apps/ai.storyteller.pdfcraft.png` y `hicolor/scalable/apps/ai.storyteller.pdfcraft.svg` (9);
+- `packaging/linux/ai.storyteller.pdfcraft.{desktop,metainfo.xml.in,mime.xml}` y `packaging/linux/flatpak/ai.storyteller.pdfcraft{,.bundle}.yml` (5).
+
+Además, la identidad de PdfCraft aparece sin la palabra "ArtCraft": el título de la ventana y el nombre de la app ("PdfCraft"), `eframe::storage_dir("PdfCraft")`, `%LOCALAPPDATA%\PdfCraft\Recovery`, los marcadores portátiles `portable.txt` y `PdfCraft.portable`, la carpeta `PdfCraftData`, `migrate_legacy_folders` (que mueve las carpetas de PrintCraft), el icono `assets/app-icon/pdfcraft.*`, los recursos del `.exe` (`apps/pdfcraft/build.rs`), la comprobación de actualizaciones contra `storytold/pdfcraft` (`apps/pdfcraft/src/updates.rs`) y el instalador (`Name`, `Manufacturer`, `UpgradeCode`, GUID de componentes, ProgId `PdfCraft.Document`, `RegisteredApplications`, accesos directos).
