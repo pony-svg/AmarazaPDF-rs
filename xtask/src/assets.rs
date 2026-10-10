@@ -38,7 +38,7 @@ pub const ALLOWED_LICENCES: &[&str] = &[
 /// The closed list of Adobe-authored, non-visual technical data (AGENTS.md §1.1): (crate, path).
 /// The Amaraza PDF brand (its name and logo, docs/brand/LICENSE-brand.txt): shipped in the app and
 /// docs, but not licensed for reuse by forks. Allowed only for `kind = "logo"` entries under
-/// `docs/brand/` (.agents/rules/00-amaraza.md §1, in place of AGENTS.md §1.2's ArtCraft exception).
+/// `docs/brand/` (.agents/rules/00-amaraza.md §1, in place of AGENTS.md §1.2's upstream brand exception).
 pub const BRAND_LICENCE: &str = "LicenseRef-Amaraza-Trademark";
 
 pub const ADOBE_DATA_ALLOWED: &[(&str, &str)] = &[("hayro-cmap", "assets/cmaps.brotli"), ("hayro-interpret", "src/font/generated/metrics.rs")];
@@ -532,7 +532,7 @@ mod tests {
 
     #[test]
     fn the_artcraft_trademark_is_not_accepted_in_the_fork() {
-        // Upstream's brand licence: a fork must remove the ArtCraft marks, so a merge from upstream
+        // Upstream's brand licence: a fork must remove upstream's marks, so a merge from upstream
         // that brings one back fails here (.agents/rules/00-amaraza.md §1).
         let mut a = asset("docs/brand/artcraft-mark.svg", "ArtCraft Team", "logo", "LicenseRef-Storyteller-Trademark");
         a.licence_file = "docs/brand/LICENSE-brand.txt".into();

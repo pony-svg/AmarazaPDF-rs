@@ -343,8 +343,8 @@ mod tests {
         for l in super::LINKS {
             assert!(l.url.starts_with("https://"), "{}", l.url);
             assert!(crate::commands::command(l.command).is_some(), "{} is a registered command", l.command);
-            // The ArtCraft brand licence leaves forks a plain-text credit only: no links to the
-            // ArtCraft site or community, and no ArtCraft name in the menus.
+            // Upstream's brand licence leaves forks a plain-text credit only: no links to its site or
+            // community, and no brand name in the menus.
             for gone in ["getartcraft", "discord", "artcraft"] {
                 assert!(!l.url.to_lowercase().contains(gone) && !l.label.to_lowercase().contains(gone), "{l:?}");
             }

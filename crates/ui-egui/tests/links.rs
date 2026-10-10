@@ -1,6 +1,6 @@
 //! Project links: the Help menu and the About dialog open Amaraza PDF's repository and credit
-//! PdfCraft in plain text. Nothing links to the ArtCraft site or its community: the ArtCraft brand
-//! licence leaves forks a plain-text credit only (docs/amaraza/PLAN.md, AR0.1).
+//! PdfCraft in plain text. Nothing links to upstream's brand site or community: its brand licence
+//! leaves forks a plain-text credit only (docs/amaraza/PLAN.md, AR0.1).
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
@@ -22,8 +22,8 @@ const ONE_PAGE: &[u8] = b"%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> en
 
 #[test]
 fn no_artcraft_community_on_the_home_screen_or_title_bar() {
-    // PdfCraft had a Discord button in the title bar and an ArtCraft community card on the home
-    // screen; the fork shows neither.
+    // PdfCraft had a Discord button in the title bar and a community card for its brand on the
+    // home screen; the fork shows neither.
     let h = harness(|_| {});
     h.get_by_label_contains("Amaraza PDF");
     assert_eq!(h.query_all_by_label("Discord").count(), 0);
@@ -57,7 +57,7 @@ fn help_commands_open_each_link() {
         assert_eq!(pdfcraft_engine::commands::command(l.command).unwrap().menu, Some("Help"));
     }
     for gone in ["help.discord", "help.app_page", "help.website"] {
-        assert!(pdfcraft_engine::commands::command(gone).is_none(), "{gone} linked to ArtCraft");
+        assert!(pdfcraft_engine::commands::command(gone).is_none(), "{gone} linked to upstream's brand");
     }
 }
 

@@ -1,12 +1,17 @@
 # Releasing PdfCraft
 
+> **Amaraza PDF (fork):** this page describes how PdfCraft publishes releases and is kept as a reference.
+> The fork removed `.github/workflows/release.yml` (docs/amaraza/PLAN.md, AR0.1): it publishes no
+> releases or binaries. Its packages are named `AmarazaPDF-<version>-<platform>-<arch>.<ext>`, the app id
+> is `io.github.pony_svg.AmarazaPDF`, and the macOS DMG no longer uses `packaging/macos/dmg/`.
+
 Every push to the `release` branch runs `.github/workflows/release.yml`. It builds installers for
 macOS, Windows, Linux, FreeBSD and the web, signs the ones it has certificates for, and creates or
 updates a **draft** GitHub Release named `PdfCraft v<version>`. Nobody sees a draft until a
 maintainer publishes it.
 
 The pipeline was ported from PhotoCraft's. User-facing names say **PdfCraft**; files, binaries and
-ids stay lowercase (`pdfcraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.pdfcraft`).
+ids stay lowercase (`pdfcraft-<version>-<platform>-<arch>.<ext>`, `io.github.pony_svg.AmarazaPDF`).
 
 ## Cutting a release
 
@@ -71,7 +76,7 @@ deliberately.
 ### macOS
 
 `packaging/macos/package.sh` builds both architectures, joins them with `lipo`, and assembles
-`PdfCraft.app` from `Info.plist.in` (bundle id `ai.storyteller.pdfcraft`, macOS 11+, PDF declared
+`PdfCraft.app` from `Info.plist.in` (bundle id `io.github.pony_svg.AmarazaPDF`, macOS 11+, PDF declared
 as a document type with rank Alternate, so PdfCraft is offered under Open With without taking over
 from Preview). Files opened from Finder arrive as Apple events, which
 `apps/pdfcraft/src/apple_events.rs` receives.
@@ -148,9 +153,9 @@ downloading only the changed blocks. `latest` is the newest published, non-pre-r
 otherwise; the release job checks both.
 
 **Flatpak:** the `flatpak` job turns each arch's tarball into a single-file bundle with
-`packaging/linux/flatpak-bundle.sh` and `flatpak/ai.storyteller.pdfcraft.bundle.yml` (no Rust build;
+`packaging/linux/flatpak-bundle.sh` and `flatpak/io.github.pony_svg.AmarazaPDF.bundle.yml` (no Rust build;
 the same binaries), then installs it and runs `pdfcraft-cli --version` in the sandbox.
-`flatpak/ai.storyteller.pdfcraft.yml` is the from-source manifest for a later Flathub submission;
+`flatpak/io.github.pony_svg.AmarazaPDF.yml` is the from-source manifest for a later Flathub submission;
 packaging-lint keeps the runtime and sandbox permissions (`finish-args`) of the two identical.
 Printing is not available in the Flatpak yet: it runs `lp`, which the freedesktop runtime lacks
 (the job logs a note); it needs the print portal. Users install the bundle with `flatpak install --user pdfcraft-<v>-linux-<arch>.flatpak`; the

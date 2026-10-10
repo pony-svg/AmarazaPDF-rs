@@ -1077,7 +1077,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
                             .small(),
                         );
                         ui.add_space(12.0);
-                        // The plain-text credit the ArtCraft brand licence allows forks (amaraza_identity).
+                        // The plain-text credit upstream's brand licence allows forks (amaraza_identity).
                         ui.label(egui::RichText::new(pdfcraft_engine::links::BASED_ON).color(t.text_muted));
                         ui.add_space(6.0);
                         if let Some(cmd) = widgets::project_links(ui) {

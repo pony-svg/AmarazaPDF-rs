@@ -53,7 +53,7 @@ pub const RELEASES_PAGE: &str = "https://github.com/pony-svg/AmarazaPDF-rs/relea
 pub const LATEST_RELEASE_API: &str = "https://api.github.com/repos/pony-svg/AmarazaPDF-rs/releases/latest";
 
 /// The project this one is based on. Its brand licence allows crediting it in plain text only:
-/// no logos, and nothing that presents Amaraza PDF as an ArtCraft product.
+/// no logos, and nothing that presents Amaraza PDF as an upstream product.
 pub const UPSTREAM_NAME: &str = "PdfCraft";
 
 /// The upstream source repository.
@@ -219,7 +219,7 @@ mod tests {
         let ico = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(LOGO_ICO_PATH);
         let ico = std::fs::read(&ico).unwrap();
         assert!(ico.starts_with(&[0, 0, 1, 0]), "a Windows icon");
-        // The brand folder holds only Amaraza's marks: the ArtCraft ones are gone for good.
+        // The brand folder holds only Amaraza's marks: upstream's are gone for good.
         let brand = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/brand");
         for entry in std::fs::read_dir(brand).unwrap() {
             let name = entry.unwrap().file_name().to_string_lossy().to_lowercase();

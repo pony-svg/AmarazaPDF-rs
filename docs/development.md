@@ -6,10 +6,11 @@ collects what the desktop app reads from its environment and where it writes its
 ## Logs
 
 The desktop app writes its `log` records to standard error and to `logs/pdfcraft.log` in its
-settings folder, next to `app.ron`: Linux and FreeBSD `~/.local/share/pdfcraft/logs/` (or
-`$XDG_DATA_HOME/pdfcraft/logs/`), macOS `~/Library/Application Support/PdfCraft/logs/`, Windows
-`%APPDATA%\PdfCraft\data\logs\`. In portable mode (a `portable.txt` file next to the executable, as
-the Windows portable zip ships) the settings folder is `PdfCraftData\` beside the executable, and
+settings folder, next to `app.ron`: Linux and FreeBSD `~/.local/share/amarazapdf/logs/` (or
+`$XDG_DATA_HOME/amarazapdf/logs/`), macOS `~/Library/Application Support/AmarazaPDF/logs/`, Windows
+`%APPDATA%\AmarazaPDF\data\logs\` (Amaraza PDF's own folders, crates/amaraza-identity). In portable
+mode (an `AmarazaPDF.portable` file next to the executable, as the Windows portable zip ships) the
+settings folder is `AmarazaPDFData\` beside the executable, and
 crash recovery and new digital IDs go there too. A start from a desktop menu, Finder or the Start
 menu has no terminal, so this file is what to attach to a bug report: a failed autosave, a page that
 would not render, a render worker that could not start and the report of an internal error all land

@@ -106,8 +106,8 @@ fn update_attribution(root: &Path) -> Result<()> {
         let stem = file.trim_end_matches(".png");
         let scene = SCENES.iter().find(|(n, ..)| *n == stem);
         let (title, usage) = scene.map(|(_, t, u, _)| (*t, *u)).unwrap_or(("PdfCraft screenshot", "README"));
-        // The Amaraza PDF fork shows no trademark on these screens: the home screen lost the
-        // ArtCraft mark, and the Amaraza logo appears only in About (docs/amaraza/PLAN.md, AR0.1).
+        // The Amaraza PDF fork shows no trademark on these screens: the home screen lost upstream's
+        // brand mark, and the Amaraza logo appears only in About (docs/amaraza/PLAN.md, AR0.1).
         let contents = "Shows only PdfCraft UI, Lucide icons and the showcase PDF built from the [[fetched]] OFL fonts";
         let bytes = std::fs::read(root.join("docs/images").join(file))?;
         out.push_str(&format!(
