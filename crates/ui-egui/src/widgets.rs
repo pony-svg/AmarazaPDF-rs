@@ -223,6 +223,16 @@ pub fn progress_notice(app: &PdfCraftApp, ctx: &egui::Context) -> bool {
     cancel
 }
 
+/// The Amaraza PDF logo (docs/brand/, its owner's trademark; not open source), `size` points
+/// square.
+pub fn amaraza_logo(ui: &mut egui::Ui, size: f32) -> Response {
+    ui.add(
+        egui::Image::from_bytes("bytes://amaraza-logo.svg", amaraza_identity::LOGO_SVG)
+            .fit_to_exact_size(vec2(size, size))
+            .alt_text(amaraza_identity::PRODUCT_NAME),
+    )
+}
+
 /// Buttons for every project link (`pdfcraft_engine::links`), Amaraza PDF's own first and
 /// prominent. Returns the registry command of the one clicked.
 pub fn project_links(ui: &mut egui::Ui) -> Option<&'static str> {

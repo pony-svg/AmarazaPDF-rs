@@ -36,10 +36,10 @@ pub const ALLOWED_LICENCES: &[&str] = &[
 ];
 
 /// The closed list of Adobe-authored, non-visual technical data (AGENTS.md §1.1): (crate, path).
-/// Storyteller's own brand marks (the ArtCraft name and logos): shipped in the app and docs, but
-/// not licensed for reuse by forks. Allowed only for `kind = "logo"` entries under `docs/brand/`
-/// (AGENTS.md §1.2).
-pub const BRAND_LICENCE: &str = "LicenseRef-Storyteller-Trademark";
+/// The Amaraza PDF brand (its name and logo, docs/brand/LICENSE-brand.txt): shipped in the app and
+/// docs, but not licensed for reuse by forks. Allowed only for `kind = "logo"` entries under
+/// `docs/brand/` (.agents/rules/00-amaraza.md §1, in place of AGENTS.md §1.2's ArtCraft exception).
+pub const BRAND_LICENCE: &str = "LicenseRef-Amaraza-Trademark";
 
 pub const ADOBE_DATA_ALLOWED: &[(&str, &str)] = &[("hayro-cmap", "assets/cmaps.brotli"), ("hayro-interpret", "src/font/generated/metrics.rs")];
 
@@ -519,17 +519,25 @@ mod tests {
     #[test]
     fn brand_licence_only_for_brand_logos() {
         let root = super::root();
-        for (path, kind, pass) in [
-            ("docs/brand/artcraft-mark.svg", "logo", true),
-            ("docs/brand/artcraft-mark.svg", "icon", false),
-            ("assets/icons/mark.svg", "logo", false),
-        ] {
-            let mut a = asset(path, "Storyteller", kind, BRAND_LICENCE);
+        for (path, kind, pass) in
+            [("docs/brand/amaraza-logo.svg", "logo", true), ("docs/brand/amaraza-logo.svg", "icon", false), ("assets/icons/mark.svg", "logo", false)]
+        {
+            let mut a = asset(path, "Juan Diego Peraza Amado", kind, BRAND_LICENCE);
             a.licence_file = "docs/brand/LICENSE-brand.txt".into();
             let m = Manifest { asset: vec![a], ..Default::default() };
             let p = check(&root, &m, &[], &BTreeSet::new());
             assert_eq!(p.iter().all(|p| !p.contains("allowlist")), pass, "{path} {kind}: {p:?}");
         }
+    }
+
+    #[test]
+    fn the_artcraft_trademark_is_not_accepted_in_the_fork() {
+        // Upstream's brand licence: a fork must remove the ArtCraft marks, so a merge from upstream
+        // that brings one back fails here (.agents/rules/00-amaraza.md §1).
+        let mut a = asset("docs/brand/artcraft-mark.svg", "ArtCraft Team", "logo", "LicenseRef-Storyteller-Trademark");
+        a.licence_file = "docs/brand/LICENSE-brand.txt".into();
+        let p = check(&super::root(), &Manifest { asset: vec![a], ..Default::default() }, &[], &BTreeSet::new());
+        assert!(p.iter().any(|p| p.contains("allowlist")), "{p:?}");
     }
 
     #[test]

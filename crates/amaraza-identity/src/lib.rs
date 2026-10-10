@@ -1,5 +1,5 @@
 //! amaraza-identity — what makes this build Amaraza PDF rather than PdfCraft: the product name,
-//! app id, data folders, portable-mode markers and web addresses. Files taken from
+//! app id, data folders, portable-mode markers, web addresses and logo. Files taken from
 //! storytold/pdfcraft only refer to these constants, so a merge from upstream conflicts on a few
 //! lines instead of on every string (docs/amaraza/PLAN.md, AR0.1).
 //!
@@ -56,6 +56,17 @@ pub const UPSTREAM_REPOSITORY: &str = "https://github.com/storytold/pdfcraft";
 
 /// The attribution line for About, the README and NOTICE.
 pub const BASED_ON: &str = "Basado en PdfCraft, del equipo ArtCraft";
+
+/// The Amaraza PDF logo (master vector), a trademark of its owner under
+/// `LicenseRef-Amaraza-Trademark` (docs/brand/LICENSE-brand.txt), not the code's licence.
+pub const LOGO_SVG: &[u8] = include_bytes!("../../../docs/brand/amaraza-logo.svg");
+
+/// The logo as a 512 px PNG: the window icon.
+pub const LOGO_PNG: &[u8] = include_bytes!("../../../docs/brand/amaraza-logo.png");
+
+/// The logo as a Windows icon (16–256 px), relative to the repository root: the executable's
+/// resource (`apps/pdfcraft/build.rs`) and the installer's icon (`packaging/windows`).
+pub const LOGO_ICO_PATH: &str = "docs/brand/amaraza-logo.ico";
 
 #[cfg(test)]
 mod tests {
@@ -114,5 +125,20 @@ mod tests {
         let repo = REPOSITORY.strip_prefix("https://github.com/").unwrap_or_default();
         assert_eq!(LATEST_RELEASE_API, format!("https://api.github.com/repos/{repo}/releases/latest"));
         assert!(BASED_ON.contains(UPSTREAM_NAME), "{BASED_ON}");
+    }
+
+    #[test]
+    fn the_logo_is_amarazas_in_every_format() {
+        assert!(LOGO_SVG.starts_with(b"<svg"), "an SVG document");
+        assert!(LOGO_PNG.starts_with(b"\x89PNG\r\n\x1a\n"), "a PNG image");
+        let ico = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(LOGO_ICO_PATH);
+        let ico = std::fs::read(&ico).unwrap();
+        assert!(ico.starts_with(&[0, 0, 1, 0]), "a Windows icon");
+        // The brand folder holds only Amaraza's marks: the ArtCraft ones are gone for good.
+        let brand = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/brand");
+        for entry in std::fs::read_dir(brand).unwrap() {
+            let name = entry.unwrap().file_name().to_string_lossy().to_lowercase();
+            assert!(name.starts_with("amaraza-") || name == "license-brand.txt", "{name}");
+        }
     }
 }

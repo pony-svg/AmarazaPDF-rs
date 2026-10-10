@@ -1061,6 +1061,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
                     2 => crate::credits::models_ui(ui),
                     _ => {
                         ui.horizontal(|ui| {
+                            widgets::amaraza_logo(ui, 40.0);
                             ui.vertical(|ui| {
                                 ui.label(egui::RichText::new(amaraza_identity::PRODUCT_NAME).font(theme::semibold(20.0)));
                                 ui.label(crate::i18n::fmt(tl!("Version {v}"), &[("v", env!("CARGO_PKG_VERSION"))]));

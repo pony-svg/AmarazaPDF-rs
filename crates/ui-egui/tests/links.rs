@@ -39,7 +39,7 @@ fn about_dialog_credits_pdfcraft_and_opens_the_project_links() {
             app.open_bytes("one.pdf", None, ONE_PAGE.to_vec()).unwrap();
             app.dialog = Some(Dialog::About);
         });
-        h.get_by_label(amaraza_identity::PRODUCT_NAME);
+        assert_eq!(h.query_all_by_label(amaraza_identity::PRODUCT_NAME).count(), 2, "the logo (alt text) and the name");
         h.get_by_label(links::BASED_ON);
         h.get_by_label(l.label).click();
         h.run_steps(2);
