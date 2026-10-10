@@ -109,22 +109,6 @@ Nunca: `push --force`, reescribir historial ya publicado; reescribir commits loc
 - Temporales en `%TEMP%` o en `target/`, nunca en la raíz del repositorio.
 - Los textos nuevos de la interfaz de Amaraza van en español. Traducir la interfaz heredada es una tarea aparte, que no se mezcla con otras.
 
-## 9. Reglas heredadas de PDForte (AR0.2)
+## 9. Reglas heredadas de PDForte
 
-Detalle y motivos en `docs/amaraza/EQUIVALENCIAS.md`. En el código del original mandan sus reglas. En el código del fork (crates `amaraza-*` y enganches de AR0.3) se aplica la más estricta. Sin decisión del titular (EQUIVALENCIAS §4), estas reglas no obligan a cambiar el original.
-
-- **A1** Se escribe solo a través del motor, por un único camino: el candidato va a un temporal de la misma carpeta y se verifica (reabriéndolo) antes de sustituir el original.
-- **A2** Antes de sustituir: comprobar que el archivo no cambió en disco y guardar una copia del original hasta verificar la versión nueva. Un único ayudante, compartido.
-- **A3** Operaciones terminales (censura, firma o compresión en el sitio): se confirman, avisan de que no se pueden deshacer y vacían el historial. Ningún fallo se revierte en silencio.
-- **A4** Nada de código consciente de las pruebas (`cfg!(test)`, detectar dobles de prueba).
-- **A5** Firmados (D-03): toda mutación se rechaza por defecto; el consentimiento explícito es opcional. Firmar sobre un firmado sí se permite.
-- **A6** Al listar certificados no se abre la clave ni se pide PIN. La clave nunca se exporta.
-- **A7** Complejidad ≤ 15. Cada crate `amaraza-*` tiene su `clippy.toml`: repite las 4 claves `allow-*-in-tests` de la raíz (clippy no fusiona configuraciones) y añade `cognitive-complexity-threshold = 15`. Además activa el lint, que es de nursery, con `#![warn(clippy::cognitive_complexity)]`, porque `[lints] workspace = true` impide `[lints.clippy]`. No hacer crecer los archivos grandes del upstream.
-- **A8** Los registros llevan `event=` y `error_code=`.
-- **A9** Los registros no llevan rutas completas, usuarios, contenido de documentos ni secretos.
-- **A10** Ningún `Result` se descarta sin propagarlo, registrarlo o explicar por qué.
-- **A11** Las pruebas no escriben en las carpetas reales de la app.
-- **A12** Los colores salen solo de `theme::Tokens`.
-- **A13** Toda pantalla y diálogo nuevos se pueden usar en 800×560.
-- **A14** Ningún documento queda en claro en disco: snapshots cifrados con AES-GCM y clave en memoria, purga a los 30 días.
-- **A15** Instancia única con pestañas, solo si el titular lo decide.
+Están en `.agents/rules/01-amaraza-heredadas.md` (A1–A15, AR0.2).

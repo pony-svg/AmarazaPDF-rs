@@ -87,7 +87,7 @@ Es obligatorio por la licencia de marca del upstream y debe estar hecho antes de
   - los snapshots cifrados;
   - la complejidad.
 - PDForte se usa como referencia funcional: se citan sus reglas y decisiones por su número, sin traer su código, actas ni auditorías (§3 de las reglas).
-- Las reglas nuevas se añaden a `.agents/rules/00-amaraza.md`.
+- Las reglas nuevas se añaden a `.agents/rules/01-amaraza-heredadas.md`.
 
 ### AR0.3. Puntos de enganche para los crates `amaraza-*`
 - Un ADR en `docs/amaraza/adr/` con el diseño mínimo para registrar desde crates `amaraza-*`, tocando el upstream solo en el enganche:

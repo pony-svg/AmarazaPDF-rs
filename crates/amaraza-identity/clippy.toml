@@ -1,4 +1,4 @@
-# Amaraza PDF fork (.agents/rules/00-amaraza.md §9, A7). Clippy reads only the nearest
+# Amaraza PDF fork (.agents/rules/01-amaraza-heredadas.md, A7). Clippy reads only the nearest
 # clippy.toml and does not merge it with the root one, so the root's four keys are repeated here.
 allow-unwrap-in-tests = true
 allow-expect-in-tests = true

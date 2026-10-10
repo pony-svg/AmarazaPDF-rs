@@ -118,7 +118,7 @@ Comprobación: con `LANG=en_US.UTF-8`, el comando `cargo test -p pdfcraft-ui-egu
 
 En este equipo, la puerta `cargo test --workspace` se compara contra esta línea base. También se puede ejecutar con `LANG=en_US.UTF-8`, indicándolo en el registro.
 
-**B. Confinamiento de `--root` (1 fallo): falso positivo de entorno.** *Corregido en la revisión D-13 de AR0.2: la primera versión de este registro lo daba por un defecto real del upstream, y así lo dicen también los mensajes de los commits de AR0.0 y AR0.1, que ya están publicados.*
+**B. Confinamiento de `--root` (1 fallo): falso positivo de entorno.** *Corregido en la revisión D-13 de AR0.2: la primera versión de este registro lo daba por un defecto real del upstream, y así lo dice también el mensaje del commit de AR0.0 (`61c281839a07f0baf12f29d9aba17b4288a3abd8`), que ya está publicado. Ningún mensaje de los commits de AR0.1 lo dice.*
 
 - Prueba: `pdfcraft-automation --test hostile_args`, `no_tool_escapes_the_root`.
 - Salida: `root confinement: 510 escape attempts over 140 tools, 495 refused, 15 leaks`.
@@ -402,7 +402,8 @@ Los mensajes de commit no se editaron (`--no-edit`): el del commit de la comprob
 | `647daf4e20d8e2cc526e287edc8ff145aae61a97` | AR0.1: evidencia del titular y SHA de los últimos commits (solo documentación) | fmt 0, assets ok |
 | `4e98829054c96afe092420a4fa4fc91ce73194aa` | `docs/amaraza/EQUIVALENCIAS.md` (solo documentación) | Ver la fila siguiente |
 | `2bcded2a68e5fd459c286715181b8d48168364e5` | Reglas A1–A15 (`.agents/rules/00-amaraza.md` §9) y este registro (solo documentación) | Puertas con `LANG=en_US.UTF-8` y `CARGO_BUILD_JOBS=6`, sobre el mismo código que `main`: fmt 0 (4 s), clippy 0 (8 s), assets ok (1 s, 235 activos); pruebas (305 s, portátil conectado a la corriente): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el falso positivo de entorno de la línea base (ver AR0.0, fallo B); con el inglés pasan las 9 pruebas que dependen del idioma |
-| *(siguiente)* | Correcciones de la revisión D-13 de AR0.2 (ver la sección siguiente) | Ver la sección siguiente |
+| `ece74322ada0423a28d6bf7ee0d84048db7818dd` | Correcciones de la revisión D-13 de AR0.2 (ver "Revisión D-13 de AR0.2: correcciones") | Ver esa sección |
+| *(siguiente)* | Correcciones pendientes de la revisión D-13 (ver "Revisión D-13 de `ece7432`: correcciones pendientes") | Ver esa sección |
 
 ### Revisión D-13 de AR0.2: correcciones
 
@@ -423,3 +424,24 @@ Los mensajes de commit no se editaron (`--no-edit`): el del commit de la comprob
   - clippy 0 (11 s), también con `--all-targets` (16 s), que incluye las pruebas;
   - assets ok (235 activos);
   - pruebas (283 s): **1582 pasadas, 1 fallida, 6 ignoradas**. El fallo es `no_tool_escapes_the_root`, el falso positivo de entorno.
+
+### Revisión D-13 de `ece7432`: correcciones pendientes
+
+Dictamen sobre `ece74322ada0423a28d6bf7ee0d84048db7818dd`: aprobado con correcciones. Faltaban 4 correcciones de la revisión original de AR0.2, más una menor. Se aplican en un commit nuevo, sin reescribir `ece7432`.
+
+1. **Las reglas heredadas, en su propio archivo.**
+   - Nuevo `.agents/rules/01-amaraza-heredadas.md` (`trigger: always_on`). Lleva el criterio y A1–A15 con la redacción íntegra de `2bcded2a68e5fd459c286715181b8d48168364e5`, salvo cuatro cambios:
+     - A4, aclarada (punto 2);
+     - A7, con el mecanismo de `clippy.toml` y `#![warn(…)]`;
+     - en A6 y A14, "§5" y "§6" pasan a "`00-amaraza.md` §5" y "§6", porque el archivo es otro.
+   - `00-amaraza.md` §9 queda como una remisión, y `.claude/rules/amaraza.md` importa el archivo nuevo.
+   - Referencias actualizadas: `crates/amaraza-identity/clippy.toml`, `crates/amaraza-identity/src/lib.rs`, `EQUIVALENCIAS.md` (2) y `PLAN.md` (AR0.2). Las menciones históricas de este registro no se tocan.
+2. **A4**, en el archivo nuevo y en EQUIVALENCIAS §3: los módulos `#[cfg(test)]` están permitidos. Lo prohibido es que el código de producción cambie de comportamiento con `cfg!(test)`, detecte dobles de prueba o use identidades inventadas.
+3. **EQUIVALENCIAS 3.1.d:** el original ya vacía el historial al firmar (`Session::mark_signed`) y al revertir (`Session::revert`), comprobado en `crates/engine/src/lib.rs`. El hueco es solo la censura.
+4. **EQUIVALENCIAS D-07:** sin el nombre del repositorio privado de PDForte. `git grep` no lo encuentra en ningún archivo rastreado.
+5. **Fallo B de AR0.0:** solo el mensaje del commit de AR0.0 lo daba por defecto real; ninguno de AR0.1 lo hacía (comprobado con `git log`).
+- **Tamaño de los archivos de reglas** (límite: 12 000 caracteres):
+  - `.agents/rules/00-amaraza.md`: 9 561;
+  - `.agents/rules/01-amaraza-heredadas.md`: 4 069;
+  - `.claude/rules/amaraza.md`: 223.
+- **Puertas** (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`): `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0; `cargo clippy -p amaraza-identity --all-targets -- -D warnings` 0; `cargo xtask assets` ok (235 activos). No se ejecutó la suite completa: solo cambian documentación y comentarios.

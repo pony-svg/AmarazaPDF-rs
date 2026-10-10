@@ -6,7 +6,7 @@
 //! No dependencies, so any layer may use it.
 
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-// A7 (.agents/rules/00-amaraza.md §9): the threshold, 15, is in this crate's clippy.toml.
+// A7 (.agents/rules/01-amaraza-heredadas.md): the threshold, 15, is in this crate's clippy.toml.
 #![warn(clippy::cognitive_complexity)]
 
 /// The product name people see: window title, About, installer, shortcuts.
