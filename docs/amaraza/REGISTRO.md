@@ -142,7 +142,7 @@ En este equipo, la puerta `cargo test --workspace` se compara contra esta línea
 
 ## AR0.1. Retirar la marca ArtCraft y poner la identidad Amaraza (2026-10-09)
 
-- Rama `ar0.1-identidad`, creada desde `main` en `2a6fa369a938d43f6f18ac8ff46d04791f5577bc` (`git cat-file -t` → `commit`). Ese es el commit de AR0.0.
+- Rama `ar0.1-identidad`, creada desde `main` en `61c281839a07f0baf12f29d9aba17b4288a3abd8` (`git cat-file -t` → `commit`). Ese es el commit de AR0.0.
 
 ### Decisiones del titular (2026-10-09)
 
@@ -159,7 +159,7 @@ En este equipo, la puerta `cargo test --workspace` se compara contra esta línea
 
 ### Inventario inicial (búsqueda de la comprobación final, antes de cambiar nada)
 
-Comando, sobre `2a6fa369a938d43f6f18ac8ff46d04791f5577bc`:
+Comando, sobre `61c281839a07f0baf12f29d9aba17b4288a3abd8`:
 
 ```
 grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir=target --exclude-dir=.git .
@@ -222,16 +222,17 @@ Cada commit pasa las cuatro puertas (`cargo fmt --check`, `cargo clippy --worksp
 
 | Commit | Contenido | Puertas |
 |---|---|---|
-| `36312494802acec1e78514121ed0fc2d31063ebb` | Decisiones del titular e inventario inicial (solo documentación) | fmt 0, clippy 0, assets ok; las pruebas no cambian respecto a la línea base |
-| `af1edb863173a83d081868955192497cfcb11e8f` | Crate `crates/amaraza-identity` (constantes y 3 pruebas), registrado en `xtask/src/layers.rs` | fmt 0, clippy 0, assets ok; pruebas: 1564 pasadas, 12 fallidas, 6 ignoradas. Son los 10 fallos de la línea base más los 2 de rendimiento (ver la nota) |
-| `7bf38ea5538e1f706f45637e7a155b07f20334a9` | Interfaz y CLI sin enlaces ni comunidad de ArtCraft: botón de Discord, tarjeta de inicio, "Part of" + logotipo y comandos de Ayuda fuera; "Acerca de" con la atribución en texto plano; catálogos | fmt 0, clippy 0 (también `--all-targets`), assets ok; pruebas: 1565 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una primera ejecución falló al compilar por artefactos incompletos en `target/` (`der`, `tiny_skia` sin `.rlib`); `cargo test --workspace --no-run` lo resolvió sin cambios y se repitieron las puertas |
-| `5a91dba9768ae222e80406357df8c2f42d3a76cb` | Marca: fuera los 8 archivos ArtCraft de `docs/brand/` y la captura `docs/images/pdfcraft-tools.png`; logotipo del titular (`docs/brand/amaraza-logo.{svg,png,ico}`) y licencia aprobada; `BRAND_LICENCE` = `LicenseRef-Amaraza-Trademark`; logotipo en "Acerca de" y en `amaraza-identity`; `NOTICE` | fmt 0, clippy 0, assets ok (251 activos); pruebas: 1567 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; en inglés, los 6 objetivos dependientes del idioma pasan. Una primera ejecución falló al compilar por falta de memoria virtual (`os error 1455`, 16 GB de RAM con 12 trabajos en paralelo); desde aquí las puertas se ejecutan con `CARGO_BUILD_JOBS=6` |
-| `3ecef8519b8dadc86ed9a72af8ef5c330f4790cd` | Identidad de la app: icono, título, nombre, `--version`, carpetas de ajustes y de recuperación, modo portátil, recursos del `.exe` y comprobación de actualizaciones desde `amaraza-identity`; fuera la migración de carpetas de PrintCraft | fmt 0, clippy 0 (también `--all-targets`), assets ok; pruebas: 1571 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; en inglés, los 6 objetivos dependientes del idioma pasan (incluye los títulos de ventana de `--test viewer`) |
-| `fca0f5058fd11a70046e54087fa4dc8a5ae25e21` | Instalador de Windows y zip portátil con la identidad Amaraza (`UpgradeCode` y GUID nuevos, `AmarazaPDF.exe`, marcador `AmarazaPDF.portable`); `MSI_UPGRADE_CODE` y una prueba de coherencia en `amaraza-identity` | fmt 0, clippy 0, assets ok; pruebas: 1572 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; los scripts de PowerShell se analizan sin errores y el XML de WiX es válido. **El MSI no se compiló**: WiX no está instalado en el equipo (instalarlo requiere autorización) |
-| `dfce1d4b646f5ec9e8db93166a56df70ab954e5e` | `APP_ID` = `io.github.pony_svg.AmarazaPDF` y empaquetado de Linux, Flatpak, macOS y FreeBSD adaptado; fuera el icono de PdfCraft (`assets/app-icon/`), `packaging/icons.sh` y el fondo del DMG; prueba de coherencia del empaquetado en `amaraza-identity` | fmt 0, clippy 0, assets ok (235 activos); pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; `bash -n` sin errores en los 4 scripts, YAML y XML válidos. **No se empaquetó en esas plataformas** (no hay Linux, macOS ni FreeBSD en este equipo) |
-| `538746aad3c33d40ad6076fb4b4abe3d4e0d600e` | CI: fuera `release.yml` y los `schedule` de `ci.yml` y `windows-arm64.yml`; la prueba ARM64 usa los nombres de Amaraza. Actions no se activa | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; YAML válido |
-| `cab1c1bd1330ab64d2949085a790e118d4738d47` | README propio, notas en `docs/releasing.md` y `docs/development.md`, comentarios sin la marca | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas |
-| *(siguiente)* | Comprobación final y este registro (solo documentación) | Puertas finales sobre `cab1c1bd1330ab64d2949085a790e118d4738d47` con `CARGO_BUILD_JOBS=6`: fmt 0 (4 s), clippy 0 (2 s), assets ok (1 s, 235 activos); pruebas (103 s): **1573 pasadas, 10 fallidas, 6 ignoradas**, en 129 binarios. Los 10 fallos son exactamente los de la línea base; las pruebas de rendimiento pasan. Con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una ejecución completa anterior tuvo además el fallo intermitente de `--test recovery` (ver Pendiente) |
+| `63b25fed91709aa7809dba8bec3b13c6c921b4f6` | Decisiones del titular e inventario inicial (solo documentación) | fmt 0, clippy 0, assets ok; las pruebas no cambian respecto a la línea base |
+| `f0785d3f9b68d86511760a331c53ff30d6b76948` | Crate `crates/amaraza-identity` (constantes y 3 pruebas), registrado en `xtask/src/layers.rs` | fmt 0, clippy 0, assets ok; pruebas: 1564 pasadas, 12 fallidas, 6 ignoradas. Son los 10 fallos de la línea base más los 2 de rendimiento (ver la nota) |
+| `12df0d4b7ae2da8d81b48bba3558b703cfd421ca` | Interfaz y CLI sin enlaces ni comunidad de ArtCraft: botón de Discord, tarjeta de inicio, "Part of" + logotipo y comandos de Ayuda fuera; "Acerca de" con la atribución en texto plano; catálogos | fmt 0, clippy 0 (también `--all-targets`), assets ok; pruebas: 1565 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una primera ejecución falló al compilar por artefactos incompletos en `target/` (`der`, `tiny_skia` sin `.rlib`); `cargo test --workspace --no-run` lo resolvió sin cambios y se repitieron las puertas |
+| `7cb1db40c59f3f8ec6c2bcae2f371dff3aefde1c` | Marca: fuera los 8 archivos ArtCraft de `docs/brand/` y la captura `docs/images/pdfcraft-tools.png`; logotipo del titular (`docs/brand/amaraza-logo.{svg,png,ico}`) y licencia aprobada; `BRAND_LICENCE` = `LicenseRef-Amaraza-Trademark`; logotipo en "Acerca de" y en `amaraza-identity`; `NOTICE` | fmt 0, clippy 0, assets ok (251 activos); pruebas: 1567 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; en inglés, los 6 objetivos dependientes del idioma pasan. Una primera ejecución falló al compilar por falta de memoria virtual (`os error 1455`, 16 GB de RAM con 12 trabajos en paralelo); desde aquí las puertas se ejecutan con `CARGO_BUILD_JOBS=6` |
+| `1b35712bc6520ba2dc475bf9d6df4f11bea6aedc` | Identidad de la app: icono, título, nombre, `--version`, carpetas de ajustes y de recuperación, modo portátil, recursos del `.exe` y comprobación de actualizaciones desde `amaraza-identity`; fuera la migración de carpetas de PrintCraft | fmt 0, clippy 0 (también `--all-targets`), assets ok; pruebas: 1571 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; en inglés, los 6 objetivos dependientes del idioma pasan (incluye los títulos de ventana de `--test viewer`) |
+| `da6c45439c1524fc682aa3414f0dad6bfdac2d83` | Instalador de Windows y zip portátil con la identidad Amaraza (`UpgradeCode` y GUID nuevos, `AmarazaPDF.exe`, marcador `AmarazaPDF.portable`); `MSI_UPGRADE_CODE` y una prueba de coherencia en `amaraza-identity` | fmt 0, clippy 0, assets ok; pruebas: 1572 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; los scripts de PowerShell se analizan sin errores y el XML de WiX es válido. **El MSI no se compiló**: WiX no está instalado en el equipo (instalarlo requiere autorización) |
+| `a8eca388f5b658cb80e4647c94ac4466ec9f7b34` | `APP_ID` = `io.github.pony_svg.AmarazaPDF` y empaquetado de Linux, Flatpak, macOS y FreeBSD adaptado; fuera el icono de PdfCraft (`assets/app-icon/`), `packaging/icons.sh` y el fondo del DMG; prueba de coherencia del empaquetado en `amaraza-identity` | fmt 0, clippy 0, assets ok (235 activos); pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; `bash -n` sin errores en los 4 scripts, YAML y XML válidos. **No se empaquetó en esas plataformas** (no hay Linux, macOS ni FreeBSD en este equipo) |
+| `27d294b4f705c614b0f43b14fa67ef467d75d7dd` | CI: fuera `release.yml` y los `schedule` de `ci.yml` y `windows-arm64.yml`; la prueba ARM64 usa los nombres de Amaraza. Actions no se activa | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas; YAML válido |
+| `cb99da959ccf3a77278d8e467aa0130761dd17e5` | README propio, notas en `docs/releasing.md` y `docs/development.md`, comentarios sin la marca | fmt 0, clippy 0, assets ok; pruebas: 1573 pasadas, 10 fallidas (las de la línea base), 6 ignoradas |
+| `dbef6b626824382ea96d396f891ebaea6e3ad121` | Comprobación final y este registro (solo documentación) | Puertas finales sobre `cb99da959ccf3a77278d8e467aa0130761dd17e5` con `CARGO_BUILD_JOBS=6`: fmt 0 (4 s), clippy 0 (2 s), assets ok (1 s, 235 activos); pruebas (103 s): **1573 pasadas, 10 fallidas, 6 ignoradas**, en 129 binarios. Los 10 fallos son exactamente los de la línea base; las pruebas de rendimiento pasan. Con `LANG=en_US.UTF-8`, los 6 objetivos dependientes del idioma pasan (142 pruebas). Una ejecución completa anterior tuvo además el fallo intermitente de `--test recovery` (ver Pendiente) |
+| *(siguiente)* | Corrección de autoría: los 11 commits de `origin/main..ar0.1-identidad` reescritos con el autor del proyecto (ver la sección siguiente) y este registro con los SHA nuevos | Sin cambios de contenido: `git diff` entre el extremo anterior y el nuevo, vacío |
 
 **Nota sobre las pruebas de rendimiento** (`pdfcraft-ui-egui --test perf`: `scrolling_a_500_page_document_stays_within_the_frame_budget` y `panels_with_hundreds_of_items_stay_within_the_frame_budget`):
 - Miden el tiempo medio por fotograma contra un presupuesto fijo de 40 ms. En Windows no pueden leer la carga del sistema, así que nunca se saltan.
@@ -239,7 +240,7 @@ Cada commit pasa las cuatro puertas (`cargo fmt --check`, `cargo clippy --worksp
 - El crate de identidad no lo usa todavía ningún otro crate, así que no puede afectarlas. Se tratan como dependientes del entorno y se repiten con el equipo conectado a la corriente antes de cerrar AR0.1.
 - Resultado: pasaron en todas las ejecuciones completas siguientes (enlaces, marca, identidad de la app, instalador, empaquetado, CI, documentación y puertas finales), con el equipo ya cargando.
 
-### Comprobación final (sobre `cab1c1bd1330ab64d2949085a790e118d4738d47`)
+### Comprobación final (sobre `cb99da959ccf3a77278d8e467aa0130761dd17e5`)
 
 **Búsqueda de la marca** (el mismo comando del inventario inicial):
 
@@ -300,3 +301,36 @@ grep -rniE "artcraft|getartcraft|storyteller" --exclude-dir=vendor --exclude-dir
   - "Abrir con ▸ Amaraza PDF" en un PDF, y "Crear PDF con Amaraza PDF…" en una imagen;
   - que un PdfCraft instalado en paralelo **no** se desinstala (`UpgradeCode` distinto);
   - que el zip portátil trae `AmarazaPDF.exe` y `AmarazaPDF.portable`.
+
+## Corrección de autoría (2026-10-09)
+
+**Motivo:** el correo del autor no era el del proyecto. Los 11 commits locales y no subidos de `origin/main..ar0.1-identidad` llevaban como autor y committer el correo global de este equipo. El fork es público, así que se corrigió antes de cualquier push. El titular autorizó expresamente reescribir esos commits, solo para esta corrección (revisión D-13 de AR0.0 y AR0.1).
+
+**Qué se hizo:**
+1. `git config --local user.name "Juan Diego Peraza Amado"` y `git config --local user.email` con el correo del proyecto.
+2. Con el árbol limpio, en `ar0.1-identidad`, se anotó el extremo (`65e4c29fff0c5abe3e0e72b74215825a8f36edef`) y se ejecutó `git rebase -r origin/main --exec "git commit --amend --no-edit --reset-author"`.
+3. `git branch -f main` al nuevo commit de AR0.0.
+
+**Comprobaciones:**
+- `git log --format="%ae %ce" origin/main..ar0.1-identidad` (11 líneas) y `git log --format="%ae %ce" origin/main..main` (1 línea): solo el correo del proyecto, como autor y como committer.
+- `git diff 65e4c29fff0c5abe3e0e72b74215825a8f36edef ar0.1-identidad`: vacío (0 bytes). Solo cambiaron autor, committer y fechas, no el contenido.
+- `main` apunta a `61c281839a07f0baf12f29d9aba17b4288a3abd8` (AR0.0), cuyo padre es `origin/main` (`90bb2f14ad4c60f84d900c1389e289e51a5ce7a6`).
+- El correo anterior no aparece en ningún archivo rastreado ni en ningún mensaje de commit.
+
+**SHA anterior → SHA nuevo** (cada SHA nuevo comprobado con `git cat-file -t` → `commit`; este registro ya usa los nuevos):
+
+| Anterior | Nuevo | Commit |
+|---|---|---|
+| `2a6fa369a938d43f6f18ac8ff46d04791f5577bc` | `61c281839a07f0baf12f29d9aba17b4288a3abd8` | AR0.0: reglas, plan y línea base del fork Amaraza |
+| `36312494802acec1e78514121ed0fc2d31063ebb` | `63b25fed91709aa7809dba8bec3b13c6c921b4f6` | AR0.1: decisiones del titular e inventario inicial de la marca |
+| `af1edb863173a83d081868955192497cfcb11e8f` | `f0785d3f9b68d86511760a331c53ff30d6b76948` | AR0.1: crate amaraza-identity con la identidad de Amaraza PDF |
+| `7bf38ea5538e1f706f45637e7a155b07f20334a9` | `12df0d4b7ae2da8d81b48bba3558b703cfd421ca` | AR0.1: interfaz y CLI sin enlaces ni comunidad de ArtCraft |
+| `5a91dba9768ae222e80406357df8c2f42d3a76cb` | `7cb1db40c59f3f8ec6c2bcae2f371dff3aefde1c` | AR0.1: marca Amaraza en lugar de la marca ArtCraft |
+| `3ecef8519b8dadc86ed9a72af8ef5c330f4790cd` | `1b35712bc6520ba2dc475bf9d6df4f11bea6aedc` | AR0.1: identidad de la app (título, carpetas, modo portátil, icono y .exe) |
+| `fca0f5058fd11a70046e54087fa4dc8a5ae25e21` | `da6c45439c1524fc682aa3414f0dad6bfdac2d83` | AR0.1: instalador de Windows y zip portátil con la identidad Amaraza |
+| `dfce1d4b646f5ec9e8db93166a56df70ab954e5e` | `a8eca388f5b658cb80e4647c94ac4466ec9f7b34` | AR0.1: APP_ID propio y empaquetado de Linux, Flatpak, macOS y FreeBSD |
+| `538746aad3c33d40ad6076fb4b4abe3d4e0d600e` | `27d294b4f705c614b0f43b14fa67ef467d75d7dd` | AR0.1: CI del fork sin publicación ni tareas programadas |
+| `cab1c1bd1330ab64d2949085a790e118d4738d47` | `cb99da959ccf3a77278d8e467aa0130761dd17e5` | AR0.1: README propio y documentación sin la marca ArtCraft |
+| `65e4c29fff0c5abe3e0e72b74215825a8f36edef` | `dbef6b626824382ea96d396f891ebaea6e3ad121` | AR0.1: comprobación final y registro |
+
+Los mensajes de commit no se editaron (`--no-edit`): el del commit de la comprobación final cita `cab1c1bd1330`, que corresponde a `cb99da959ccf3a77278d8e467aa0130761dd17e5`. Las puertas que este registro atribuye a un commit se ejecutaron sobre su árbol anterior, idéntico al nuevo.
