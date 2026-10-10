@@ -10,7 +10,7 @@
 #
 # Usage: packaging/linux/package.sh [--skip-build] [--formats "appimage deb rpm tar cli"]
 #
-# Needs: cargo; nfpm for deb/rpm (https://nfpm.goreleaser.com); appimagetool for the AppImage
+# Needs: cargo, curl and the network (the OCR models: cargo xtask models); nfpm for deb/rpm (https://nfpm.goreleaser.com); appimagetool for the AppImage
 # (downloaded into $CARGO_TARGET_DIR if missing). Build on an old distro (CI: Ubuntu 22.04,
 # glibc 2.35) so the binaries run on newer ones. Optional: desktop-file-validate, appstreamcli,
 # zsyncmake (the zsync package) for the AppImage's .zsync.
@@ -65,6 +65,8 @@ install -Dm644 "$ROOT/docs/brand/amaraza-logo.png" "$STAGE/usr/share/icons/hicol
 install -Dm644 "$ROOT/docs/brand/amaraza-logo.svg" "$STAGE/usr/share/icons/hicolor/scalable/apps/$APP_ID.svg"
 mkdir -p "$STAGE/usr/share/doc/amarazapdf"
 copy_docs "$STAGE/usr/share/doc/amarazapdf"
+# OCR models: the app finds them at <bin>/../share/pdfcraft/models, so in every format below.
+stage_models "$STAGE/usr/share/pdfcraft/models"
 
 if command -v desktop-file-validate >/dev/null; then
   desktop-file-validate "$STAGE/usr/share/applications/$APP_ID.desktop"

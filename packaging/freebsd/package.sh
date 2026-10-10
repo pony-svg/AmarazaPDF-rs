@@ -6,7 +6,7 @@
 # MIME type, AppStream metadata and icons are the freedesktop ones Linux uses.
 #
 # Usage: packaging/freebsd/package.sh [--skip-build]
-# Needs: bash, a Rust toolchain, and the GUI libraries in .github/workflows/freebsd.yml.
+# Needs: bash, a Rust toolchain, curl and the network (the OCR models), and the GUI libraries in .github/workflows/freebsd.yml.
 set -euo pipefail
 # shellcheck source=../env.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
@@ -53,6 +53,8 @@ sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$PDFCRAFT_BUILD_DATE/g" \
 install -m 644 "$ROOT/docs/brand/amaraza-logo.png" "$STAGE/share/icons/hicolor/512x512/apps/$APP_ID.png"
 install -m 644 "$ROOT/docs/brand/amaraza-logo.svg" "$STAGE/share/icons/hicolor/scalable/apps/$APP_ID.svg"
 copy_docs "$STAGE/share/doc/amarazapdf"
+# OCR models: the app finds them at <bin>/../share/pdfcraft/models.
+stage_models "$STAGE/share/pdfcraft/models"
 
 "$STAGE/bin/pdfcraft" --version
 mkdir -p "$DIST"
