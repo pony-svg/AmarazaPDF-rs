@@ -81,12 +81,13 @@ Todo lo demás del upstream se aplica completo:
 - abrir PR o issues en `storytold/pdfcraft`;
 - permitir `unsafe` (el upstream lo prohíbe; la excepción la firma el titular).
 
-Nunca: `push --force`, reescritura del historial, ni push a `upstream`.
+Nunca: `push --force`, reescribir historial ya publicado; reescribir commits locales no subidos solo con autorización expresa del titular, ni push a `upstream`.
 
 ## 7. Protocolo de cada sesión
 
 1. **Orientar.**
    - `git status`, `git log --oneline -5`, rama actual y `git remote -v`. Debe ser `origin` = `pony-svg/AmarazaPDF-rs` y `upstream` = `storytold/pdfcraft`, con el push deshabilitado.
+   - Antes del primer commit, comprobar que `git config user.email` es el correo del proyecto.
    - Leer `docs/amaraza/PLAN.md` y la última entrada de `docs/amaraza/REGISTRO.md`.
 2. **Planificar** una tarea `ARx.y` pequeña: archivos que se tocan, cómo se prueba y cómo se revierte.
 3. **Implementar.** Primero la prueba que falla; después el cambio. Cada defecto corregido deja una prueba de regresión sintética.
