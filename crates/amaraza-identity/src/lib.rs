@@ -176,6 +176,43 @@ mod tests {
     }
 
     #[test]
+    fn the_other_platforms_packages_use_the_app_id() {
+        let desktop = repo_file(&format!("packaging/linux/{APP_ID}.desktop"));
+        assert!(desktop.contains(&format!("Name={PRODUCT_NAME}\n")) && desktop.contains(&format!("Icon={APP_ID}\n")), "desktop entry");
+        let metainfo = repo_file(&format!("packaging/linux/{APP_ID}.metainfo.xml.in"));
+        assert!(metainfo.contains(&format!("<id>{APP_ID}</id>")), "AppStream id");
+        assert!(metainfo.contains(&format!("<launchable type=\"desktop-id\">{APP_ID}.desktop</launchable>")), "AppStream launchable");
+        for manifest in [format!("packaging/linux/flatpak/{APP_ID}.yml"), format!("packaging/linux/flatpak/{APP_ID}.bundle.yml")] {
+            assert!(repo_file(&manifest).contains(&format!("id: {APP_ID}\n")), "{manifest}");
+        }
+        for script in ["packaging/linux/package.sh", "packaging/linux/flatpak-bundle.sh", "packaging/freebsd/package.sh"] {
+            assert!(repo_file(script).contains(&format!("APP_ID={APP_ID}\n")), "{script}");
+        }
+        let plist = repo_file("packaging/macos/Info.plist.in");
+        assert!(plist.contains(&format!("<string>{APP_ID}</string>")) && plist.contains(&format!("<string>{PRODUCT_NAME}</string>")), "Info.plist");
+        // No packaging file names upstream's id, publisher, site or community, or its icon set.
+        let mut pending = vec![std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packaging")];
+        let mut checked = 0;
+        while let Some(dir) = pending.pop() {
+            for entry in std::fs::read_dir(&dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    pending.push(path);
+                    continue;
+                }
+                let name = path.to_string_lossy().to_lowercase();
+                assert!(!name.contains("storyteller"), "{}", path.display());
+                let Ok(text) = std::fs::read_to_string(&path) else { continue };
+                checked += 1;
+                for upstream in ["storyteller", "getartcraft", "discord.gg", "learning machines", "assets/app-icon"] {
+                    assert!(!text.to_lowercase().contains(upstream), "{} still has {upstream:?}", path.display());
+                }
+            }
+        }
+        assert!(checked > 10, "only {checked} packaging files read");
+    }
+
+    #[test]
     fn the_logo_is_amarazas_in_every_format() {
         assert!(LOGO_SVG.starts_with(b"<svg"), "an SVG document");
         assert!(LOGO_PNG.starts_with(b"\x89PNG\r\n\x1a\n"), "a PNG image");

@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=PdfCraft
+Name=Amaraza PDF
 GenericName=PDF Editor
 Comment=Read, organize, combine, split and secure PDFs
 Exec=pdfcraft %U
 TryExec=pdfcraft
-Icon=ai.storyteller.pdfcraft
+Icon=io.github.pony_svg.AmarazaPDF
 Terminal=false
 StartupNotify=true
 StartupWMClass=pdfcraft

@@ -3,7 +3,7 @@
 # exports VERSION and NFPM_ARCH.
 #
 #   nfpm package -f packaging/linux/nfpm.yaml -p deb -t dist/release/
-name: pdfcraft
+name: amarazapdf
 arch: ${NFPM_ARCH}
 platform: linux
 version: ${VERSION}
@@ -13,11 +13,11 @@ release: 1
 section: graphics
 priority: optional
 maintainer: ${PDFCRAFT_MAINTAINER}
-vendor: Learning Machines LLC
-homepage: https://getartcraft.com/apps/pdfcraft
+vendor: Amaraza
+homepage: https://github.com/pony-svg/AmarazaPDF-rs
 license: MIT OR Apache-2.0
 description: |-
-  Open-source, native PDF workbench: read, comment, fill and sign forms,
+  Amaraza PDF, based on PdfCraft. Open-source, native PDF workbench: read, comment, fill and sign forms,
   organize, combine, split, edit, redact, protect and export PDFs.
   Includes pdfcraft-cli, a headless command runner and opt-in MCP server.
 

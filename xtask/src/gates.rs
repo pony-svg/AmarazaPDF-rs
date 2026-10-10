@@ -310,12 +310,15 @@ mod tests {
         assert!(pdf.contains("<string>Alternate</string>"), "rank stays Alternate: offered without taking over Preview");
     }
 
-    // The bundle id must match the app id the binary uses; renames change both (#174).
+    // The bundle id must match the app id the binary uses; renames change both (#174). In the
+    // Amaraza PDF fork both come from crates/amaraza-identity.
     #[test]
     fn macos_bundle_id_matches_app_id() {
-        assert!(read("packaging/macos/Info.plist.in").contains("<string>ai.storyteller.pdfcraft</string>"), "bundle id");
+        let id = "io.github.pony_svg.AmarazaPDF";
+        assert!(read("crates/amaraza-identity/src/lib.rs").contains(&format!(r#"pub const APP_ID: &str = "{id}";"#)), "identity APP_ID");
+        assert!(read("packaging/macos/Info.plist.in").contains(&format!("<string>{id}</string>")), "bundle id");
         let main = read("apps/pdfcraft/src/main.rs");
-        assert!(main.contains(r#"const APP_ID: &str = "ai.storyteller.pdfcraft""#), "APP_ID drifted from the bundle id");
+        assert!(main.contains("const APP_ID: &str = amaraza_identity::APP_ID;"), "APP_ID drifted from the bundle id");
     }
 
     // Committed file with `<!-- -->` comments stripped, so a commented-out claim cannot pass.
