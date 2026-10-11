@@ -154,7 +154,7 @@ const PAGES: Option<&str> = Some("Pages");
 const HELP: Option<&str> = Some("Help");
 
 /// Every command, in menu order.
-pub const COMMANDS: &[CommandSpec] = &[
+const UPSTREAM_COMMANDS: &[CommandSpec] = &[
     c("file.open", "Open…", FILE, Some(Shortcut::cmd("O")), Nothing, "folder-open"),
     c("file.open_recent", "Open Recent", FILE, None, Nothing, "clock"),
     // Shown at the foot of File ▸ Open Recent and on Home, not as its own File menu item.
@@ -344,6 +344,9 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("help.check_updates", "Check for updates…", HELP, None, Nothing, "cloud"),
     c("help.about", "Acerca de Amaraza PDF", HELP, None, Nothing, "info"),
 ];
+
+/// Every command: the upstream's, then the fork's (Amaraza, ADR-0001).
+pub const COMMANDS: &[CommandSpec] = &crate::amaraza::commands::<{ UPSTREAM_COMMANDS.len() + crate::amaraza::COMMANDS.len() }>(UPSTREAM_COMMANDS);
 
 pub fn command(id: &str) -> Option<&'static CommandSpec> {
     COMMANDS.iter().find(|c| c.id == id)

@@ -8,6 +8,8 @@ use crate::{DocId, Edit, EditError, Session};
 /// One step of an action.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Step {
+    /// Amaraza PDF fork steps (ADR-0001).
+    Amaraza(crate::amaraza::Step),
     /// Scan & OCR ▸ Recognize text (pages without text).
     RecognizeText,
     /// Reduce file size.
@@ -33,8 +35,15 @@ pub enum Step {
 }
 
 impl Step {
-    /// Every step, with an empty argument where it takes one (for the step picker).
+    /// Every step: the upstream's, then the fork's (Amaraza, ADR-0001).
     pub fn all() -> Vec<Step> {
+        let mut v = Self::upstream_all();
+        v.extend(crate::amaraza::Step::all().into_iter().map(Step::Amaraza));
+        v
+    }
+
+    /// Every step, with an empty argument where it takes one (for the step picker).
+    fn upstream_all() -> Vec<Step> {
         vec![
             Step::RecognizeText,
             Step::ReduceFileSize,
@@ -54,6 +63,7 @@ impl Step {
     /// A stable id (agents, saved actions).
     pub fn id(&self) -> &'static str {
         match self {
+            Step::Amaraza(p) => p.id(), // Amaraza (ADR-0001)
             Step::RecognizeText => "recognize_text",
             Step::ReduceFileSize => "reduce_file_size",
             Step::RemoveHiddenInformation => "remove_hidden_information",
@@ -71,6 +81,7 @@ impl Step {
 
     pub fn label(&self) -> &'static str {
         match self {
+            Step::Amaraza(p) => p.label(), // Amaraza (ADR-0001)
             Step::RecognizeText => "Recognize text",
             Step::ReduceFileSize => "Reduce file size",
             Step::RemoveHiddenInformation => "Remove hidden information",
@@ -88,6 +99,10 @@ impl Step {
 
     /// The step's text argument, if it takes one.
     pub fn arg(&self) -> Option<&str> {
+        // Amaraza (ADR-0001)
+        if let Step::Amaraza(p) = self {
+            return p.arg();
+        }
         match self {
             Step::AddWatermark(s) | Step::AddHeader(s) | Step::AddFooter(s) | Step::SetTitle(s) | Step::RunJavaScript(s) => Some(s),
             _ => None,
@@ -95,6 +110,10 @@ impl Step {
     }
 
     pub fn arg_mut(&mut self) -> Option<&mut String> {
+        // Amaraza (ADR-0001)
+        if let Step::Amaraza(p) = self {
+            return p.arg_mut();
+        }
         match self {
             Step::AddWatermark(s) | Step::AddHeader(s) | Step::AddFooter(s) | Step::SetTitle(s) | Step::RunJavaScript(s) => Some(s),
             _ => None,
@@ -150,6 +169,7 @@ fn apply_step(s: &mut Session, id: DocId, step: &Step, log: &mut Vec<String>) ->
     let pages = s.get(id).map_or(0, |d| d.info.pages.len());
     let all: Vec<usize> = (0..pages).collect();
     let edit = match step {
+        Step::Amaraza(p) => return crate::amaraza::apply(s, id, p, log), // Amaraza (ADR-0001)
         Step::RecognizeText => {
             let found = s.recognize_text(id, &[], crate::ocr::OcrSettings::default()).map_err(EditError::Invalid)?;
             log.push(format!("Recognize text: {} words", found.iter().map(|p| p.words.len()).sum::<usize>()));
