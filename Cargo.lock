@@ -3598,6 +3598,7 @@ dependencies = [
 name = "pdfcraft-automation"
 version = "0.5.0"
 dependencies = [
+ "amaraza-ext",
  "base64 0.22.1",
  "image",
  "pdfcraft-cos",

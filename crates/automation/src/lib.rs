@@ -12,6 +12,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 mod a11y;
+mod amaraza; // Amaraza PDF fork tools (ADR-0001)
 mod comments;
 mod content;
 mod conventions;
@@ -146,6 +147,7 @@ impl Automation {
         tools::check_args(def, args)?;
         let a = Args(args);
         let out = match name {
+            n if n.starts_with(amaraza::PREFIX) => amaraza::call(self, n, &a)?, // Amaraza (ADR-0001)
             "doc_open" => self.doc_open(&a)?,
             "doc_list" => json!({ "documents": self.session.docs().iter().map(summary).collect::<Vec<_>>() }),
             "doc_info" => info(self.doc(&a)?),

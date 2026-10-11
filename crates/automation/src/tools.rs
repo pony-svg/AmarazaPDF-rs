@@ -113,8 +113,15 @@ impl T {
     }
 }
 
-/// Every tool, in a stable order.
+/// Every tool: the upstream's, then the fork's (Amaraza, ADR-0001).
 pub fn tools() -> Vec<ToolDef> {
+    let mut v = upstream_tools();
+    v.extend(crate::amaraza::tools());
+    v
+}
+
+/// Every tool, in a stable order.
+fn upstream_tools() -> Vec<ToolDef> {
     let save_out = json!({ "type": "string", "description": "File to write. Omit to open the result as a new unsaved document instead." });
     let open = json!({ "type": "boolean", "description": "Also open the result as a new document (default: only when out is omitted)." });
     vec![
