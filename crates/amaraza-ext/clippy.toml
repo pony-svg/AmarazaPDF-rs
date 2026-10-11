@@ -1,0 +1,9 @@
+# Amaraza PDF fork (.agents/rules/01-amaraza-heredadas.md, A7). Clippy reads only the nearest
+# clippy.toml and does not merge it with the root one, so the root's four keys are repeated here.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+# A7: no function above a cognitive complexity of 15. The lint is in clippy's nursery group, so
+# src/lib.rs turns it on with #![warn(clippy::cognitive_complexity)].
+cognitive-complexity-threshold = 15

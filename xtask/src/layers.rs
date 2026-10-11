@@ -77,6 +77,8 @@ pub const TABLE: &[(&str, Class)] = &[
     ("tools", Class::Layer(5)),
     // L6 façade
     ("engine", Class::Layer(6)),
+    // Amaraza PDF fork: features over the engine, used by automation and the UI (ADR-0001)
+    ("amaraza-ext", Class::Layer(6)),
     // L7 platform + frontends
     ("platform", Class::Layer(7)),
     ("ui-common", Class::Layer(7)),
@@ -97,6 +99,7 @@ pub const STANDALONE_DEPS: &[(&str, &[&str])] = &[("cos", &["filters", "crypt", 
 
 /// Allowed same-layer edges (architecture §3 rule 1). `forms → js` is deliberately absent.
 pub const SIDEWAYS: &[(&str, &str)] = &[
+    ("amaraza-ext", "engine"), // Amaraza (ADR-0001)
     ("redact", "edit"),
     ("a11y", "preflight"),
     ("prepress", "preflight"),
