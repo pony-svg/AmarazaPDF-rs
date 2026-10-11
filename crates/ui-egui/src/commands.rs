@@ -124,6 +124,7 @@ impl PdfCraftApp {
         let active = self.active;
         let targets = active.map(|i| self.views[i].target_pages()).unwrap_or_default();
         match id {
+            fork if crate::amaraza::handles(fork) => return crate::amaraza::execute(self, fork), // Amaraza (ADR-0001)
             "file.open" => self.open_dialog(),
             "file.open_recent" => match self.recent.first().map(|r| r.path.clone()) {
                 // The palette runs commands without a submenu: open the most recent file.

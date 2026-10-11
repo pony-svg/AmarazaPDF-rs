@@ -3918,6 +3918,7 @@ dependencies = [
 name = "pdfcraft-ui-egui"
 version = "0.5.0"
 dependencies = [
+ "amaraza-ext",
  "amaraza-identity",
  "arboard",
  "base64 0.22.1",

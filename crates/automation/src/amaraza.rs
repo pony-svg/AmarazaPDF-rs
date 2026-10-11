@@ -32,7 +32,7 @@ pub(crate) fn tools() -> Vec<ToolDef> {
         }),
         read_only: true,
         destructive: false,
-        command: None,
+        command: Some("amaraza.hello"),
     }]
 }
 

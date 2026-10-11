@@ -1,0 +1,68 @@
+# Amaraza PDF fork translation layer (docs/amaraza/adr/0001-puntos-de-enganche.md, section 2.4).
+# Columns, separated by a TAB:  language <TAB> context <TAB> source <TAB> translation
+# The last three columns are the upstream catalog format (see crates/ui-egui/src/i18n/ja.tsv). When a
+# language's catalog loads, its rows here are appended to it and go through the same checks.
+#
+# Sources are Spanish (.agents/rules/00-amaraza.md, section 8). Until a translation task, every
+# language shows them in Spanish (AR-D4, docs/amaraza/PLAN.md), so outside "es" these rows repeat the
+# source on purpose: they are untranslated ("sin traducir"), not translations.
+
+ja		Amaraza	Amaraza
+ja		Hola, Amaraza	Hola, Amaraza
+ja		Saludo de Amaraza	Saludo de Amaraza
+
+zh-hans		Amaraza	Amaraza
+zh-hans		Hola, Amaraza	Hola, Amaraza
+zh-hans		Saludo de Amaraza	Saludo de Amaraza
+
+zh-hant		Amaraza	Amaraza
+zh-hant		Hola, Amaraza	Hola, Amaraza
+zh-hant		Saludo de Amaraza	Saludo de Amaraza
+
+cs		Amaraza	Amaraza
+cs		Hola, Amaraza	Hola, Amaraza
+cs		Saludo de Amaraza	Saludo de Amaraza
+
+pt-br		Amaraza	Amaraza
+pt-br		Hola, Amaraza	Hola, Amaraza
+pt-br		Saludo de Amaraza	Saludo de Amaraza
+
+de		Amaraza	Amaraza
+de		Hola, Amaraza	Hola, Amaraza
+de		Saludo de Amaraza	Saludo de Amaraza
+
+es		Amaraza	Amaraza
+es		Hola, Amaraza	Hola, Amaraza
+es		Saludo de Amaraza	Saludo de Amaraza
+
+fr		Amaraza	Amaraza
+fr		Hola, Amaraza	Hola, Amaraza
+fr		Saludo de Amaraza	Saludo de Amaraza
+
+ru		Amaraza	Amaraza
+ru		Hola, Amaraza	Hola, Amaraza
+ru		Saludo de Amaraza	Saludo de Amaraza
+
+bg		Amaraza	Amaraza
+bg		Hola, Amaraza	Hola, Amaraza
+bg		Saludo de Amaraza	Saludo de Amaraza
+
+te		Amaraza	Amaraza
+te		Hola, Amaraza	Hola, Amaraza
+te		Saludo de Amaraza	Saludo de Amaraza
+
+hu		Amaraza	Amaraza
+hu		Hola, Amaraza	Hola, Amaraza
+hu		Saludo de Amaraza	Saludo de Amaraza
+
+uk		Amaraza	Amaraza
+uk		Hola, Amaraza	Hola, Amaraza
+uk		Saludo de Amaraza	Saludo de Amaraza
+
+it		Amaraza	Amaraza
+it		Hola, Amaraza	Hola, Amaraza
+it		Saludo de Amaraza	Saludo de Amaraza
+
+ar		Amaraza	Amaraza
+ar		Hola, Amaraza	Hola, Amaraza
+ar		Saludo de Amaraza	Saludo de Amaraza

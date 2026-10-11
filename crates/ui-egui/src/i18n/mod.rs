@@ -175,7 +175,8 @@ impl LangInfo {
 
     fn catalog(&self) -> &Catalog {
         self.catalog.get_or_init(|| {
-            let (mut catalog, errors) = Catalog::parse(self.source, self.plural_forms());
+            // Amaraza (ADR-0001): the fork's rows follow the upstream catalog.
+            let (mut catalog, errors) = Catalog::parse(&crate::amaraza::catalog_source(self.code, self.source), self.plural_forms());
             for error in errors {
                 log::warn!("{} interface catalog: {error}; that entry shows in English", self.code);
             }

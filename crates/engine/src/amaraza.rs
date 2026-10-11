@@ -20,7 +20,10 @@ pub const MENU: &str = "Amaraza";
 
 /// The fork's commands, appended to the upstream's in [`crate::commands::COMMANDS`]. No keyboard
 /// shortcuts, so they never compete with the upstream's.
-pub const COMMANDS: &[CommandSpec] = &[];
+pub const COMMANDS: &[CommandSpec] = &[
+    // The "hola Amaraza" demonstration (ADR-0001 §5).
+    CommandSpec { id: "amaraza.hello", label: "Hola, Amaraza", menu: Some(MENU), shortcut: None, needs: Needs::Nothing, in_text: true, icon: "hand" },
+];
 
 const EMPTY: CommandSpec = CommandSpec { id: "", label: "", menu: None, shortcut: None, needs: Needs::Nothing, in_text: true, icon: "" };
 

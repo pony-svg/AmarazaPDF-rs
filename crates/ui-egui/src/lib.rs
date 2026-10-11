@@ -24,6 +24,7 @@ macro_rules! tl_ctx {
 
 mod a11y_ui;
 mod actions_ui;
+mod amaraza; // Amaraza PDF fork surfaces (ADR-0001)
 pub mod canvas;
 mod chrome;
 mod combine_ui;

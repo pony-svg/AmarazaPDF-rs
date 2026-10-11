@@ -118,3 +118,18 @@ fn the_hello_step_runs_through_action_run() {
     assert_eq!(r["files"][0]["log"][0], "Hola, Amaraza", "{r}");
     assert!(root.path().join("out").join("a.pdf").is_file());
 }
+
+#[test]
+fn the_hello_command_runs_through_its_tool() {
+    let root = Root::new("hello-command");
+    let mut a = auto(&root);
+    let list = ok(&mut a, "command_list", json!({ "filter": "amaraza." }));
+    let commands = list["commands"].as_array().unwrap();
+    let hello = commands.iter().find(|c| c["id"] == "amaraza.hello").expect("amaraza.hello is listed");
+    assert_eq!(hello["tool"], "amaraza_hello");
+    assert_eq!(hello["label"], "Hola, Amaraza");
+    assert_eq!(hello["menu"], "Amaraza");
+    assert_eq!(hello["enabled"], true);
+    let r = ok(&mut a, "command_run", json!({ "id": "amaraza.hello" }));
+    assert_eq!(r["text"], format!("Hola, Amaraza PDF {}", env!("CARGO_PKG_VERSION")));
+}

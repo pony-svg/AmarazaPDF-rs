@@ -389,6 +389,7 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 }
             });
         });
+        crate::amaraza::main_menu(app, ui); // Amaraza (ADR-0001)
         ui.menu_button(tl!("Help"), |ui| crate::commands::registry_menu(app, ui, "Help"));
     });
 }
