@@ -1,6 +1,6 @@
 # ADR-0001. Puntos de enganche para los crates `amaraza-*`
 
-- **Estado:** propuesto. Solo diseño: no se implementa nada hasta la aprobación D-13 y las decisiones del titular (§10).
+- **Estado:** aceptado el 2026-10-10, en la revisión D-13 de `aef6710`, con correcciones menores ya aplicadas. Decisiones del titular: AR-D3 a AR-D5 (§10).
 - **Tarea:** AR0.3 (`docs/amaraza/PLAN.md`).
 - **Fecha:** 2026-10-10.
 - **Base:** `0f2f47f`. Su código es el de `e9b9ee6`: upstream v0.5.0 con AR0.1. Los números de línea se refieren a esa base.
@@ -23,7 +23,7 @@ Se sigue el reparto del upstream: el registro dice qué es cada comando y el fro
 
 1. **Declaración** en `crates/engine/src/amaraza.rs`, un archivo nuevo del fork dentro del motor. Solo datos:
    - los comandos del fork (`COMMANDS`);
-   - los pasos del fork (`enum Paso`), con su id, etiqueta y argumento;
+   - los pasos del fork (`crate::amaraza::Step`), con su id, etiqueta y argumento;
    - la aplicación de los pasos que no necesitan contexto.
 2. **Lógica** en el crate nuevo `crates/amaraza-ext`: una API sin interfaz sobre `Session` ("primero una API del motor", `AGENTS.md` §3). Aquí va todo lo que tiene ramas: el saludo de la demostración ahora y la firma por lote después.
 3. **Superficies**: un módulo del fork en cada frontend.
@@ -35,6 +35,8 @@ Los archivos del upstream solo reciben la línea que conecta cada pieza (§3). C
 - herramientas y pasos `amaraza_*`.
 
 Así nunca coinciden con ids del upstream, y las pruebas de unicidad del upstream lo vigilan.
+
+Los identificadores del código del fork van en inglés, como en `amaraza-identity`, y los textos que ve el usuario, en español (AR-D5).
 
 ### 2.1 Comandos (`COMMANDS`)
 
@@ -118,7 +120,7 @@ Se añade una variante de extensión **tipada** al enum cerrado:
 ```rust
 pub enum Step {
     /// Amaraza PDF fork steps (ADR-0001).
-    Amaraza(crate::amaraza::Paso),
+    Amaraza(crate::amaraza::Step),
     RecognizeText,
     // …
 }
@@ -134,7 +136,7 @@ pub enum Step {
   match self {
   ```
   Lo comprobé aparte con rustc 1.99, también el préstamo `&mut` de `arg_mut`.
-- **`all()`:** pasa a llamarse `upstream_all()` y un envoltorio nuevo devuelve `upstream_all()` seguido de `Paso::all()` envuelto en `Step::Amaraza`. `from_id` usa `all()`, así que no cambia.
+- **`all()`:** pasa a llamarse `upstream_all()` y un envoltorio nuevo devuelve `upstream_all()` seguido de `crate::amaraza::Step::all()` envuelto en `Step::Amaraza`. `from_id` usa `all()`, así que no cambia.
 - **`apply_step`:** un brazo al principio del `match step` (`actions.rs:152`): `Step::Amaraza(p) => return crate::amaraza::apply(s, id, p, log),`.
 
 Con esto, el selector de pasos, las acciones guardadas, `action_list` y `action_run` ven los pasos del fork sin más cambios. Los pasos que necesitan contexto, como un certificado, no pueden ejecutarse dentro de `run_on`. Para ellos `apply` devuelve un error accionable, y los ejecuta el corredor del fork (§4).
@@ -160,7 +162,7 @@ Historial del upstream (`git log -L` sobre cada ancla, hasta `0f2f47f`):
 | E3 | `crates/engine/src/lib.rs` | tras l. 15 `pub mod actions;` | `pub mod amaraza;` | 1 | | Solo si el upstream crea un módulo entre `actions` y `catalog`: conservar ambos |
 | E4 | `crates/engine/src/commands.rs` | l. 157 | `pub const COMMANDS: &[CommandSpec] = &[` → `const UPSTREAM_COMMANDS: &[CommandSpec] = &[` | | 1 | El upstream añade comandos dentro de la lista, no en su cabecera. Si choca: lado del upstream y volver a renombrar |
 | E5 | `crates/engine/src/commands.rs` | tras l. 346 `];` | línea en blanco, comentario y el nuevo `pub const COMMANDS` | 4 | | Las inserciones del upstream antes de `];` no la tocan |
-| E6 | `crates/engine/src/actions.rs` | tras l. 10 `pub enum Step {` | comentario y `Amaraza(crate::amaraza::Paso),` | 2 | | El upstream añade variantes al final |
+| E6 | `crates/engine/src/actions.rs` | tras l. 10 `pub enum Step {` | comentario y `Amaraza(crate::amaraza::Step),` | 2 | | El upstream añade variantes al final |
 | E7 | `crates/engine/src/actions.rs` | tras l. 35 `impl Step {`; l. 37 | envoltorio `pub fn all()`; l. 37 → `fn upstream_all() -> Vec<Step> {` | 7 | 1 | Como E4 |
 | E8 | `crates/engine/src/actions.rs` | tras l. 56 y 73 (`match self {` de `id` y `label`); antes de l. 91 y 98 (`match self {` de `arg` y `arg_mut`) | un brazo `Step::Amaraza(p) => …` en `id` y `label`; la guarda `if let` de §2.6 en `arg` y `arg_mut` | 10 | | El upstream añade brazos al final de `id` y `label`. En `arg` y `arg_mut` edita la l. 92 o la 99, y la guarda queda separada de ellas por la línea del `match` |
 | E9 | `crates/engine/src/actions.rs` | tras l. 152 `let edit = match step {` | `Step::Amaraza(p) => return crate::amaraza::apply(s, id, p, log),` | 1 | | Ídem |
@@ -189,72 +191,72 @@ Historial del upstream (`git log -L` sobre cada ancla, hasta `0f2f47f`):
 | F1 | `crates/ui-egui/src/actions_ui.rs` | tras l. 41 `pub fn run_action_on(…) {` | `let Some((action, files)) = crate::amaraza::intercept_run(self, action, files) else { return };` | 1 | |
 | F2 | `crates/automation/src/signing.rs` | l. 120 `fn open_id` | `pub(crate) fn open_id`, para reutilizar la resolución de identidades (almacén de Windows, Llavero, `.p12` dentro de `--root`) en vez de duplicarla | | 1 |
 
-El paso `Paso::Firmar` y la herramienta `amaraza_firma_lote` entran por los enganches de la fase 1, sin más líneas del upstream. `amaraza-ext` añadiría la dependencia interna `pdfcraft-sign`, que cambia `Cargo.lock`.
+El paso `amaraza::Step::Sign` y la herramienta `amaraza_sign_batch` entran por los enganches de la fase 1, sin más líneas del upstream. `amaraza-ext` añadiría la dependencia interna `pdfcraft-sign`, que cambia `Cargo.lock`.
 
 ## 4. Paso "Firmar" por lote (diseño; no se implementa ahora)
 
 ### 4.1 Declaración
 
-`Paso::Firmar { motivo: String }`, con id `amaraza_firmar`, etiqueta "Firmar con certificado" y el motivo como argumento.
+`crate::amaraza::Step::Sign { reason: String }`, con id `amaraza_sign`, etiqueta "Firmar con certificado" y el motivo como argumento.
 - El certificado **nunca se guarda en la acción**: las acciones guardadas no llevan referencias a identidades, y la elección se hace en cada ejecución.
-- Si se ejecuta por el camino del upstream (`run_on`, o `action_run`), `apply` devuelve `EditError::Invalid` con el texto: "Firmar necesita elegir un certificado: ejecuta la acción desde el asistente de Amaraza PDF o con la herramienta amaraza_firma_lote".
+- Si se ejecuta por el camino del upstream (`run_on`, o `action_run`), `apply` devuelve `EditError::Invalid` con el texto: "Firmar necesita elegir un certificado: ejecuta la acción desde el asistente de Amaraza PDF o con la herramienta amaraza_sign_batch".
 
-### 4.2 API en `amaraza_ext::lote`
+### 4.2 API en `amaraza_ext::batch`
 
 ```rust
 /// A validated action: the steps before signing, and the signing reason if it signs.
-pub struct Plan { /* previos: Action, firma: Option<String> */ }
+pub struct Plan { /* before: Action, sign: Option<String> */ }
 
 /// The identity chosen for the whole batch. Its private key is only used while signing (A6).
-pub struct Firmante<'a> {
+pub struct Signer<'a> {
     pub id: &'a pdfcraft_sign::DigitalId,
-    pub ubicacion: Option<String>,
+    pub location: Option<String>,
 }
 
-pub struct Resultado {
-    pub nombre: String,
+pub struct FileOutcome {
+    pub name: String,
     pub bytes: Arc<Vec<u8>>,
-    pub registro: Vec<String>,
-    pub firmas_previas: usize,
+    pub log: Vec<String>,
+    pub prior_signatures: usize,
 }
 
-pub enum ErrorLote {
-    FirmarNoEsElUltimo,
-    FirmasExistentes { n: usize },
-    SoloLectura(String),
-    SinFirmante,
-    Motor(String),
-    Verificacion(String),
+pub enum BatchError {
+    SignNotLast,
+    AlreadySigned { count: usize },
+    ReadOnly(String),
+    NoSigner,
+    Engine(String),
+    Verification(String),
 }
 
-/// Checks the action before touching any file: `Firmar` at most once, and only as the last step.
-pub fn planificar(accion: &Action) -> Result<Plan, ErrorLote>;
+/// Checks the action before touching any file: `Sign` at most once, and only as the last step.
+pub fn plan(action: &Action) -> Result<Plan, BatchError>;
 
 /// Runs the plan on one file.
-pub fn ejecutar(
+pub fn run(
     plan: &Plan,
-    nombre: &str,
+    name: &str,
     bytes: Arc<Vec<u8>>,
-    firmante: Option<&Firmante<'_>>,
-    progreso: impl FnMut(usize, usize),
-) -> Result<Resultado, ErrorLote>;
+    signer: Option<&Signer<'_>>,
+    progress: impl FnMut(usize, usize),
+) -> Result<FileOutcome, BatchError>;
 ```
 
-`ejecutar`, archivo por archivo:
+`run`, archivo por archivo:
 1. **Abrir** el archivo en una `Session`. Si es de solo lectura, error. Se cuentan las firmas existentes (`n`).
-2. **A5 (D-03):** si `n > 0` y hay pasos antes de Firmar, se rechaza ese archivo con `FirmasExistentes`. El mensaje dice: "El documento ya tiene {n} firmas; los pasos previos a Firmar las invalidarían. Quita esos pasos o firma este archivo aparte." Es más estricto que `run_on` del upstream, como pide el criterio de `01-amaraza-heredadas.md`.
+2. **A5 (D-03):** si `n > 0` y hay pasos antes de Firmar, se rechaza ese archivo con `AlreadySigned`. El mensaje dice: "El documento ya tiene {n} firmas; los pasos previos a Firmar las invalidarían. Quita esos pasos o firma este archivo aparte." Es más estricto que `run_on` del upstream, como pide el criterio de `01-amaraza-heredadas.md`.
 3. **Pasos previos:** se ejecutan con `run_on` del upstream, sobre una acción con esos pasos. No se copia su lógica.
-4. **Firmar:** `Session::sign(doc, firmante.id, SignOptions { reason, location, .. })`.
+4. **Firmar:** `Session::sign(doc, signer.id, SignOptions { reason, location, .. })`.
    - La firma es incremental (PAdES B-B), en un campo invisible.
    - Si el documento ya estaba firmado, se firma encima y el registro lo avisa: "Firmado sobre {n} firmas existentes" (A5).
    - Si el documento está certificado sin cambios permitidos, decide el firmador del upstream, y su error se devuelve para ese archivo.
-5. **A1:** se abre el resultado en otra `Session`. Debe tener `n + 1` firmas y la nueva con el resumen intacto (estado distinto de `invalid`; `unknown` se admite si el firmante no es de confianza). Si no, `Verificacion` y no se devuelve nada.
-6. **Registro A8/A9:** `log::info!("event=amaraza.firma_lote.archivo resultado=ok firmas_previas={n}")`, sin nombre, ruta ni titular del certificado. El `registro` que ve el usuario sí puede decir "Firmado".
+5. **A1:** se abre el resultado en otra `Session`. Debe tener `n + 1` firmas y la nueva con el resumen intacto (estado distinto de `invalid`; `unknown` se admite si el firmante no es de confianza). Si no, `Verification` y no se devuelve nada.
+6. **Registro A8/A9:** `log::info!("event=amaraza.batch_sign.file result=ok prior_signatures={n}")`, sin nombre, ruta ni titular del certificado. El `log` que ve el usuario sí puede decir "Firmado".
 
 ### 4.3 Interfaz (F1)
 
 `intercept_run` deja pasar sin cambios las acciones que no firman. Si la acción firma:
-1. **Selector de identidades:** `pdfcraft_sign::windows::identities()`, que no pide PIN (§4.5).
+1. **Selector de identidades:** `pdfcraft_sign::windows::identities()`, que no pide PIN pero abre la clave en modo silencioso (§4.5).
 2. **Confirmación (A3):** "Se firmarán {n} archivos con «{nombre del certificado}». La firma no se puede deshacer en los archivos resultantes; los originales no cambian."
 3. **Carpeta de resultados.** Un archivo que ya existe **nunca se sobrescribe**: ese archivo da error. Así ningún original se sustituye y no hace falta la copia de A2.
 4. **Hilo de trabajo** como el del upstream, con progreso y un resumen de correctos y fallidos (A10).
@@ -262,20 +264,21 @@ pub fn ejecutar(
 
 ### 4.4 Automatización
 
-Herramienta del fork `amaraza_firma_lote`, con los argumentos `{ paths, folder, id, password?, motivo?, ubicacion?, action? | steps?, confirmar }`:
+Herramienta del fork `amaraza_sign_batch`, con los argumentos `{ paths, folder, id, password?, reason?, location?, action? | steps?, confirm }`:
 - Va marcada como `destructive`.
-- Exige `confirmar: true`: es el equivalente de A3 para los agentes.
+- Exige `confirm: true`: es el equivalente de A3 para los agentes.
 - Resuelve la identidad igual que `sign_document` (F2).
 - Escribe con `write_atomic` en `folder`, dentro de `--root`, y rechaza los archivos que ya existen.
-- `action_run` del upstream con `amaraza_firmar` devuelve, para cada archivo, el error de §4.1.
+- `action_run` del upstream con `amaraza_sign` devuelve, para cada archivo, el error de §4.1.
 
 ### 4.5 Claves (A6 y RF-FIRMA-01)
 
-- **Listar no pide PIN.** `identities()` abre la clave en modo silencioso (`windows.rs:80`), que nunca muestra diálogos.
-  - Queda pendiente de AR1.2 comprobar si, con el token del titular, eso lo excluye de la lista o lo afecta de otro modo.
-  - Si pasa, el selector del fork listaría solo con los datos del certificado. Leer el almacén desde un crate del fork necesita `rustls-cng`, y eso lo decide el titular (§10).
-- **La clave solo se abre al firmar.** `WindowsKey::sign` la abre sin el modo silencioso (`windows.rs:26`), y el proveedor muestra **su propio diálogo de PIN**. Amaraza PDF nunca muestra un campo de PIN ni recibe el PIN.
-- **¿PIN por archivo?** `WindowsKey::sign` vuelve a abrir la clave en cada firma, así que algunos tokens podrían pedir el PIN una vez por archivo. AR1.2 lo comprueba. Si ocurre, hay dos opciones, y las dos las decide el titular:
+- **A6 se cumple solo en parte al listar.** `identities()` del upstream no pide PIN, pero abre la clave en modo silencioso para comprobar su algoritmo (`crates/sign/src/windows.rs:80`), y A6 pide no abrirla.
+  - Cumplirla del todo exige listar sin abrir la clave, solo con los datos del certificado.
+  - Se decide en AR1.2, junto con lo que haga el token del titular con la apertura silenciosa (si lo excluye de la lista o lo afecta de otro modo).
+  - Leer el almacén desde un crate del fork necesitaría `rustls-cng`, una decisión de la fase 2 (§10).
+- **La clave solo se usa para firmar al firmar.** `WindowsKey::sign` la abre sin el modo silencioso (`windows.rs:26`), y el proveedor muestra **su propio diálogo de PIN**. Amaraza PDF nunca muestra un campo de PIN ni recibe el PIN.
+- **¿PIN por archivo?** `WindowsKey::sign` vuelve a abrir la clave en cada firma, así que algunos tokens podrían pedir el PIN una vez por archivo. AR1.2 lo comprueba. Si ocurre, hay dos opciones, que se deciden al empezar la fase 2:
   - un `ExternalKey` del fork que mantenga un solo identificador abierto durante el lote y lo cierre al final (necesita `rustls-cng` en un crate del fork);
   - proponer el cambio al upstream.
 - **Nunca se exporta.** El código del fork no llama a `pkcs12::write` con identidades del almacén, ni a `NCryptExportKey`, `CryptExportKey`, `PFXExportCertStore*` o `NCRYPT_ALLOW_EXPORT_FLAG`. Una prueba del fork busca esos nombres en sus fuentes.
@@ -286,25 +289,25 @@ Herramienta del fork `amaraza_firma_lote`, con los argumentos `{ paths, folder, 
 
 ### 5.1 Qué se construye
 
-- **API** (`amaraza-ext`): `hola::saludo(&Session, Option<DocId>) -> Result<Saludo, EditError>`.
-  - `Saludo { producto, version, paginas: Option<usize> }`; `texto()` da "Hola, Amaraza PDF 0.5.0", y añade " · 3 páginas" si hay documento.
+- **API** (`amaraza-ext`): `hello::greeting(&Session, Option<DocId>) -> Result<Greeting, EditError>`.
+  - `Greeting { product, version, pages: Option<usize> }`; `text()` da "Hola, Amaraza PDF 0.5.0", y añade " · 3 páginas" si hay documento.
   - Solo lectura.
-- **Comando** `amaraza.hola`: etiqueta "Hola, Amaraza", menú "Amaraza", `Needs::Nothing` e icono `hand`, que ya está en el juego incluido. Muestra el texto en un aviso.
-- **Herramienta** `amaraza_hola` `{ doc? }`: de solo lectura, con `cmd("amaraza.hola")`. Devuelve `{ producto, version, paginas?, texto }`.
-- **Paso** `amaraza_hola` ("Saludo de Amaraza", sin argumento): añade "Hola, Amaraza" al registro del paso sin cambiar el documento. Sirve para probar el enganche de los pasos.
+- **Comando** `amaraza.hello`: etiqueta "Hola, Amaraza", menú "Amaraza", `Needs::Nothing` e icono `hand`, que ya está en el juego incluido. Muestra el texto en un aviso.
+- **Herramienta** `amaraza_hello` `{ doc? }`: de solo lectura, con `cmd("amaraza.hello")`. Devuelve `{ product, version, pages?, text }`.
+- **Paso** `amaraza_hello` ("Saludo de Amaraza", sin argumento): añade "Hola, Amaraza" al registro del paso sin cambiar el documento. Sirve para probar el enganche de los pasos.
 
 ### 5.2 Pruebas
 
 1. **Unitarias de `amaraza-ext`:** sin documento, con un PDF sintético y con un id que no existe (error).
 2. **De extremo a extremo en `crates/automation/tests/amaraza.rs`** (`AGENTS.md` §3):
-   - `amaraza_hola` sin documento y con un PDF sintético abierto con `doc_open` en una raíz temporal;
-   - `command_list` enlaza `amaraza.hola` con `amaraza_hola`, y `command_run {id: "amaraza.hola"}` funciona;
-   - `action_list` incluye el paso `amaraza_hola`, y `action_run` con `steps: [{step: "amaraza_hola"}]` escribe el resultado con el saludo en su registro;
+   - `amaraza_hello` sin documento y con un PDF sintético abierto con `doc_open` en una raíz temporal;
+   - `command_list` enlaza `amaraza.hello` con `amaraza_hello`, y `command_run {id: "amaraza.hello"}` funciona;
+   - `action_list` incluye el paso `amaraza_hello`, y `action_run` con `steps: [{step: "amaraza_hello"}]` escribe el resultado con el saludo en su registro;
    - un argumento desconocido se rechaza con un mensaje accionable.
 3. **De interfaz con kittest en `crates/ui-egui/tests/amaraza.rs`:**
    - ejecutar el comando muestra el aviso;
    - Menú ▸ Amaraza ▸ "Hola, Amaraza" se ve y funciona;
-   - la paleta encuentra "hola";
+   - la paleta encuentra "Hola";
    - el selector de pasos muestra el paso del fork, y `encode` y `decode` lo conservan;
    - en cada idioma, el catálogo con la capa del fork no da errores y contiene todos los textos del fork.
 4. **Barridos del upstream** que pasan a cubrir el fork sin editarlos:
@@ -313,7 +316,7 @@ Herramienta del fork `amaraza_firma_lote`, con los argumentos `{ paths, folder, 
    - `tool_table_is_well_formed`;
    - `hostile_args`: argumentos hostiles y confinamiento a la raíz.
 5. **Comprobaciones de `xtask` y clippy:** `cargo xtask layers`, `cargo xtask assets` y `cargo clippy -p amaraza-ext --all-targets -- -D warnings` (A7).
-6. **CLI:** `pdfcraft-cli tools` lista `amaraza_hola`, y `pdfcraft-cli run --script` funciona con `[{"tool": "amaraza_hola", "args": {}}]`.
+6. **CLI:** `pdfcraft-cli tools` lista `amaraza_hello`, y `pdfcraft-cli run --script` funciona con `[{"tool": "amaraza_hello", "args": {}}]`.
 7. **Captura** de Menú ▸ Amaraza con `pdfcraft --control` y `pdfcraft-cli ui screenshot`, marcada como "evidencia sintética".
 8. **Puertas completas** con `LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6` y el portátil a la corriente.
 
@@ -334,11 +337,11 @@ Una tarea AR0.3 en varios commits, todos en verde:
 |---|---|
 | A1 | La firma por lote verifica volviendo a abrir el resultado antes de entregarlo. Cada frontend escribe por un único camino atómico (`write_atomically`, `write_atomic`). La demostración no escribe PDF propios |
 | A2 | Nunca se sustituye un archivo existente: se rechaza. Sin sustitución no hacen falta copias, y el ayudante compartido de A2 queda para la tarea que sustituya archivos |
-| A3 | Confirmación en la interfaz y `confirmar` en la automatización. El lote no toca el historial de los documentos abiertos |
+| A3 | Confirmación en la interfaz y `confirm` en la automatización. El lote no toca el historial de los documentos abiertos |
 | A4 | Sin `cfg!(test)`. Las pruebas pasan la identidad y las carpetas por parámetros |
 | A5 | §4.2, pasos 2 y 4 |
-| A6, RF-FIRMA-01 | §4.5 |
-| A7 | `amaraza-ext` lleva su `clippy.toml` (las 4 claves de la raíz y `cognitive-complexity-threshold = 15`) y `#![warn(clippy::cognitive_complexity)]`, y se comprueba con `cargo clippy -p amaraza-ext --all-targets`. Los módulos del fork dentro de crates del upstream solo hacen de pegamento (un despacho por función) y también llevan `#![warn(clippy::cognitive_complexity)]`; allí el umbral es el de la raíz, por eso la lógica con ramas va en `amaraza-ext`. El archivo del upstream que más crece es `actions.rs` (20 líneas sobre 220). Los grandes (`tools.rs`, `automation/src/lib.rs`, `ui-egui/src/commands.rs`, `chrome.rs`, `i18n/mod.rs`) crecen entre 0 y 7 |
+| A6, RF-FIRMA-01 | **En parte.** Al firmar se cumple: el PIN lo pide el diálogo de Windows, la clave nunca se exporta y el `DigitalId` solo vive en memoria. Al listar no: `identities()` del upstream abre la clave en modo silencioso (`crates/sign/src/windows.rs:80`). No pide PIN, pero A6 pide no abrirla. Cumplirla del todo exige listar sin abrir la clave, y se decide en AR1.2 (§4.5) |
+| A7 | `amaraza-ext` lleva su `clippy.toml` (las 4 claves de la raíz y `cognitive-complexity-threshold = 15`) y `#![warn(clippy::cognitive_complexity)]`, y se comprueba con `cargo clippy -p amaraza-ext --all-targets`. **Excepción explícita:** los módulos de pegamento dentro de crates del upstream (`engine/src/amaraza.rs`, `automation/src/amaraza.rs`, `ui-egui/src/amaraza/`) quedan con el umbral 25 de la raíz, porque clippy no admite un umbral por módulo. Se mitiga sin lógica con ramas en ellos: solo despachan y declaran, y llevan también `#![warn(clippy::cognitive_complexity)]`. La lógica con ramas va en `amaraza-ext`. El archivo del upstream que más crece es `actions.rs` (20 líneas sobre 220). Los grandes (`tools.rs`, `automation/src/lib.rs`, `ui-egui/src/commands.rs`, `chrome.rs`, `i18n/mod.rs`) crecen entre 0 y 7 |
 | A8, A9 | Registros `event=amaraza.*` con `error_code=…`, sin rutas, nombres, titular del certificado ni PIN |
 | A10 | `?` en todo el código. Cada archivo del lote da su resultado o su error |
 | A11 | Las pruebas solo usan carpetas temporales |
@@ -362,7 +365,7 @@ Del upstream:
 
   Se podría proponer al upstream más adelante (decisión del titular, §6 de las reglas).
 - **App aparte `apps/amaraza`**, con su CLI y su interfaz sobre los crates del upstream. Evita enganches en la automatización, pero no en la interfaz, porque los menús y los comandos están en `ui-egui`, y duplica el armazón de la app.
-- **Paso genérico `Step::Extension { id, arg }`** con un registro de manejadores. Pierde la comprobación exhaustiva de los `match` y necesita estado global. Se prefiere `Paso` tipado.
+- **Paso genérico `Step::Extension { id, arg }`** con un registro de manejadores. Pierde la comprobación exhaustiva de los `match` y necesita estado global. Se prefiere `amaraza::Step` tipado.
 - **Declaraciones en un crate de capa baja** (por ejemplo, L5) del que dependa el motor. Evita un archivo del fork dentro del motor, pero añade una arista del motor hacia el fork y necesita los mismos enganches. Cambiar a esta opción más tarde sería fácil.
 - **Traducciones del fork en los 15 catálogos del upstream** (como AR0.1): 30 puntos de conflicto por texto. Variante con una tabla en Rust: evita `ATTRIBUTION`, pero deja las traducciones fuera del formato validado.
 - **`amaraza-ext` en L7** con dos aristas laterales: una línea más, y lo coloca como frontend cuando no tiene interfaz.
@@ -375,11 +378,12 @@ Del upstream:
 | R1 | Conflictos en las líneas de enganche | Posiciones que el upstream casi no edita (principio de los `match`, cabeceras, envoltorios), el marcador `ADR-0001`, la receta de §3 y las pruebas de §5.2 |
 | R2 | El upstream reorganiza un registro (`COMMANDS` deja de ser `const`, `tools()` se reparte, cambian `Step`, la carga de catálogos o la tabla de capas) | Saldría como error de compilación o como prueba del fork fallida al sincronizar. Se rediseña ese enganche en la `ARS.n` correspondiente y se actualiza este ADR |
 | R3 | Un catálogo nuevo del upstream con prueba de cobertura | La prueba falla tras sincronizar. Se añaden sus filas a la capa del fork (en español hasta que se traduzcan) |
-| R4 | `decode` descarta en silencio los pasos desconocidos (`actions_ui.rs:194`): si un paso del fork desaparece (por revertir o renombrar), una acción "Firmar…" se ejecutaría sin firmar | Los ids de paso nunca se renombran. Antes de revertir, se listan las acciones guardadas con pasos `amaraza_` (§9). Opcional: proponer al upstream que las rechace en vez de descartarlas (decisión del titular) |
-| R5 | Con claves de software, Windows puede no pedir nada, y un agente podría firmar sin intervención humana | MCP solo bajo demanda (`AGENTS.md` §3), `destructive` con `confirmar`, solo archivos nuevos y confirmación en la interfaz. El riesgo residual se anota en AR1.x |
+| R4 | `decode` descarta en silencio los pasos desconocidos (`actions_ui.rs:194`): si un paso del fork desaparece (por revertir o renombrar), una acción "Firmar…" se ejecutaría sin firmar. Lo mismo puede pasar con la importación y exportación de acciones que el upstream tiene planeada (`misc.action-wizard-manage`): si reutiliza `decode` o su formato, perdería los pasos del fork al importar, y un archivo exportado con pasos `amaraza_` no se podría leer en PdfCraft | Los ids de paso nunca se renombran. Antes de revertir, se listan las acciones guardadas con pasos `amaraza_` (§9). Cuando el upstream publique la importación y exportación, se revisa en la `ARS.n` correspondiente y se añade una prueba del fork que exporte e importe una acción con un paso del fork. Opcional: proponer al upstream que rechace las acciones con pasos desconocidos en vez de descartarlos (decisión del titular) |
+| R5 | Con claves de software, Windows puede no pedir nada, y un agente podría firmar sin intervención humana | MCP solo bajo demanda (`AGENTS.md` §3), `destructive` con `confirm`, solo archivos nuevos y confirmación en la interfaz. El riesgo residual se anota en AR1.x |
 | R6 | PIN repetido por archivo, o la lista silenciosa con tokens | AR1.2 (§4.5) |
 | R7 | Cambios en `Cargo.lock` | Solo paquetes internos. Se comprueba el diff en cada commit y en cada sincronización |
 | R8 | La concatenación `const` es poco habitual para quien lee el upstream | Va comentada y se comprobó con rustc 1.99 y clippy |
+| R9 | Los pasos que piden datos al usuario o muestran instrucciones, que el upstream tiene planeados (`misc.action-prompt-steps`, P2), pueden tocar `run_action_on`, donde va F1, o pedir datos antes de ejecutar, igual que el diálogo de firma del fork | F1 es de la fase 2: al empezarla se revisa si el upstream ya lo publicó, y el diálogo de firma se coloca después de sus preguntas. Si llega después, se resuelve en la `ARS.n` correspondiente, con la prueba de interfaz de la firma por lote como red |
 
 ## 9. Cómo se revierte
 
@@ -390,11 +394,11 @@ Del upstream:
   - `git grep -n "ADR-0001" -- ':!docs'` no devuelve nada;
   - `git diff e9b9ee6 -- <archivos de la tabla de §3>` solo muestra los cambios de AR0.1.
 
-## 10. Decisiones que se piden al titular
+## 10. Decisiones del titular (2026-10-10)
 
-1. **Crear `crates/amaraza-ext`** y las dependencias internas (`path`) desde `automation` y `ui-egui` (`00-amaraza.md` §6). `Cargo.lock` cambia solo con el paquete interno: ni crates externos ni versiones nuevas.
-2. **Textos del fork en las capas de idioma:** filas "sin traducir", en español, para los 15 idiomas, o traducirlos ya.
-3. **Para la fase 2, más adelante:**
-   - `pdfcraft-sign` como dependencia interna de `amaraza-ext`;
-   - si AR1.2 lo exige, `rustls-cng` en un crate del fork;
-   - si se proponen al upstream el cambio de `decode` o mantener abierto el identificador de la clave durante el lote (un PR al upstream necesita la autorización del titular).
+Anotadas en `docs/amaraza/PLAN.md`, "Decisiones del titular".
+
+- **AR-D3:** se crea `crates/amaraza-ext`, con dependencias internas (`path`) desde `automation` y `ui-egui`. `Cargo.lock` cambia solo con el paquete interno: ni crates externos ni versiones nuevas. Se comprueba en cada commit.
+- **AR-D4:** los textos del fork se muestran en español en los 14 idiomas restantes, con filas "sin traducir" en la capa del fork. Traducirlos es otra tarea.
+- **AR-D5:** los identificadores del código del fork van en inglés (`Step`, `Signer`, `plan`, `run`…, como en `amaraza-identity`); los textos que ve el usuario, en español.
+- **Fase 2:** `pdfcraft-sign`, `rustls-cng` y cualquier PR al upstream (el cambio de `decode`, o mantener abierto el identificador de la clave durante el lote) se deciden al empezarla, no ahora.

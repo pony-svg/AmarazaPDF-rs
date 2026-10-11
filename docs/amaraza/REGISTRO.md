@@ -561,7 +561,8 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 | Commit | Contenido | Puertas |
 |---|---|---|
 | `0f2f47fabfe80692523d9086e6cc4a07cb1a9959` | Puesta al día tras ARS.1 (solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde; `clippy -p amaraza-identity --all-targets` en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `panels_with_hundreds_of_items_stay_within_the_frame_budget` (`--test perf`). La prueba de rendimiento es intermitente con la máquina cargada: aislada, falló 3 veces y pasó 2, la última con las dos de `perf` en verde. El cambio solo toca documentación. **Dictamen D-13 sobre `0f2f47f`: aprobado.** Puertas del revisor: 1852 pasadas, 1 fallida y 7 ignoradas, como la línea base; `perf` pasó en su ejecución |
-| *(siguiente)* | ADR-0001, puntos de enganche (solo diseño, para la revisión D-13; ver "ADR-0001 (segundo commit)") | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents` (`--test recovery`), la intermitente del Pendiente 9 de AR0.1, que aislada pasó 5 de 5 veces. El cambio solo toca documentación |
+| `aef67104cc3600016ffed957b24a822559f08ddd` | ADR-0001, puntos de enganche (solo diseño, para la revisión D-13; ver "ADR-0001 (segundo commit)") | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy y assets en verde. Pruebas: 1851 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents` (`--test recovery`), la intermitente del Pendiente 9 de AR0.1, que aislada pasó 5 de 5 veces. El cambio solo toca documentación. **Dictamen D-13 sobre `aef6710`: aprobado con correcciones menores.** El revisor verificó contra el código las anclas, las cuentas (12 archivos, 43 + 4 líneas), que `CommandSpec` es `Copy`, que `Catalog::parse` no presta, la cobertura i18n por `has()` y `catalog()`, que no hay `match` exhaustivos sobre `Step` fuera de `actions.rs`, y que `check_args`, `Needs` y la guarda actúan antes de los brazos del fork. Puertas del revisor: 1852 pasadas, 1 fallida y 7 ignoradas, como la línea base |
+| *(siguiente)* | ADR-0001 aceptado: correcciones de la revisión D-13 y decisiones AR-D3 a AR-D5 (solo documentación) | Ver "ADR-0001 aceptado (tercer commit)" |
 
 ### ADR-0001 (segundo commit)
 
@@ -579,3 +580,21 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
   - crear `crates/amaraza-ext`, con dependencias internas (`Cargo.lock` cambia solo con el paquete interno);
   - la política de las filas "sin traducir" en la capa de idiomas del fork;
   - para la fase 2: `pdfcraft-sign` y, si AR1.2 lo exige, `rustls-cng`.
+
+### ADR-0001 aceptado (tercer commit)
+
+- **Decisiones del titular (2026-10-10)** en `PLAN.md`:
+  - AR-D3: se crea `crates/amaraza-ext`;
+  - AR-D4: los textos del fork, en español en los 14 idiomas restantes;
+  - AR-D5: identificadores del código en inglés.
+
+  La fase 2 se decide al empezarla.
+- **Correcciones del ADR:**
+  1. **A6 en parte** (§4.5 y fila A6 de §6): `identities()` del upstream abre la clave en modo silencioso al listar (`crates/sign/src/windows.rs:80`). Cumplir A6 del todo exige listar sin abrirla, y se decide en AR1.2.
+  2. **A7:** excepción explícita para los módulos de pegamento dentro de crates del upstream (umbral 25 de la raíz; clippy no admite un umbral por módulo), mitigada sin lógica con ramas en ellos.
+  3. **Riesgos:**
+     - R4 se amplía con `misc.action-wizard-manage`: la importación y exportación de acciones perdería los pasos del fork;
+     - R9, nuevo: `misc.action-prompt-steps` puede solaparse con F1.
+  4. **Identificadores en inglés:** `amaraza::Step`, `Sign`, `amaraza_ext::batch` (`Plan`, `Signer`, `FileOutcome`, `BatchError`, `plan`, `run`), `hello::greeting`, `amaraza.hello`, `amaraza_hello`, `amaraza_sign` y `amaraza_sign_batch`. §10 recoge AR-D3 a AR-D5.
+- **Estado del ADR:** aceptado.
+- **Puertas** (en inglés, `CARGO_BUILD_JOBS=6`, a la corriente): fmt, clippy y assets en verde. Pruebas: 1852 pasadas, 1 fallida (`no_tool_escapes_the_root`, de entorno) y 7 ignoradas, como la línea base.

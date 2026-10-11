@@ -12,6 +12,9 @@ Decidir con evidencia si Amaraza PDF pasa de Python (PDForte) a Rust sobre PdfCr
 |---|---|---|
 | AR-D1 | 2026-10-09 | Fork **público** de `storytold/pdfcraft` en `pony-svg/AmarazaPDF-rs` |
 | AR-D2 | 2026-10-09 | Licencia `MIT OR Apache-2.0` durante la prueba; se revisa al cerrarla |
+| AR-D3 | 2026-10-10 | Se crea `crates/amaraza-ext`, con dependencias internas; `Cargo.lock` cambia solo con el paquete interno (ADR-0001) |
+| AR-D4 | 2026-10-10 | Los textos del fork se muestran en español en los 14 idiomas restantes (filas "sin traducir"); traducirlos es otra tarea |
+| AR-D5 | 2026-10-10 | Identificadores del código del fork en inglés (como `amaraza-identity`); los textos que ve el usuario, en español |
 
 ## Estrategia de código
 
@@ -96,7 +99,7 @@ Es obligatorio por la licencia de marca del upstream y debe estar hecho antes de
   - menús y capas.
 - Demostración: un comando "hola Amaraza" con API, herramienta y prueba de extremo a extremo (`AGENTS.md` §3).
 - Cada enganche se anota en la tabla de archivos del upstream modificados de `REGISTRO.md`.
-- Diseño propuesto: `docs/amaraza/adr/0001-puntos-de-enganche.md` (pendiente de la revisión D-13).
+- Diseño: `docs/amaraza/adr/0001-puntos-de-enganche.md`, aceptado el 2026-10-10. La fase 2 (firma por lote) y sus dependencias se deciden al empezarla.
 
 ### AR0.4. Identidad en metadatos y textos (antes de AR1.2)
 - Desde `amaraza-identity`:
