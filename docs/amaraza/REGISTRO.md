@@ -80,6 +80,11 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `crates/engine/src/links.rs` | Pruebas nuevas del upstream (documentos remotos) más la del fork; fuera la que exigía la web de ArtCraft | Licencia de marca | ARS.2 |
 | `crates/ui-egui/src/i18n/{cs,el,kk,lt,pl,sl,tr}.tsv` | El tratamiento de AR0.1 (fuera Discord, ArtCraft y "Part of"; fuentes en español; "Amaraza PDF en GitHub"); `cs` había recuperado las entradas de Discord en la fusión | Licencia de marca | ARS.2 |
 | `crates/ui-egui/Cargo.toml`, `Cargo.lock`, `ATTRIBUTION.*` | `craft-ui` del upstream junto a `amaraza-identity`; `amaraza-identity` 0.8.0; `sha256` de los 21 catálogos y entradas del icono de documento sin las de ArtCraft ni las del icono de PdfCraft | Merge | ARS.2 |
+| `packaging/windows/pdfcraft.wxs`, `packaging/windows/test-msi.ps1` | Reconstruidos desde los del upstream con las sustituciones de identidad del fork (guiones de ARS.3, ver la sección ARS.3). Novedades: el `<Upgrade>` que detecta versiones previas usa el `UpgradeCode` del fork; componente del menú de imágenes con **GUID propio** `96D52A18-56D6-49F5-A0C9-00CD3790CD18`; búsquedas de registro de `AmarazaPDF.Edit` y `AmarazaPDF.CreatePdf` | Identificadores propios del instalador | ARS.3 |
+| `apps/pdfcraft/src/settings.rs` (nuevo en el upstream), `apps/pdfcraft/src/main.rs` | Preferencias XDG en `~/.config/amarazapdf` (`FOLDER_NAME_LOWER`), no en la de PdfCraft, con sus pruebas; carpeta de datos y de registros de Amaraza PDF; sin la migración de PrintCraft; menú de la app en macOS con el nombre del producto | Nunca tocar carpetas de PdfCraft ni PrintCraft | ARS.3 |
+| `apps/pdfcraft/src/single_instance.rs` | Socket de Linux y BSD en `$XDG_RUNTIME_DIR/amarazapdf`; la prueba del fork cubre Windows y Linux | No entregar archivos a un PdfCraft abierto | ARS.3 |
+| `packaging/macos/Credits.rtf`, `packaging/macos/package.sh` | El panel "Acerca de" de macOS muestra la atribución en texto plano y los enlaces al fork y al upstream, sin la web ni el Discord de ArtCraft | Licencia de marca ArtCraft | ARS.3 |
+| `crates/engine/Cargo.toml`, `crates/engine/src/links.rs`, `docs/development.md`, `crates/ui-egui/src/i18n/*.tsv` (con `vi`, nuevo), `Cargo.lock`, `ATTRIBUTION.*` | `craft-docpath` junto a `amaraza-identity`; pruebas nuevas del upstream más la del fork; carpetas de Amaraza en la documentación; tratamiento de marca de AR0.1 en los 22 catálogos; `amaraza-identity` 0.9.0 | Merge | ARS.3 |
 
 ## AR0.0. Entorno y línea base (2026-10-09)
 
@@ -593,4 +598,54 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 | Commit | Contenido |
 |---|---|
 | `a8d513fe5196a79ba7e0064175104ec7858bf1c1` | Merge de `upstream/main` (`9931329b9fae0b05373b4dc3ac7c58541f0891a4`, v0.8.0) con los conflictos resueltos |
+| `75b4d6b0b41bcef8ab7e8ba63e37b0a20b3ea7fe` | Este registro (solo documentación) |
+
+## ARS.3. Sincronización con el upstream hasta v0.9.0 (2026-10-19)
+
+Mismo encargo y autorización que ARS.2: el upstream siguió avanzando mientras ARS.2 esperaba la red, así que se hizo en un segundo paso sobre ARS.2 ya en verde. La revisa la sesión implementadora. Sin push ni merge a `main`.
+
+### Punto de partida
+
+- Base: el registro de ARS.2, `75b4d6b0b41bcef8ab7e8ba63e37b0a20b3ea7fe`.
+- `upstream/main` = `43550c448db3ba91753f638e3843c0da036bbd60` (`git cat-file -t` → `commit`), con la etiqueta `v0.9.0`: 454 commits desde v0.8.0.
+- Rama `sync/upstream-2026-10-19`, en el worktree de sincronización; `git merge --no-ff`. La lista de conflictos se previó antes con `git merge-tree` sobre un commit temporal sin referencia.
+
+### Conflictos (25) e identidad
+
+- **Catálogos (14):** el upstream insertó una línea junto a "Welcome to PdfCraft", que el fork había renombrado. Se tomó el lado del upstream y se volvió a pasar el tratamiento de marca de AR0.1 a los 22 catálogos (`vi` es nuevo).
+- **Instalador:** el upstream reorganizó los menús contextuales (componente propio para el de imágenes, conservación de la elección del usuario al actualizar) y añadió un `<Upgrade>` de solo detección con **su** `UpgradeCode`. En lugar de resolver bloque a bloque, `pdfcraft.wxs` y `test-msi.ps1` se reconstruyeron desde los del upstream aplicando la lista cerrada de sustituciones del fork, cada una con su recuento comprobado (nombres, fabricante, `UpgradeCode`, GUID de componentes, ProgId, claves, textos, URL, accesos directos). Resultado: sin restos de PdfCraft, Learning Machines, getartcraft, Discord ni GUID del upstream, salvo los Id internos de WiX.
+- **Identidad que entraba sin conflicto:**
+  - `settings.rs` (nuevo) guardaba y migraba las preferencias en `~/.config/pdfcraft`;
+  - la instancia única de Linux (nueva) ponía el socket en `$XDG_RUNTIME_DIR/pdfcraft`;
+  - `main.rs` volvía a traer `migrate_legacy_folders`, `eframe::storage_dir("PdfCraft")` para los registros y el menú de macOS "PdfCraft";
+  - `Credits.rtf` (macOS) enlazaba a getartcraft.com y al Discord de ArtCraft.
+- `README.md`: el del fork. `links.rs`: pruebas nuevas del upstream y la del fork. `docs/development.md`: carpetas de Amaraza y sin la migración de PrintCraft.
+
+### Búsqueda de la marca
+
+Los mismos archivos que tras ARS.2, más `packaging/macos/Credits.rtf`, que contiene solo la atribución en texto plano ("Basado en PdfCraft, del equipo ArtCraft"). Ningún nombre de archivo; ningún catálogo con Discord ni ArtCraft.
+
+### Dependencias
+
+- Crates nuevos: `craft-docpath`, `craft-quit` (de `craft-libs`), `crossbeam-channel`, `fontconfig-parser`, `keyboard-types` y `muda`, todos MIT o Apache-2.0. Ninguno quitado.
+- De la revisión nueva `82a24b0` de `craft-libs` solo se usa `craft-docpath`; sus crates `ai-core` (con valores de ArtCraft en pruebas) y `cms` (con perfiles ICC incrustados) no forman parte del grafo.
+- `craft-print` sigue usando `winprint` con `default-features = false`: no se descarga PDFium.
+
+### Puertas (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`, a la corriente)
+
+- `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0; `cargo clippy -p amaraza-identity --all-targets -- -D warnings` 0; `cargo xtask layers` sin violaciones (38 crates); `cargo xtask assets` ok (250 activos).
+- `cargo test --workspace --no-fail-fast` (1165 s): 173 binarios, **3776 pasadas, 0 fallidas y 16 ignoradas**. Pasan las guardas del fork (instalador, empaquetado, socket, portapapeles, `.desktop`), `no_tool_escapes_the_root` y las dos de rendimiento.
+- Una primera ejecución detectó una llave de más en `main.rs` (resolución del conflicto de `settings_dir`); se corrigió antes del commit.
+
+### Cambios del upstream que afectan al fork (para la sesión implementadora)
+
+- `CLAUDE.md` del upstream añade normas: demostrar que una prueba falla revirtiendo el arreglo, revisar todos los bloques fusionados al integrar, y limitar compilaciones y pruebas a los crates tocados (`-p <crate> -j 2`). En el fork siguen mandando las puertas completas de `00-amaraza.md` §7.
+- **AR0.3** (al integrar `main`): el upstream tocó 11 de los 12 archivos de enganche; la capa de traducciones del fork necesita filas para `el`, `kk`, `lt`, `pl`, `sl`, `tr` y `vi`.
+- **AR0.4:** la lista de mensajes que nombran PdfCraft sigue creciendo.
+
+### Commits
+
+| Commit | Contenido |
+|---|---|
+| `4d7ccc92872894f84958694cf37d7508e15fd041` | Merge de `upstream/main` (`43550c448db3ba91753f638e3843c0da036bbd60`, v0.9.0) con los conflictos resueltos |
 | *(siguiente)* | Este registro (solo documentación) |
