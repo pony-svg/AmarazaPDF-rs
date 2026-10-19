@@ -35,6 +35,8 @@ struct Root(PathBuf);
 impl Root {
     fn new(test: &str) -> Root {
         let dir = std::env::temp_dir().join(format!("amaraza-automation-{test}-{}", std::process::id()));
+        // A10: ignored on purpose. The folder is usually absent (it only exists if an earlier run
+        // was killed), and a real problem shows up in `create_dir_all` just below.
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("a.pdf"), fixture(3)).unwrap();
@@ -48,6 +50,8 @@ impl Root {
 
 impl Drop for Root {
     fn drop(&mut self) {
+        // A10: ignored on purpose. `drop` can't return an error, and panicking here would hide
+        // the test's own result; at worst a folder stays in the temp directory.
         let _ = std::fs::remove_dir_all(&self.0);
     }
 }
