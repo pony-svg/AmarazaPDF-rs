@@ -610,7 +610,7 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 | `1dbfdb5a9c06ce0edf4d6db4859be061f4c7c5ec` | Tras la revisión de la fase 1: comentarios A10 en los dos `remove_dir_all` descartados de `crates/automation/tests/amaraza.rs` (observación no bloqueante del revisor) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (239) en verde; pruebas de amaraza en verde (6 de automatización, 5 de ui-egui). Observación no bloqueante atendida |
 | `039a7aaa2c84c29669142ae08dcfea05ac88ef2d` | Integración de `main` (ARS.2 y ARS.3) en `ar0.3-enganches`: resolución de 10 conflictos (7 enganches de código, E19 y este registro), 7 nuevos idiomas en `i18n.tsv` y recalculado sha256 en `ATTRIBUTION.toml` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
 | `8ead39c47626e8e59f05527d0981444648c4f804` | Registro de la integración de `main` en `ar0.3-enganches` (solo documentación) | Solo documentación. **Dictamen D-13 sobre la integración (`1dbfdb5…`, `039a7aa…`, `8ead39c4`): APROBADA; AR0.3 cerrada.** Ver la sección "Revisión D-13 de la integración de main y evidencia del titular" |
-| *(siguiente)* | Cierre de AR0.3: dictamen D-13 y evidencia real del titular (solo documentación) | Solo documentación |
+| `494f5c020e37366529ee7fd0e8054808a706dfd0` | Cierre de AR0.3: dictamen D-13 y evidencia real del titular (solo documentación) | Solo documentación. AR0.3 integrada en `main` con avance rápido y push autorizados por el titular el 2026-10-19 (`main` = `origin/main` = `494f5c0`) |
 
 ### ADR-0001 (segundo commit)
 
@@ -810,3 +810,41 @@ Los mismos archivos que tras ARS.2, más `packaging/macos/Credits.rtf`, que cont
   - la plantilla de PR decía "PdfCraft";
   - ARS.3 llamaba "v0.9.0" a `43550c4`, que es v0.9.0 + 205 commits: corregido en este registro (los mensajes de commit no se reescriben);
   - la cabecera de `apps/pdfcraft/src/single_instance.rs` mostraba las rutas de PdfCraft.
+
+## AR0.4. Identidad en metadatos y textos (2026-10-19)
+
+### Punto de partida
+
+- `main` = `origin/main` = `494f5c020e37366529ee7fd0e8054808a706dfd0` (`git cat-file -t` → `commit`), con AR0.3 cerrada e integrada con avance rápido y push autorizados por el titular.
+- Rama `ar0.4-identidad`, creada desde `main`.
+- `git config user.email`: el correo del proyecto.
+
+### Commits de AR0.4
+
+| Commit | Contenido | Puertas |
+|---|---|---|
+| *(siguiente)* | ADR-0002: diseño de identidad en metadatos y textos (solo documentación, para revisión D-13) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
+
+### ADR-0002 (primer commit)
+
+- `docs/amaraza/adr/0002-identidad-metadatos-y-textos.md`, solo diseño. No se implementa hasta la aprobación del titular y del revisor D-13.
+- Cubre:
+  1. **Metadatos desde `amaraza-identity` (L0 standalone):** los 7 puntos exactos identificados en el código:
+     - `Producer` de los PDF creados (`crates/create/src/lib.rs:54`);
+     - nombre de la app en firmas digitales (`crates/sign/src/pdf.rs:1835` y `:2008`);
+     - autor por defecto de comentarios (`crates/automation/src/comments.rs:15`, `DEFAULT_AUTHOR`);
+     - título de los trabajos de impresión en la web (`crates/ui-egui/src/web_print.rs:131`);
+     - nombre y título del servidor MCP (`crates/automation/src/mcp.rs:134`);
+     - nombre de familia de la fuente moldeada (`crates/edit/src/added.rs:711`);
+     - nombre por defecto de recortes de imagen del portapapeles (`crates/ui-egui/src/image_pick.rs:77`).
+     Total en código del upstream para metadatos: 8 líneas modificadas en 7 archivos, con dependencias a L0.
+  2. **Mensajes de la interfaz (mecanismo con pocos enganches):**
+     - Inventario: 23 cadenas fuente únicas en inglés que nombran "PdfCraft" y 457 líneas traducidas en los 22 catálogos TSV.
+     - Mecanismo: aprovechar el enganche E18 existente (`catalog_source` en `crates/ui-egui/src/amaraza/mod.rs`):
+       - para los 22 idiomas con catálogo (`code != "en"`): sustitución en memoria de `"PdfCraft"` por `"Amaraza PDF"` en la columna de traducción (`cols[2]`), preservando la clave fuente en inglés (`cols[1]`) y las atribuciones autorizadas (`"Basado en PdfCraft"`). Las llamadas `tl!(...)` del upstream siguen encontrando la clave sin modificar una sola línea de los 22 catálogos TSV;
+       - para inglés (`code == "en"`): inyectar las 23 filas que mapean cada clave fuente a su versión con "Amaraza PDF" para que `Catalog::parse` pueble `c.plain` del inglés.
+     - Cero líneas modificadas en los 22 catálogos `.tsv` y cero líneas adicionales en archivos `.rs` del upstream para los textos de la interfaz. Riesgo de conflicto en futuras sincronizaciones: cero.
+  3. **Borrado de activos obsoletos:**
+     - 12 capturas de `docs/images/` que muestran la marca ArtCraft y botones de Discord, junto con sus 12 bloques `[[asset]]` en `ATTRIBUTION.toml`.
+  4. **Guardas automáticas (pruebas):**
+     - Pruebas sintéticas que fallen si vuelve "PdfCraft" a los metadatos generados (`Producer`, firmas, comentarios, fuentes moldeadas, MCP) o a los textos de la interfaz.
