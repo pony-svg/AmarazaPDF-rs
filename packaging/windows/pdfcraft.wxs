@@ -5,10 +5,12 @@
     wix build pdfcraft.wxs installer-ui.wxs -arch x64 -d Version=1.2.3 -d BinDir=... -d ModelsDir=... -d IconPath=... -o out.msi
 
   Per-machine install into Program Files, a Start Menu shortcut, a desktop shortcut (on by default,
-  optional), an App Paths entry, and Amaraza PDF registered as a PDF handler (offered under "Open with"
-  and in Default apps, never forced as the default). Files opened with Amaraza PDF arrive on its
-  command line. Every name and GUID here is Amaraza PDF's own (crates/amaraza-identity), never
-  PdfCraft's: cargo builds pdfcraft.exe, installed as AmarazaPDF.exe.
+  optional, and an update keeps it only if it is still there), an App Paths entry, Amaraza PDF
+  registered as a PDF handler (offered under "Open with" and in Default apps, never forced as the
+  default), and "Editar con Amaraza PDF" on PDF files' right-click menu (on by default, optional).
+  Files opened with Amaraza PDF arrive on its command line. Every name and GUID here is Amaraza
+  PDF's own (crates/amaraza-identity), never PdfCraft's: cargo builds pdfcraft.exe, installed as
+  AmarazaPDF.exe.
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
@@ -37,10 +39,23 @@
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/pony-svg/AmarazaPDF-rs" />
     <Property Id="ARPURLUPDATEINFO" Value="https://github.com/pony-svg/AmarazaPDF-rs/releases" />
     <Property Id="ARPHELPLINK" Value="https://github.com/pony-svg/AmarazaPDF-rs" />
-    <!-- Desktop shortcut (#143): on by default, a checkbox in the full-UI welcome dialog, and
-         INSTALLDESKTOPSHORTCUT=0 on the msiexec command line for unattended installs. Secure, so the
-         choice made in the (unelevated) UI reaches the elevated install. -->
-    <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" Secure="yes" />
+    <!-- Desktop shortcut (#143): on by default for a first install, a checkbox in the full-UI
+         welcome dialog, and INSTALLDESKTOPSHORTCUT=0 on the msiexec command line for unattended
+         installs. Secure, so the choice made in the (unelevated) UI reaches the elevated install.
+         An update keeps the shortcut only if it is still on the desktop (#1058): the launcher
+         updates with /passive and no properties, so deleting the shortcut is the only way its
+         users can say no. A value given on the command line wins. -->
+    <Property Id="INSTALLDESKTOPSHORTCUT" Secure="yes" />
+    <Property Id="EXISTINGDESKTOPSHORTCUT">
+      <DirectorySearch Id="DesktopSearch" Path="[DesktopFolder]" Depth="0">
+        <FileSearch Name="Amaraza PDF.lnk" />
+      </DirectorySearch>
+    </Property>
+    <SetProperty Id="INSTALLDESKTOPSHORTCUT" Value="1" After="AppSearch" Sequence="first"
+        Condition="NOT INSTALLDESKTOPSHORTCUT AND (NOT WIX_UPGRADE_DETECTED OR EXISTINGDESKTOPSHORTCUT)" />
+    <!-- "Editar con Amaraza PDF" on the right-click menu of PDF files in File Explorer (#682): on by
+         default, the same way, and INSTALLPDFCONTEXTMENU=0 for unattended installs without it. -->
+    <Property Id="INSTALLPDFCONTEXTMENU" Value="1" Secure="yes" />
     <UIRef Id="PdfcraftInstallerUI" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
@@ -71,10 +86,13 @@
              Amaraza PDF entry to pick was the advertised Start Menu shortcut, which Windows can't
              run as a file handler ("This app can't run on your PC"). -->
         <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document" Value="PDF Document" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document\DefaultIcon" Value="[#PdfcraftExe],0" Type="string" />
+        <!-- A negative index selects the stable icon resource ID, rather than its position.
+             Resource 1 is the app's icon (the Amaraza logo); resource 2 is the PDF document (build.rs). -->
+        <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document\DefaultIcon" Value="&quot;[#PdfcraftExe]&quot;,-2" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document\shell\open\command" Value="&quot;[#PdfcraftExe]&quot; &quot;%1&quot;" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\.pdf\OpenWithProgids" Name="AmarazaPDF.Document" Value="" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\Applications\AmarazaPDF.exe" Name="FriendlyAppName" Value="Amaraza PDF" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\AmarazaPDF.exe\DefaultIcon" Value="&quot;[#PdfcraftExe]&quot;,-2" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\Applications\AmarazaPDF.exe\SupportedTypes" Name=".pdf" Value="" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\Applications\AmarazaPDF.exe\shell\open\command" Value="&quot;[#PdfcraftExe]&quot; &quot;%1&quot;" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\AmarazaPDF\Capabilities" Name="ApplicationName" Value="Amaraza PDF" Type="string" />
@@ -134,8 +152,36 @@
         <RegistryValue Root="HKLM" Key="Software\AmarazaPDF\Shortcuts" Name="Desktop" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
+      <!-- PDF context menu (#682): "Editar con Amaraza PDF" opens the file in Amaraza PDF whichever app is
+           the default for .pdf, which it leaves alone (SystemFileAssociations, like the image
+           menu). Several PDFs selected (up to 15, Windows' limit for this kind of entry) start one
+           launch each, and the single-instance hand-off opens them as tabs of one window. On
+           Windows 11 the entry is under "Show more options": the first-level menu only takes
+           packaged apps' (IExplorerCommand) entries. Its own component with an HKLM key path, so
+           INSTALLPDFCONTEXTMENU=0 leaves it out and uninstall removes it. -->
+      <Component Id="PdfcraftPdfContextMenu" Guid="73C1D61D-77D3-4DC6-974C-C5BF06C92F97"
+          Condition="INSTALLPDFCONTEXTMENU = 1">
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit" Value="Editar con Amaraza PDF" Type="string" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit" Name="Icon" Value="&quot;[#PdfcraftExe]&quot;,0" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit" Name="MultiSelectModel" Value="Document" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit\command" Value="&quot;[#PdfcraftExe]&quot; &quot;%1&quot;" Type="string" />
+      </Component>
+
       <Component Id="PdfcraftCli">
         <File Id="PdfcraftCliExe" Source="$(var.BinDir)\pdfcraft-cli.exe" KeyPath="yes" />
+      </Component>
+      <!-- The embedded PDF icon's ISC notice and project licences travel with the binaries. -->
+      <Component Id="PdfcraftDocumentIconLicense">
+        <File Id="PdfcraftDocumentIconLicenseFile" Source="$(var.BinDir)\LICENSE-document.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="PdfcraftMitLicense">
+        <File Id="PdfcraftMitLicenseFile" Source="$(var.BinDir)\LICENSE-MIT" KeyPath="yes" />
+      </Component>
+      <Component Id="PdfcraftApacheLicense">
+        <File Id="PdfcraftApacheLicenseFile" Source="$(var.BinDir)\LICENSE-APACHE" KeyPath="yes" />
+      </Component>
+      <Component Id="PdfcraftNotice">
+        <File Id="PdfcraftNoticeFile" Source="$(var.BinDir)\NOTICE" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 
