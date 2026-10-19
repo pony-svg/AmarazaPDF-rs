@@ -77,6 +77,9 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `packaging/windows/pdfcraft.wxs`, `packaging/windows/installer-ui.wxs`, `packaging/windows/test-msi.ps1`, `packaging/windows/package.ps1` | Menú contextual nuevo "Editar con Amaraza PDF" (`AmarazaPDF.Edit`) con **GUID de componente propio** `73C1D61D-77D3-4DC6-974C-C5BF06C92F97`; `FileSearch` de "Amaraza PDF.lnk"; `DefaultIcon` `,-2` en el ProgId y en `Applications\AmarazaPDF.exe`; el zip portátil lleva `NOTICE` y `LICENSE-document.txt` | Identificadores propios del instalador | ARS.2 |
 | `packaging/linux/io.github.pony_svg.AmarazaPDF.desktop`, `packaging/linux/package.sh`, `packaging/macos/package.sh`, `apps/pdfcraft/tests/winit_x11_dpi.rs` | `StartupWMClass` con el id del fork; etiqueta de compilación del upstream con los nombres `AmarazaPDF-*`; DMG con `hdiutil create` (volumen "Amaraza PDF") y comprobación de "Amaraza PDF.app" | Identidad | ARS.2 |
 | `.github/workflows/packaging-lint.yml`, `.github/workflows/windows-arm64.yml` | Se conservan los del fork; no los flujos reutilizables `storytold/craft-common-actions@main` del upstream | Identidad y no depender de flujos externos sin versión fija | ARS.2 |
+| `.github/workflows/freebsd.yml` | La versión del fork (la de `e9b9ee6`, autocontenida); el upstream la cambió sin conflicto en ARS.2 por `storytold/craft-common-actions@main` | Ídem; lo detectó la revisión D-13 de ARS.2/ARS.3 | ARS.3 |
+| `.github/dependabot.yml` (nuevo en el upstream) | **Borrado** | Actualizaciones diarias automáticas de dependencias: en el fork, añadir o actualizar dependencias lo decide el titular (`00-amaraza.md` §6) | ARS.3 |
+| `.github/pull_request_template.md` (nuevo en el upstream) | "Thanks for contributing to Amaraza PDF (a fork of PdfCraft)." | Identidad | ARS.3 |
 | `crates/engine/src/links.rs` | Pruebas nuevas del upstream (documentos remotos) más la del fork; fuera la que exigía la web de ArtCraft | Licencia de marca | ARS.2 |
 | `crates/ui-egui/src/i18n/{cs,el,kk,lt,pl,sl,tr}.tsv` | El tratamiento de AR0.1 (fuera Discord, ArtCraft y "Part of"; fuentes en español; "Amaraza PDF en GitHub"); `cs` había recuperado las entradas de Discord en la fusión | Licencia de marca | ARS.2 |
 | `crates/ui-egui/Cargo.toml`, `Cargo.lock`, `ATTRIBUTION.*` | `craft-ui` del upstream junto a `amaraza-identity`; `amaraza-identity` 0.8.0; `sha256` de los 21 catálogos y entradas del icono de documento sin las de ArtCraft ni las del icono de PdfCraft | Merge | ARS.2 |
@@ -600,14 +603,14 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 | `a8d513fe5196a79ba7e0064175104ec7858bf1c1` | Merge de `upstream/main` (`9931329b9fae0b05373b4dc3ac7c58541f0891a4`, v0.8.0) con los conflictos resueltos |
 | `75b4d6b0b41bcef8ab7e8ba63e37b0a20b3ea7fe` | Este registro (solo documentación) |
 
-## ARS.3. Sincronización con el upstream hasta v0.9.0 (2026-10-19)
+## ARS.3. Sincronización con el upstream hasta v0.9.0 + 205 commits (2026-10-19)
 
 Mismo encargo y autorización que ARS.2: el upstream siguió avanzando mientras ARS.2 esperaba la red, así que se hizo en un segundo paso sobre ARS.2 ya en verde. La revisa la sesión implementadora. Sin push ni merge a `main`.
 
 ### Punto de partida
 
 - Base: el registro de ARS.2, `75b4d6b0b41bcef8ab7e8ba63e37b0a20b3ea7fe`.
-- `upstream/main` = `43550c448db3ba91753f638e3843c0da036bbd60` (`git cat-file -t` → `commit`), con la etiqueta `v0.9.0`: 454 commits desde v0.8.0.
+- `upstream/main` = `43550c448db3ba91753f638e3843c0da036bbd60` (`git cat-file -t` → `commit`): la etiqueta `v0.9.0` (`645016ad`, 2026-10-17) más 205 commits; 454 commits desde v0.8.0. *Corregido en la revisión D-13: la primera versión de esta sección y los mensajes de los commits `4d7ccc92` y `1c733c3d` lo llamaban "v0.9.0"; los mensajes no se reescriben.*
 - Rama `sync/upstream-2026-10-19`, en el worktree de sincronización; `git merge --no-ff`. La lista de conflictos se previó antes con `git merge-tree` sobre un commit temporal sin referencia.
 
 ### Conflictos (25) e identidad
@@ -647,5 +650,17 @@ Los mismos archivos que tras ARS.2, más `packaging/macos/Credits.rtf`, que cont
 
 | Commit | Contenido |
 |---|---|
-| `4d7ccc92872894f84958694cf37d7508e15fd041` | Merge de `upstream/main` (`43550c448db3ba91753f638e3843c0da036bbd60`, v0.9.0) con los conflictos resueltos |
-| *(siguiente)* | Este registro (solo documentación) |
+| `4d7ccc92872894f84958694cf37d7508e15fd041` | Merge de `upstream/main` (`43550c448db3ba91753f638e3843c0da036bbd60`, v0.9.0 + 205 commits) con los conflictos resueltos |
+| `1c733c3d8121ffbe3bdcd45ddd94884bc204fa7d` | Este registro (solo documentación) |
+| *(siguiente)* | Correcciones de la revisión D-13 (ver la sección siguiente) |
+
+### Revisión D-13 de ARS.2 y ARS.3 (sesión implementadora, 2026-10-19)
+
+- **Aprobadas con correcciones**, ninguna bloqueante. Comprobaciones estáticas correctas: GUID del instalador y `<Upgrade>`, carpetas del portapapeles, de las preferencias y del socket, `Credits.rtf`, catálogos, búsqueda de la marca y licencias.
+- Puertas de la implementadora en el worktree de sincronización, a la corriente: 3773 pasadas, 3 fallidas y 16 ignoradas. Las fallidas (las dos de `--test perf` y `attachment_save_preserves_bytes_metadata_and_selected_destination`) pasan por separado (5 de 5 y 3 de 3). En la ejecución de la sesión revisora pasaron las 3776.
+- Hallazgos, todos confirmados por la sesión revisora contra el repositorio y corregidos en el commit siguiente:
+  - `.github/workflows/freebsd.yml` pasó sin conflicto (ya en ARS.2) a `storytold/craft-common-actions@main`, aunque el registro decía que se conservaban los flujos del fork: vuelve la versión del fork;
+  - `.github/dependabot.yml` (nuevo, diario): borrado;
+  - la plantilla de PR decía "PdfCraft";
+  - ARS.3 llamaba "v0.9.0" a `43550c4`, que es v0.9.0 + 205 commits: corregido en este registro (los mensajes de commit no se reescriben);
+  - la cabecera de `apps/pdfcraft/src/single_instance.rs` mostraba las rutas de PdfCraft.

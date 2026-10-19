@@ -1,13 +1,15 @@
-//! One PdfCraft per Windows sign-in or Linux/BSD display: a launch that only names files hands them
-//! to the PdfCraft that is already running, where they open as tabs, and exits (#282, #317, #1726).
+//! One Amaraza PDF per Windows sign-in or Linux/BSD display: a launch that only names files hands
+//! them to the Amaraza PDF that is already running, where they open as tabs, and exits (#282, #317,
+//! #1726). Amaraza PDF fork: the sockets are in its own folders (amaraza_identity), never
+//! PdfCraft's, so the two apps never hand files to each other.
 //!
 //! Outlook attachments, Explorer double-clicks and Open With all start `pdfcraft.exe "<file>"`, and
 //! a file manager or `xdg-open` starts `pdfcraft <file>` the same way, so until now every file got
-//! its own process and window. The first PdfCraft listens on a Unix domain socket. On Windows (10
-//! 1803 and later) it is in `%LOCALAPPDATA%\PdfCraft`, or in the data folder of a portable copy,
+//! its own process and window. The first Amaraza PDF listens on a Unix domain socket. On Windows (10
+//! 1803 and later) it is in `%LOCALAPPDATA%\AmarazaPDF`, also for a portable copy (`portable-…`),
 //! and is named after the Windows session (`instance-Console.sock`), so two sign-ins of the same
 //! user never open files in each other's windows. On Linux and the BSDs it is in
-//! `$XDG_RUNTIME_DIR/pdfcraft` and is named after the display (`instance-wayland-0.sock`), so a
+//! `$XDG_RUNTIME_DIR/amarazapdf` and is named after the display (`instance-wayland-0.sock`), so a
 //! launch on another display or seat opens its own window there. Either way it lives in a folder
 //! only the user can reach, so other accounts can't create, replace or reach it: nobody else can
 //! intercept a launch or open files in this user's window. Inside a Flatpak, `$XDG_RUNTIME_DIR` is
