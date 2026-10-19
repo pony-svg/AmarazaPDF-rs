@@ -170,7 +170,10 @@ mod tests {
             package.contains(EXE_NAME) && package.contains(PORTABLE_MARKERS[0]) && package.contains(LOGO_ICO_PATH.replace('/', "\\").as_str()),
             "package.ps1"
         );
-        assert!(!package.contains("'portable.txt'") && !package.contains("app-icon"), "package.ps1 still ships PdfCraft's marker or icon");
+        // PdfCraft's app icon never ships; the upstream's generic PDF document icon licence does (ARS.2).
+        for gone in ["'portable.txt'", r"app-icon\pdfcraft.ico", r"app-icon\hicolor", "pdfcraft-1024"] {
+            assert!(!package.contains(gone), "package.ps1 still ships PdfCraft's marker or icon: {gone}");
+        }
         let marker = repo_file(&format!("packaging/windows/{}", PORTABLE_MARKERS[0]));
         assert!(marker.contains(PORTABLE_DATA_DIR) && !marker.contains("PdfCraft"), "portable marker text");
         let test_msi = repo_file("packaging/windows/test-msi.ps1");

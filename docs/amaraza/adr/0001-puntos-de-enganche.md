@@ -157,26 +157,29 @@ Historial del upstream (`git log -L` sobre cada ancla, hasta `0f2f47f`):
 
 | # | Archivo | Ancla | Cambio | + | M | Conflicto al sincronizar y cómo se resuelve |
 |---|---|---|---|---|---|---|
-| E1 | `xtask/src/layers.rs` | tras l. 79 `("engine", Class::Layer(6)),` | comentario y `("amaraza-ext", Class::Layer(6)),` | 2 | | Solo si el upstream añade un crate L6 justo ahí: conservar ambos |
-| E2 | `xtask/src/layers.rs` | tras l. 99 `pub const SIDEWAYS: … = &[` | `("amaraza-ext", "engine"),` | 1 | | El upstream añade aristas al final: no se tocan |
-| E3 | `crates/engine/src/lib.rs` | tras l. 15 `pub mod actions;` | `pub mod amaraza;` | 1 | | Solo si el upstream crea un módulo entre `actions` y `catalog`: conservar ambos |
-| E4 | `crates/engine/src/commands.rs` | l. 157 | `pub const COMMANDS: &[CommandSpec] = &[` → `const UPSTREAM_COMMANDS: &[CommandSpec] = &[` | | 1 | El upstream añade comandos dentro de la lista, no en su cabecera. Si choca: lado del upstream y volver a renombrar |
-| E5 | `crates/engine/src/commands.rs` | tras l. 346 `];` | línea en blanco, comentario y el nuevo `pub const COMMANDS` | 4 | | Las inserciones del upstream antes de `];` no la tocan |
-| E6 | `crates/engine/src/actions.rs` | tras l. 10 `pub enum Step {` | comentario y `Amaraza(crate::amaraza::Step),` | 2 | | El upstream añade variantes al final |
-| E7 | `crates/engine/src/actions.rs` | tras l. 35 `impl Step {`; l. 37 | envoltorio `pub fn all()`; l. 37 → `fn upstream_all() -> Vec<Step> {` | 7 | 1 | Como E4 |
-| E8 | `crates/engine/src/actions.rs` | tras l. 56 y 73 (`match self {` de `id` y `label`); antes de l. 91 y 98 (`match self {` de `arg` y `arg_mut`) | un brazo `Step::Amaraza(p) => …` en `id` y `label`; la guarda `if let` de §2.6 en `arg` y `arg_mut` | 10 | | El upstream añade brazos al final de `id` y `label`. En `arg` y `arg_mut` edita la l. 92 o la 99, y la guarda queda separada de ellas por la línea del `match` |
-| E9 | `crates/engine/src/actions.rs` | tras l. 152 `let edit = match step {` | `Step::Amaraza(p) => return crate::amaraza::apply(s, id, p, log),` | 1 | | Ídem |
-| E10 | `crates/automation/Cargo.toml` | tras l. 12 `pdfcraft-engine = …` | comentario y `amaraza-ext = { path = "../amaraza-ext" }` | 2 | | Bajo |
-| E11 | `crates/automation/src/lib.rs` | tras l. 14 `mod a11y;` | `mod amaraza;` | 1 | | Como E3 |
-| E12 | `crates/automation/src/lib.rs` | tras l. 148 `let out = match name {` | brazo con guarda `amaraza::PREFIX` | 1 | | El upstream añade brazos antes de `other =>` (l. 615) |
-| E13 | `crates/automation/src/tools.rs` | antes de l. 116; l. 117 | envoltorio `pub fn tools()`; l. 117 → `fn upstream_tools() -> Vec<ToolDef> {` | 7 | 1 | Las herramientas nuevas del upstream entran dentro de `vec![…]`: no lo tocan |
-| E14 | `crates/ui-egui/Cargo.toml` | tras l. 13 (dependencia de AR0.1) | `amaraza-ext = { path = "../amaraza-ext" }` | 1 | | Ya es un trozo del fork (AR0.1) |
-| E15 | `crates/ui-egui/src/lib.rs` | tras l. 26 `mod actions_ui;` | `mod amaraza;` | 1 | | Como E3 |
-| E16 | `crates/ui-egui/src/commands.rs` | tras l. 126 `match id {` | brazo con guarda `"amaraza."` | 1 | | El upstream añade brazos antes de `_ => return false` (l. 570) |
-| E17 | `crates/ui-egui/src/chrome.rs` | antes de l. 392 (menú Help) | `crate::amaraza::main_menu(app, ui);` | 1 | | Medio: si el upstream añade un menú justo antes de Help, conservar ambas líneas, la del fork justo antes de Help |
-| E18 | `crates/ui-egui/src/i18n/mod.rs` | l. 178 | `self.source` → `&crate::amaraza::catalog_source(self.code, self.source)` | | 1 | Si el upstream cambia la carga de catálogos, aplicar el envoltorio a su nueva fuente |
-| E19 | `ATTRIBUTION.toml` (y `ATTRIBUTION.md`, generado) | junto a las entradas de `docs/brand/amaraza-logo.*` | entrada de `crates/ui-egui/src/amaraza/i18n.tsv` | 11 | | Bloque del fork |
-| E20 | `Cargo.lock` | generado | paquete `amaraza-ext` y sus aristas internas, sin crates externos | | | Lado del upstream y dejar que cargo vuelva a añadir los paquetes internos. Comprobar que el diff solo trae paquetes del fork |
+| E1 | `xtask/src/layers.rs` | tras l. 79 `("engine", Class::Layer(6)),` | comentario y `("amaraza-ext", Class::Layer(6)),` | 2 | | *Sin conflicto en ARS.3.* Solo si el upstream añade un crate L6 justo ahí: conservar ambos |
+| E2 | `xtask/src/layers.rs` | tras l. 99 `pub const SIDEWAYS: … = &[` | `("amaraza-ext", "engine"),` | 1 | | *Sin conflicto en ARS.3.* El upstream añade aristas al final: no se tocan |
+| E3 | `crates/engine/src/lib.rs` | tras l. 15 `pub mod actions;` | `pub mod amaraza;` | 1 | | **Chocó en ARS.3** (upstream añadió `autotag`, `camera`…): resuelto conservando ambos |
+| E4 | `crates/engine/src/commands.rs` | l. 157 | `pub const COMMANDS: &[CommandSpec] = &[` → `const UPSTREAM_COMMANDS: &[CommandSpec] = &[` | | 1 | *Sin conflicto en ARS.3.* El upstream añade comandos dentro de la lista, no en su cabecera. Si choca: lado del upstream y volver a renombrar |
+| E5 | `crates/engine/src/commands.rs` | tras l. 346 `];` | línea en blanco, comentario y el nuevo `pub const COMMANDS` | 4 | | *Sin conflicto en ARS.3.* Las inserciones del upstream antes de `];` no la tocan |
+| E6 | `crates/engine/src/actions.rs` | tras l. 10 `pub enum Step {` | comentario y `Amaraza(crate::amaraza::Step),` | 2 | | *Sin conflicto en ARS.3.* El upstream añade variantes al final |
+| E7 | `crates/engine/src/actions.rs` | tras l. 35 `impl Step {`; l. 37 | envoltorio `pub fn all()`; l. 37 → `fn upstream_all() -> Vec<Step> {` | 7 | 1 | *Sin conflicto en ARS.3.* Como E4 |
+| E8 | `crates/engine/src/actions.rs` | tras l. 56 y 73 (`match self {` de `id` y `label`); antes de l. 91 y 98 (`match self {` de `arg` y `arg_mut`) | un brazo `Step::Amaraza(p) => …` en `id` y `label`; la guarda `if let` de §2.6 en `arg` y `arg_mut` | 10 | | *Sin conflicto en ARS.3.* El upstream añade brazos al final de `id` y `label`. En `arg` y `arg_mut` edita la l. 92 o la 99, y la guarda queda separada de ellas por la línea del `match` |
+| E9 | `crates/engine/src/actions.rs` | tras l. 152 `let edit = match step {` | `Step::Amaraza(p) => return crate::amaraza::apply(s, id, p, log),` | 1 | | *Sin conflicto en ARS.3.* Ídem |
+| E10 | `crates/automation/Cargo.toml` | tras l. 12 `pdfcraft-engine = …` | comentario y `amaraza-ext = { path = "../amaraza-ext" }` | 2 | | **Chocó en ARS.3** (upstream añadió `pdfcraft-cos`): resuelto conservando ambos |
+| E11 | `crates/automation/src/lib.rs` | tras l. 14 `mod a11y;` | `mod amaraza;` | 1 | | **Chocó en ARS.3** (upstream añadió `mod batch;`): resuelto conservando ambos |
+| E12 | `crates/automation/src/lib.rs` | tras l. 148 `let out = match name {` | brazo con guarda `amaraza::PREFIX` | 1 | | *Sin conflicto en ARS.3.* El upstream añade brazos antes de `other =>` (l. 615) |
+| E13 | `crates/automation/src/tools.rs` | antes de l. 116; l. 117 | envoltorio `pub fn tools()`; l. 117 → `fn upstream_tools() -> Vec<ToolDef> {` | 7 | 1 | *Sin conflicto en ARS.3.* Las herramientas nuevas del upstream entran dentro de `vec![…]`: no lo tocan |
+| E14 | `crates/ui-egui/Cargo.toml` | tras l. 13 (dependencia de AR0.1) | `amaraza-ext = { path = "../amaraza-ext" }` | 1 | | **Chocó en ARS.3** (upstream añadió `craft-ui` y `craft-quit`): resuelto conservando ambos |
+| E15 | `crates/ui-egui/src/lib.rs` | tras l. 26 `mod actions_ui;` | `mod amaraza;` | 1 | | **Chocó en ARS.3** (upstream añadió `mod appearance;`): resuelto conservando ambos |
+| E16 | `crates/ui-egui/src/commands.rs` | tras l. 126 `match id {` | brazo con guarda `"amaraza."` | 1 | | **Chocó en ARS.3** (upstream añadió `ui.dock.reset`): resuelto con la guarda del fork primero |
+| E17 | `crates/ui-egui/src/chrome.rs` | antes de l. 392 (menú Help) | `crate::amaraza::main_menu(app, ui);` | 1 | | **Chocó en ARS.3** (upstream añadió `scroll_menu` al menú Help): resuelto conservando el menú Amaraza justo antes de Help |
+| E18 | `crates/ui-egui/src/i18n/mod.rs` | l. 178 | `self.source` → `&crate::amaraza::catalog_source(self.code, self.source)` | | 1 | *Sin conflicto en ARS.3.* Si el upstream cambia la carga de catálogos, aplicar el envoltorio a su nueva fuente |
+| E19 | `ATTRIBUTION.toml` (y `ATTRIBUTION.md`, generado) | junto a las entradas de `docs/brand/amaraza-logo.*` | entrada de `crates/ui-egui/src/amaraza/i18n.tsv` | 11 | | **Chocó en ARS.3** (upstream añadió iconos de documento): resuelto conservando ambos y regenerando `ATTRIBUTION.md` |
+| E20 | `Cargo.lock` | generado | paquete `amaraza-ext` y sus aristas internas, sin crates externos | | | *Sin conflicto en ARS.3.* Lado del upstream y dejar que cargo vuelva a añadir los paquetes internos. Comprobar que el diff solo trae paquetes del fork |
+
+**Primera prueba real del diseño (integración de `main` tras ARS.2 y ARS.3, v0.9.0 + 205 commits):**
+El upstream tocó 11 de los 12 archivos de enganche a lo largo de 454 commits. De los 20 enganches, **12 fusionaron sin conflicto automáticamente** (E1, E2, E4, E5, E6, E7, E8, E9, E12, E13, E18, E20). Los **8 restantes chocaron** (los 7 de código E3, E10, E11, E14, E15, E16, E17, más el activo E19) en las zonas previstas y se resolvieron mecánicamente con las recetas de la tabla sin alterar lógica del upstream ni del fork.
 
 **Total de la fase 1:** 12 archivos del upstream (10 `.rs` y 2 `Cargo.toml`), con 43 líneas insertadas y 4 modificadas, más `ATTRIBUTION.*` y `Cargo.lock`. Ninguna cambia lógica del upstream. Archivos nuevos del fork, sin riesgo de conflicto:
 - `crates/amaraza-ext/{Cargo.toml, clippy.toml, src/lib.rs}`;

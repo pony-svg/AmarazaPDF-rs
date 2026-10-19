@@ -69,6 +69,25 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `crates/ui-egui/tests/{ui,pickers,viewer}.rs`, `crates/ui-egui/src/i18n/mod.rs` (solo su módulo de pruebas) | Pruebas nuevas del upstream adaptadas: "Keyboard shortcuts" en lugar del botón de Discord, título de inicio y de ventana de Amaraza PDF, "Acerca de Amaraza PDF" en árabe | Pruebas del comportamiento del fork | ARS.1 |
 | `Cargo.lock` | `amaraza-identity` 0.5.0 (la versión del workspace) | Merge de la versión 0.5.0 del upstream | ARS.1 |
 | `ATTRIBUTION.toml`, `ATTRIBUTION.md` | `sha256` de los 15 catálogos; `ATTRIBUTION.md` regenerado | `cargo xtask assets` | ARS.1 |
+| `crates/ui-egui/src/image_pick.rs` (nuevo en el upstream) | Carpeta del portapapeles en la de Amaraza PDF (`amaraza_identity::FOLDER_NAME`/`FOLDER_NAME_LOWER`) en lugar de `PdfCraft`; prueba `the_clipboard_folder_is_amaraza_pdfs_own` | La función borra archivos en esa carpeta: nunca en la de PdfCraft | ARS.2 |
+| `crates/ui-egui/src/chrome.rs`, `crates/ui-egui/tests/ui.rs` | Barra de título nueva (controles de ventana propios) sin el botón de Discord ni su ancho reservado; la prueba de la banda de macOS no busca "Discord" | Licencia de marca ArtCraft | ARS.2 |
+| `apps/pdfcraft-cli/src/main.rs`, `crates/ui-egui/src/dialogs.rs`, `apps/pdfcraft/src/main.rs` | `--version` y "Acerca de" con `build_info::version()` y la identidad de Amaraza, sin Discord ni la web de ArtCraft; sin `migrate_legacy_folders`; las pruebas permiten el icono genérico de documento y leen el `.desktop` del fork | Identidad | ARS.2 |
+| `apps/pdfcraft/build.rs` | Recurso 2 = icono genérico de documento PDF del upstream (`assets/app-icon/pdfcraft-document.ico`); el icono de la app sigue siendo el logotipo de Amaraza | Asociaciones de archivos PDF del instalador | ARS.2 |
+| `apps/pdfcraft/src/single_instance.rs` | Comportamiento portátil nuevo del upstream (socket `portable-…`), siempre en la carpeta de Amaraza PDF | Identidad | ARS.2 |
+| `packaging/windows/pdfcraft.wxs`, `packaging/windows/installer-ui.wxs`, `packaging/windows/test-msi.ps1`, `packaging/windows/package.ps1` | Menú contextual nuevo "Editar con Amaraza PDF" (`AmarazaPDF.Edit`) con **GUID de componente propio** `73C1D61D-77D3-4DC6-974C-C5BF06C92F97`; `FileSearch` de "Amaraza PDF.lnk"; `DefaultIcon` `,-2` en el ProgId y en `Applications\AmarazaPDF.exe`; el zip portátil lleva `NOTICE` y `LICENSE-document.txt` | Identificadores propios del instalador | ARS.2 |
+| `packaging/linux/io.github.pony_svg.AmarazaPDF.desktop`, `packaging/linux/package.sh`, `packaging/macos/package.sh`, `apps/pdfcraft/tests/winit_x11_dpi.rs` | `StartupWMClass` con el id del fork; etiqueta de compilación del upstream con los nombres `AmarazaPDF-*`; DMG con `hdiutil create` (volumen "Amaraza PDF") y comprobación de "Amaraza PDF.app" | Identidad | ARS.2 |
+| `.github/workflows/packaging-lint.yml`, `.github/workflows/windows-arm64.yml` | Se conservan los del fork; no los flujos reutilizables `storytold/craft-common-actions@main` del upstream | Identidad y no depender de flujos externos sin versión fija | ARS.2 |
+| `.github/workflows/freebsd.yml` | La versión del fork (la de `e9b9ee6`, autocontenida); el upstream la cambió sin conflicto en ARS.2 por `storytold/craft-common-actions@main` | Ídem; lo detectó la revisión D-13 de ARS.2/ARS.3 | ARS.3 |
+| `.github/dependabot.yml` (nuevo en el upstream) | **Borrado** | Actualizaciones diarias automáticas de dependencias: en el fork, añadir o actualizar dependencias lo decide el titular (`00-amaraza.md` §6) | ARS.3 |
+| `.github/pull_request_template.md` (nuevo en el upstream) | "Thanks for contributing to Amaraza PDF (a fork of PdfCraft)." | Identidad | ARS.3 |
+| `crates/engine/src/links.rs` | Pruebas nuevas del upstream (documentos remotos) más la del fork; fuera la que exigía la web de ArtCraft | Licencia de marca | ARS.2 |
+| `crates/ui-egui/src/i18n/{cs,el,kk,lt,pl,sl,tr}.tsv` | El tratamiento de AR0.1 (fuera Discord, ArtCraft y "Part of"; fuentes en español; "Amaraza PDF en GitHub"); `cs` había recuperado las entradas de Discord en la fusión | Licencia de marca | ARS.2 |
+| `crates/ui-egui/Cargo.toml`, `Cargo.lock`, `ATTRIBUTION.*` | `craft-ui` del upstream junto a `amaraza-identity`; `amaraza-identity` 0.8.0; `sha256` de los 21 catálogos y entradas del icono de documento sin las de ArtCraft ni las del icono de PdfCraft | Merge | ARS.2 |
+| `packaging/windows/pdfcraft.wxs`, `packaging/windows/test-msi.ps1` | Reconstruidos desde los del upstream con las sustituciones de identidad del fork (guiones de ARS.3, ver la sección ARS.3). Novedades: el `<Upgrade>` que detecta versiones previas usa el `UpgradeCode` del fork; componente del menú de imágenes con **GUID propio** `96D52A18-56D6-49F5-A0C9-00CD3790CD18`; búsquedas de registro de `AmarazaPDF.Edit` y `AmarazaPDF.CreatePdf` | Identificadores propios del instalador | ARS.3 |
+| `apps/pdfcraft/src/settings.rs` (nuevo en el upstream), `apps/pdfcraft/src/main.rs` | Preferencias XDG en `~/.config/amarazapdf` (`FOLDER_NAME_LOWER`), no en la de PdfCraft, con sus pruebas; carpeta de datos y de registros de Amaraza PDF; sin la migración de PrintCraft; menú de la app en macOS con el nombre del producto | Nunca tocar carpetas de PdfCraft ni PrintCraft | ARS.3 |
+| `apps/pdfcraft/src/single_instance.rs` | Socket de Linux y BSD en `$XDG_RUNTIME_DIR/amarazapdf`; la prueba del fork cubre Windows y Linux | No entregar archivos a un PdfCraft abierto | ARS.3 |
+| `packaging/macos/Credits.rtf`, `packaging/macos/package.sh` | El panel "Acerca de" de macOS muestra la atribución en texto plano y los enlaces al fork y al upstream, sin la web ni el Discord de ArtCraft | Licencia de marca ArtCraft | ARS.3 |
+| `crates/engine/Cargo.toml`, `crates/engine/src/links.rs`, `docs/development.md`, `crates/ui-egui/src/i18n/*.tsv` (con `vi`, nuevo), `Cargo.lock`, `ATTRIBUTION.*` | `craft-docpath` junto a `amaraza-identity`; pruebas nuevas del upstream más la del fork; carpetas de Amaraza en la documentación; tratamiento de marca de AR0.1 en los 22 catálogos; `amaraza-identity` 0.9.0 | Merge | ARS.3 |
 | `xtask/src/layers.rs` | **E1** (l. 80–81): `amaraza-ext` en `TABLE` como `Layer(6)`, tras `engine`; marcador en el comentario | La comprobación de capas exige registrar cada crate | AR0.3 |
 | `xtask/src/layers.rs` | **E2** (l. 102): primera arista de `SIDEWAYS`, `("amaraza-ext", "engine")`; marcador al final | `amaraza-ext` usa el motor desde su misma capa | AR0.3 |
 | `crates/engine/src/lib.rs` | **E3** (l. 16): `pub mod amaraza;`; marcador al final | Enganche de ADR-0001; los crates `amaraza-*` no pueden registrar por su cuenta (capas) | AR0.3 |
@@ -588,7 +607,8 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 | `d59bc9f0b8d2655b9444c2f7a9b30dab74aeeeb4` | Fase 1, paso 3: automatización. `crates/automation/src/amaraza.rs` (herramienta `amaraza_hello`, de solo lectura, sin enlace a comando hasta el paso 4) y enganches E10–E13; 5 pruebas de extremo a extremo en `crates/automation/tests/amaraza.rs` (con y sin documento, argumentos inválidos, orden de la tabla, el paso `amaraza_hello` por `action_run`), con raíz temporal que se borra (A11). Título y descripción de la herramienta en inglés, como la tabla del upstream (documentación para agentes); el `text` que devuelve, en español (AR-D5). `Cargo.lock`: solo la arista `pdfcraft-automation` → `amaraza-ext`. CLI: `pdfcraft-cli tools` lista `amaraza_hello` y `run --script` devuelve el saludo | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets en verde. Pruebas: 1863 pasadas, 1 fallida (`no_tool_escapes_the_root`, de entorno: 15 aceptaciones de `link-out/…`, las mismas que antes del cambio, con 142 herramientas en vez de 141) y 7 ignoradas |
 | `70ddcad72a2a241636184232d387e9cb7e30324a` | Fase 1, paso 4: interfaz. Comando `amaraza.hello` declarado en el motor ("Hola, Amaraza", menú "Amaraza", sin atajo, icono `hand`) y enlazado a `amaraza_hello`. `crates/ui-egui/src/amaraza/` (ejecución, menú Amaraza, capa de traducciones `i18n.tsv` con filas "sin traducir" en los 15 idiomas, AR-D4) y enganches E14–E18 (E18: el marcador va en la línea anterior, porque con él la línea pasaba de 150 columnas; queda en 1 insertada y 1 modificada). E19: entrada de `i18n.tsv` en `ATTRIBUTION.toml` y `ATTRIBUTION.md` regenerado (239 activos). Pruebas nuevas: 5 de interfaz con kittest en `crates/ui-egui/tests/amaraza.rs` (comando, menú, paleta, selector de pasos, acciones guardadas), 3 unitarias de la capa de traducciones y 1 de automatización (`command_list` y `command_run`). `Cargo.lock`: solo la arista `pdfcraft-ui-egui` → `amaraza-ext`. **Evidencia sintética:** captura de Menú ▸ Amaraza ▸ "Hola, Amaraza" con `pdfcraft --control` en modo portátil (marcador temporal junto al ejecutable de `target/debug`) y un PDF sintético, fuera del repositorio (política de activos), `sha256` `b6c19c1c3e9e71b762e6d16f8aff9c9a5cad236c2e9e10e3cb80747fef37d6ad` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets en verde. Pruebas: 1872 pasadas, 1 fallida (`no_tool_escapes_the_root`, de entorno, las mismas 15 aceptaciones) y 7 ignoradas. Las 13 `*_covers_commands_and_catalogue` y `every_registered_command_is_implemented` pasan con el comando del fork |
 | `a88cb3993e98bf95a9e0c14a0708343d0de5a3bd` | Fase 1, paso 5: registro. Una fila por enganche (E1–E20) en "Archivos del upstream modificados", con su línea y su marcador `ADR-0001`, y el resumen de la fase 1 (solo documentación) | Ver "Fase 1 terminada (quinto commit)". **Dictamen D-13 sobre la fase 1 (`49d2fcb..a88cb39`): aprobada.** Puertas del revisor, a la corriente: fmt; clippy del workspace y `--all-targets` de `amaraza-ext`, `amaraza-identity`, engine, automation y ui-egui; `xtask layers` sin violaciones; assets (239); pruebas 1872/1/7 en 152 binarios. CLI comprobada: `amaraza_hello` por `run --script`, con error accionable para un documento inexistente. Enganches: 12 archivos, +47 −4, todos con `ADR-0001`. Observación no bloqueante: comentar por qué se ignora `remove_dir_all` en las pruebas (A10) |
-| *(siguiente)* | Tras la revisión de la fase 1: comentarios A10 en los dos `remove_dir_all` descartados de `crates/automation/tests/amaraza.rs` (observación no bloqueante del revisor) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (239) en verde; pruebas de amaraza en verde (6 de automatización, 5 de ui-egui). Observación no bloqueante atendida |
+| `1dbfdb5a9c06ce0edf4d6db4859be061f4c7c5ec` | Tras la revisión de la fase 1: comentarios A10 en los dos `remove_dir_all` descartados de `crates/automation/tests/amaraza.rs` (observación no bloqueante del revisor) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (239) en verde; pruebas de amaraza en verde (6 de automatización, 5 de ui-egui). Observación no bloqueante atendida |
+| *(siguiente)* | Integración de `main` (ARS.2 y ARS.3) en `ar0.3-enganches`: resolución de 10 conflictos (7 enganches de código, E19 y este registro), 7 nuevos idiomas en `i18n.tsv` y recalculado sha256 en `ATTRIBUTION.toml` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
 
 ### ADR-0001 (segundo commit)
 
@@ -638,3 +658,128 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 - **Evidencia sintética:** la captura de Menú ▸ Amaraza ▸ "Hola, Amaraza" (paso 4), fuera del repositorio.
 - **Sin cambios:** `parity/`, `ROADMAP.md`, `AGENTS.md` y `CLAUDE.md`.
 - **Puertas de este commit** (en inglés, `CARGO_BUILD_JOBS=6`, a la corriente): fmt, clippy y assets en verde. Pruebas: 1871 pasadas, 2 fallidas y 7 ignoradas. Las fallidas: `no_tool_escapes_the_root` (de entorno) y `saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents` (`--test recovery`), la intermitente del Pendiente 9 de AR0.1, que aislada pasó 5 de 5 veces. El commit solo toca documentación; con el mismo código, el paso 4 dio 1872 pasadas y 1 fallida.
+
+### Integración de main tras ARS.2 y ARS.3 (primer merge del diseño)
+
+- `git merge main` (sin rebase).
+- 10 conflictos resueltos según ADR-0001 §3:
+  - 7 enganches de código: E3 (`crates/engine/src/lib.rs`), E10 (`crates/automation/Cargo.toml`), E11 (`crates/automation/src/lib.rs`), E14 (`crates/ui-egui/Cargo.toml`), E15 (`crates/ui-egui/src/lib.rs`), E16 (`crates/ui-egui/src/commands.rs`) y E17 (`crates/ui-egui/src/chrome.rs`).
+  - 12 enganches fusionaron sin conflicto automáticamente: E1, E2, E4, E5, E6, E7, E8, E9, E12, E13, E18, E20.
+  - E19 (`ATTRIBUTION.toml`) y regenerado `ATTRIBUTION.md` (251 activos).
+  - Este registro (`docs/amaraza/REGISTRO.md`).
+- 7 idiomas nuevos de v0.8.0/v0.9.0 añadidos a `crates/ui-egui/src/amaraza/i18n.tsv` con filas "sin traducir" en español (AR-D4): `el`, `kk`, `lt`, `pl`, `sl`, `tr` y `vi`. Su sha256 recalculado en `ATTRIBUTION.toml`.
+- Todos los enganches conservan su marcador `ADR-0001` (`git grep -n "ADR-0001"`).
+
+## ARS.2. Sincronización con el upstream hasta v0.8.0 (2026-10-14 a 2026-10-19)
+
+La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Autorización del titular (2026-10-14):** "haz el update del repo original", conservando la identidad Amaraza; dependencias aceptadas si su licencia es permisiva. No incluye el push ni el merge a `main`.
+
+### Punto de partida
+
+- `main` = `e9b9ee622d4dbf9720ef0c62c823ddb3a54decb0`. AR0.3 sigue en su rama (`ar0.3-enganches`), pendiente de la evidencia de interfaz del titular, así que sus enganches se adaptan cuando la implementadora integre `main`.
+- `upstream/main` = `9931329b9fae0b05373b4dc3ac7c58541f0891a4` (`git cat-file -t` → `commit`), la etiqueta `v0.8.0`: 373 commits desde `5d590604867fdac7ed71c555c40477ae3331a60a` (v0.6.0, v0.7.1 y v0.8.0).
+- Rama `sync/upstream-2026-10-14` desde `main`, en el worktree de sincronización; `git merge --no-ff upstream/main`.
+- El 2026-10-14 la red bloqueaba `static.crates.io`; la compilación y las puertas se hicieron el 2026-10-19, con otra red.
+
+### Conflictos (22) e identidad
+
+- Borrados del fork que siguen borrados: `.github/workflows/release.yml`, `assets/app-icon/README.md`, `packaging/icons.sh` y `packaging/macos/dmg/README.md`. README del fork.
+- CI: se conservan los flujos del fork. El upstream pasa a flujos reutilizables `storytold/craft-common-actions@main`, sin versión fija y con su identidad.
+- Detalle por archivo: filas ARS.2 de "Archivos del upstream modificados".
+- **Identidad que entraba sin conflicto**:
+  - la carpeta del portapapeles (`image_pick.rs`, nuevo) era `%LOCALAPPDATA%\PdfCraft\Clipboard` y borra archivos en ella;
+  - el componente nuevo del menú contextual del instalador traía el GUID del upstream;
+  - `StartupWMClass` del `.desktop` llegaba con `ai.storyteller.pdfcraft` por la detección de renombrados;
+  - `cs.tsv` recuperó las entradas de Discord, y llegaron 6 catálogos nuevos sin tratar (`el`, `kk`, `lt`, `pl`, `sl` y `tr`);
+  - pruebas nuevas del upstream buscaban el botón de Discord o el `.desktop` de PdfCraft.
+- **Icono de documento PDF:** se conserva el genérico del upstream (`assets/app-icon/pdfcraft-document.*`: contorno de Lucide con la etiqueta "PDF", ISC y MIT o Apache-2.0) para las asociaciones de archivos. No es una marca; un icono de documento con la paleta de Amaraza queda como decisión del titular.
+
+### Búsqueda de la marca
+
+`git grep -niE "artcraft|getartcraft|storyteller"`, sin `vendor/`: los mismos archivos que tras ARS.1 (incluido el ejemplo de `xtask/src/macos_integration.rs`), ninguno nuevo; ningún nombre de archivo; ningún catálogo con Discord ni ArtCraft.
+
+### Dependencias
+
+- **Repositorios git nuevos de storytold**, fijados por commit: `craft-libs` (`craft-ui` y `craft-print`, MIT o Apache-2.0, sin marcas ni activos incrustados) y `winprint.rs` (BSD-3-Clause).
+- **`winprint`** puede descargar binarios de PDFium (de `bblanchon/pdfium-binaries`, verificados con sigstore) en su script de compilación, pero solo con su característica `pdfium`, que `craft-print` apaga (`default-features = false`). Sus dependencias de compilación (`reqwest`, `quinn`, `tokio`, `sigstore-*`, `tar`) se compilan igualmente; no se descarga nada.
+- **Licencias de los crates nuevos** (leídas con `cargo metadata`): MIT, Apache-2.0, BSD-3-Clause, ISC o combinaciones, salvo `webpki-root-certs` (CDLA-Permissive-2.0, datos de certificados raíz), que solo entra en el script de compilación de `winprint` y nunca en el programa (excepción documentada en `deny.toml` del upstream).
+- `Cargo.lock`: `amaraza-identity` pasa a 0.8.0.
+
+### Puertas (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`)
+
+- `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0 (267 s); `cargo xtask layers` sin violaciones (36 crates); `cargo xtask assets` ok (248 activos).
+- `cargo test --workspace --no-fail-fast` (1578 s, con la compilación en frío): 155 binarios, **3057 pasadas, 1 fallida y 15 ignoradas**. La fallida era la guarda `the_windows_installer_is_amarazas` de `amaraza-identity`, que prohibía cualquier `app-icon` en `package.ps1`; se limitó al icono de PdfCraft y pasa (6 de 6). `no_tool_escapes_the_root` y las dos pruebas de rendimiento pasan.
+
+### Pendiente para la sesión implementadora
+
+- **AR0.3:** al integrar `main`, el upstream cambió 11 de los 12 archivos de enganche, y la capa de traducciones del fork necesita filas para `el`, `kk`, `lt`, `pl`, `sl` y `tr`.
+- **AR0.4:** v0.8.0 trae muchos mensajes nuevos que nombran PdfCraft, el nombre de fuente "PdfCraft Shaped Text" (`crates/edit/src/added.rs`) y el nombre por defecto "PdfCraft" de las imágenes copiadas (`image_pick.rs`).
+
+### Commits
+
+| Commit | Contenido |
+|---|---|
+| `a8d513fe5196a79ba7e0064175104ec7858bf1c1` | Merge de `upstream/main` (`9931329b9fae0b05373b4dc3ac7c58541f0891a4`, v0.8.0) con los conflictos resueltos |
+| `75b4d6b0b41bcef8ab7e8ba63e37b0a20b3ea7fe` | Este registro (solo documentación) |
+
+## ARS.3. Sincronización con el upstream hasta v0.9.0 + 205 commits (2026-10-19)
+
+Mismo encargo y autorización que ARS.2: el upstream siguió avanzando mientras ARS.2 esperaba la red, así que se hizo en un segundo paso sobre ARS.2 ya en verde. La revisa la sesión implementadora. Sin push ni merge a `main`.
+
+### Punto de partida
+
+- Base: el registro de ARS.2, `75b4d6b0b41bcef8ab7e8ba63e37b0a20b3ea7fe`.
+- `upstream/main` = `43550c448db3ba91753f638e3843c0da036bbd60` (`git cat-file -t` → `commit`): la etiqueta `v0.9.0` (`645016ad`, 2026-10-17) más 205 commits; 454 commits desde v0.8.0. *Corregido en la revisión D-13: la primera versión de esta sección y los mensajes de los commits `4d7ccc92` y `1c733c3d` lo llamaban "v0.9.0"; los mensajes no se reescriben.*
+- Rama `sync/upstream-2026-10-19`, en el worktree de sincronización; `git merge --no-ff`. La lista de conflictos se previó antes con `git merge-tree` sobre un commit temporal sin referencia.
+
+### Conflictos (25) e identidad
+
+- **Catálogos (14):** el upstream insertó una línea junto a "Welcome to PdfCraft", que el fork había renombrado. Se tomó el lado del upstream y se volvió a pasar el tratamiento de marca de AR0.1 a los 22 catálogos (`vi` es nuevo).
+- **Instalador:** el upstream reorganizó los menús contextuales (componente propio para el de imágenes, conservación de la elección del usuario al actualizar) y añadió un `<Upgrade>` de solo detección con **su** `UpgradeCode`. En lugar de resolver bloque a bloque, `pdfcraft.wxs` y `test-msi.ps1` se reconstruyeron desde los del upstream aplicando la lista cerrada de sustituciones del fork, cada una con su recuento comprobado (nombres, fabricante, `UpgradeCode`, GUID de componentes, ProgId, claves, textos, URL, accesos directos). Resultado: sin restos de PdfCraft, Learning Machines, getartcraft, Discord ni GUID del upstream, salvo los Id internos de WiX.
+- **Identidad que entraba sin conflicto:**
+  - `settings.rs` (nuevo) guardaba y migraba las preferencias en `~/.config/pdfcraft`;
+  - la instancia única de Linux (nueva) ponía el socket en `$XDG_RUNTIME_DIR/pdfcraft`;
+  - `main.rs` volvía a traer `migrate_legacy_folders`, `eframe::storage_dir("PdfCraft")` para los registros y el menú de macOS "PdfCraft";
+  - `Credits.rtf` (macOS) enlazaba a getartcraft.com y al Discord de ArtCraft.
+- `README.md`: el del fork. `links.rs`: pruebas nuevas del upstream y la del fork. `docs/development.md`: carpetas de Amaraza y sin la migración de PrintCraft.
+
+### Búsqueda de la marca
+
+Los mismos archivos que tras ARS.2, más `packaging/macos/Credits.rtf`, que contiene solo la atribución en texto plano ("Basado en PdfCraft, del equipo ArtCraft"). Ningún nombre de archivo; ningún catálogo con Discord ni ArtCraft.
+
+### Dependencias
+
+- Crates nuevos: `craft-docpath`, `craft-quit` (de `craft-libs`), `crossbeam-channel`, `fontconfig-parser`, `keyboard-types` y `muda`, todos MIT o Apache-2.0. Ninguno quitado.
+- De la revisión nueva `82a24b0` de `craft-libs` solo se usa `craft-docpath`; sus crates `ai-core` (con valores de ArtCraft en pruebas) y `cms` (con perfiles ICC incrustados) no forman parte del grafo.
+- `craft-print` sigue usando `winprint` con `default-features = false`: no se descarga PDFium.
+
+### Puertas (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`, a la corriente)
+
+- `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0; `cargo clippy -p amaraza-identity --all-targets -- -D warnings` 0; `cargo xtask layers` sin violaciones (38 crates); `cargo xtask assets` ok (250 activos).
+- `cargo test --workspace --no-fail-fast` (1165 s): 173 binarios, **3776 pasadas, 0 fallidas y 16 ignoradas**. Pasan las guardas del fork (instalador, empaquetado, socket, portapapeles, `.desktop`), `no_tool_escapes_the_root` y las dos de rendimiento.
+- Una primera ejecución detectó una llave de más en `main.rs` (resolución del conflicto de `settings_dir`); se corrigió antes del commit.
+
+### Cambios del upstream que afectan al fork (para la sesión implementadora)
+
+- `CLAUDE.md` del upstream añade normas: demostrar que una prueba falla revirtiendo el arreglo, revisar todos los bloques fusionados al integrar, y limitar compilaciones y pruebas a los crates tocados (`-p <crate> -j 2`). En el fork siguen mandando las puertas completas de `00-amaraza.md` §7.
+- **AR0.3** (al integrar `main`): el upstream tocó 11 de los 12 archivos de enganche; la capa de traducciones del fork necesita filas para `el`, `kk`, `lt`, `pl`, `sl`, `tr` y `vi`.
+- **AR0.4:** la lista de mensajes que nombran PdfCraft sigue creciendo.
+
+### Commits
+
+| Commit | Contenido |
+|---|---|
+| `4d7ccc92872894f84958694cf37d7508e15fd041` | Merge de `upstream/main` (`43550c448db3ba91753f638e3843c0da036bbd60`, v0.9.0 + 205 commits) con los conflictos resueltos |
+| `1c733c3d8121ffbe3bdcd45ddd94884bc204fa7d` | Este registro (solo documentación) |
+| `a78c2d199b917e5a9948ad57bf2ab169ce663dd9` | Correcciones de la revisión D-13 (ver la sección siguiente) |
+
+### Revisión D-13 de ARS.2 y ARS.3 (sesión implementadora, 2026-10-19)
+
+- **Aprobadas con correcciones**, ninguna bloqueante. Comprobaciones estáticas correctas: GUID del instalador y `<Upgrade>`, carpetas del portapapeles, de las preferencias y del socket, `Credits.rtf`, catálogos, búsqueda de la marca y licencias.
+- Puertas de la implementadora en el worktree de sincronización, a la corriente: 3773 pasadas, 3 fallidas y 16 ignoradas. Las fallidas (las dos de `--test perf` y `attachment_save_preserves_bytes_metadata_and_selected_destination`) pasan por separado (5 de 5 y 3 de 3). En la ejecución de la sesión revisora pasaron las 3776.
+- Hallazgos, todos confirmados por la sesión revisora contra el repositorio y corregidos en el commit siguiente:
+  - `.github/workflows/freebsd.yml` pasó sin conflicto (ya en ARS.2) a `storytold/craft-common-actions@main`, aunque el registro decía que se conservaban los flujos del fork: vuelve la versión del fork;
+  - `.github/dependabot.yml` (nuevo, diario): borrado;
+  - la plantilla de PR decía "PdfCraft";
+  - ARS.3 llamaba "v0.9.0" a `43550c4`, que es v0.9.0 + 205 commits: corregido en este registro (los mensajes de commit no se reescriben);
+  - la cabecera de `apps/pdfcraft/src/single_instance.rs` mostraba las rutas de PdfCraft.
