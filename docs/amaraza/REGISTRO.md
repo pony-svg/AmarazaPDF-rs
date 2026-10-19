@@ -609,7 +609,8 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 | `a88cb3993e98bf95a9e0c14a0708343d0de5a3bd` | Fase 1, paso 5: registro. Una fila por enganche (E1–E20) en "Archivos del upstream modificados", con su línea y su marcador `ADR-0001`, y el resumen de la fase 1 (solo documentación) | Ver "Fase 1 terminada (quinto commit)". **Dictamen D-13 sobre la fase 1 (`49d2fcb..a88cb39`): aprobada.** Puertas del revisor, a la corriente: fmt; clippy del workspace y `--all-targets` de `amaraza-ext`, `amaraza-identity`, engine, automation y ui-egui; `xtask layers` sin violaciones; assets (239); pruebas 1872/1/7 en 152 binarios. CLI comprobada: `amaraza_hello` por `run --script`, con error accionable para un documento inexistente. Enganches: 12 archivos, +47 −4, todos con `ADR-0001`. Observación no bloqueante: comentar por qué se ignora `remove_dir_all` en las pruebas (A10) |
 | `1dbfdb5a9c06ce0edf4d6db4859be061f4c7c5ec` | Tras la revisión de la fase 1: comentarios A10 en los dos `remove_dir_all` descartados de `crates/automation/tests/amaraza.rs` (observación no bloqueante del revisor) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (239) en verde; pruebas de amaraza en verde (6 de automatización, 5 de ui-egui). Observación no bloqueante atendida |
 | `039a7aaa2c84c29669142ae08dcfea05ac88ef2d` | Integración de `main` (ARS.2 y ARS.3) en `ar0.3-enganches`: resolución de 10 conflictos (7 enganches de código, E19 y este registro), 7 nuevos idiomas en `i18n.tsv` y recalculado sha256 en `ATTRIBUTION.toml` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
-| *(siguiente)* | Registro de la integración de `main` en `ar0.3-enganches` y detalles de la primera prueba real del diseño | Solo documentación |
+| `8ead39c47626e8e59f05527d0981444648c4f804` | Registro de la integración de `main` en `ar0.3-enganches` (solo documentación) | Solo documentación. **Dictamen D-13 sobre la integración (`1dbfdb5…`, `039a7aa…`, `8ead39c4`): APROBADA; AR0.3 cerrada.** Ver la sección "Revisión D-13 de la integración de main y evidencia del titular" |
+| *(siguiente)* | Cierre de AR0.3: dictamen D-13 y evidencia real del titular (solo documentación) | Solo documentación |
 
 ### ADR-0001 (segundo commit)
 
@@ -671,7 +672,30 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora.
 - 7 idiomas nuevos de v0.8.0/v0.9.0 añadidos a `crates/ui-egui/src/amaraza/i18n.tsv` con filas "sin traducir" en español (AR-D4): `el`, `kk`, `lt`, `pl`, `sl`, `tr` y `vi`. Su sha256 recalculado en `ATTRIBUTION.toml`.
 - Todos los enganches conservan su marcador `ADR-0001` (`git grep -n "ADR-0001"`).
 - Puertas completas tras la integración: `cargo fmt --check` (0), `cargo clippy --workspace -- -D warnings` (0), `cargo clippy -p amaraza-identity -p amaraza-ext --all-targets -- -D warnings` (0), `cargo xtask assets` (251 activos ok), `cargo xtask layers` (39 crates ok). Pruebas del fork: `amaraza-identity` (6 de 6), `amaraza-ext` (3 de 3), `pdfcraft-engine -- amaraza` (4 de 4), `pdfcraft-automation --test amaraza` (6 de 6), `pdfcraft-ui-egui --lib amaraza` (5 de 5) y `pdfcraft-ui-egui --test amaraza` (5 de 5). Pruebas del motor (`engine --lib`: 286 de 286) y automatización (`automation --lib`: 36 de 36).
-- La evidencia real de interfaz del titular (menú Amaraza ▸ "Hola, Amaraza") se tomará sobre esta rama ya integrada.
+- La evidencia real de interfaz del titular (menú Amaraza ▸ "Hola, Amaraza") se toma sobre esta rama ya integrada (ver la sección siguiente).
+
+### Revisión D-13 de la integración de main y evidencia del titular (AR0.3 cerrada)
+
+- **Dictamen D-13 sobre la integración de `main` en `ar0.3-enganches` (`1dbfdb5…`, `039a7aa…`, `8ead39c47626e8e59f05527d0981444648c4f804`): APROBADA.**
+- **Verificado por la sesión revisora:**
+  - El merge integra `a78c2d199b917e5a9948ad57bf2ab169ce663dd9` (`main`, con ARS.2 y ARS.3) sin rebase.
+  - Frente a `main`, los 12 archivos de enganche difieren en exactamente +47/−4 líneas (nada del upstream perdido).
+  - `i18n.tsv` con 22×3 filas y sha256 correcto (`c2454977059e8fe9becfbaa8e39e84a0af0ca0828ede7ef3201883e5d8a59f79`).
+  - `Cargo.lock` solo añade el paquete `amaraza-ext`.
+- **Puertas completas del revisor (a la corriente):**
+  - `cargo fmt --check`: 0.
+  - `cargo clippy --workspace -- -D warnings` y `clippy --all-targets` de crates del fork y enganches: 0.
+  - `cargo xtask layers`: 39 crates, sin violaciones.
+  - `cargo xtask assets`: 251 activos ok.
+  - `cargo test --workspace`: 177 binarios, **3796 pasadas, 0 fallidas y 16 ignoradas**. (En el fork las puertas de calidad incluyen `cargo test --workspace` completo, conforme a `00-amaraza.md` §7.4; la norma nueva del `CLAUDE.md` del upstream de limitar las pruebas a los crates tocados no la sustituye).
+- **Evidencia real del titular (2026-10-19, app real en Windows, sobre esta rama):**
+  - Ventana "… — Amaraza PDF" con el icono de Amaraza en el título y la barra de tareas.
+  - Barra de título sin botón de Discord.
+  - Interfaz en español.
+  - El comando "Hola, Amaraza" muestra el aviso "Hola, Amaraza PDF 0.9.0 · 15 páginas" con un PDF del titular de 15 páginas abierto.
+  - *Privacidad (`00-amaraza.md` §5):* la evidencia se registra estrictamente en texto; no se sube la captura de pantalla ni se cita el nombre, ruta ni contenido del documento del titular.
+- **Dictamen D-13 final: AR0.3 APROBADA y CERRADA.**
+- Pendiente: el revisor hará el avance rápido de `main` y el push a `origin`, con autorización expresa del titular.
 
 ## ARS.2. Sincronización con el upstream hasta v0.8.0 (2026-10-14 a 2026-10-19)
 
