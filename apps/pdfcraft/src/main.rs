@@ -37,6 +37,7 @@ mod logging;
 #[cfg(target_os = "windows")]
 mod motion;
 mod reopen;
+mod settings;
 mod single_instance;
 mod text_scale;
 mod updates;
@@ -53,17 +54,28 @@ const APP_ICON_PNG: &[u8] = amaraza_identity::LOGO_PNG;
 /// The app was called PrintCraft before; settings saved then are under this key.
 const LEGACY_STORAGE_KEY: &str = "printcraft";
 
-/// The settings folder: `app.ron` and the `logs` folder (docs/development.md). In portable mode
-/// it is `AmarazaPDFData` beside the executable (#157). eframe would otherwise derive it from the
-/// app id; keep it under "AmarazaPDF" (amaraza_identity::FOLDER_NAME).
+/// The preferences folder (`app.ron`, docs/development.md). In portable mode it is
+/// `AmarazaPDFData` beside the executable (#157). XDG desktops use the configuration base
+/// (`amarazapdf`); other platforms keep eframe's "AmarazaPDF" folder (amaraza_identity::FOLDER_NAME).
+/// Logs and recovery stay in the data folder.
 ///
 /// Amaraza PDF never reads, moves or migrates another app's folders (PdfCraft, PrintCraft,
 /// PDForte), so upstream's one-time PrintCraft migration is gone (.agents/rules/00-amaraza.md §1).
 fn settings_dir() -> Option<std::path::PathBuf> {
-    if let Some(dir) = pdfcraft_ui_egui::portable::data_dir() {
-        return Some(dir.to_path_buf());
+    let legacy = eframe::storage_dir(amaraza_identity::FOLDER_NAME);
+    match settings::directory(
+        cfg!(all(unix, not(target_os = "macos"))),
+        pdfcraft_ui_egui::portable::data_dir(),
+        legacy.clone(),
+        std::env::var_os("XDG_CONFIG_HOME").map(std::path::PathBuf::from),
+        std::env::home_dir(),
+    ) {
+        Ok(dir) => dir,
+        Err(e) => {
+            log::warn!("could not migrate preferences to the XDG configuration folder; using the original location: {e}");
+            legacy
+        }
     }
-    eframe::storage_dir(amaraza_identity::FOLDER_NAME)
 }
 
 /// Desktop launchers (GNOME Files, KDE Dolphin…) only recognise an app as the default handler for a
@@ -173,20 +185,27 @@ fn main() -> eframe::Result {
     // GNOME on Wayland leaves the window frame to the app (src/decorations.rs).
     let window_controls = if cfg!(any(target_os = "macos", target_os = "windows")) { None } else { decorations::app_drawn() };
     // Amaraza PDF fork: no migrate_legacy_folders(); it never touches PdfCraft or PrintCraft folders.
-    // The log file lives in the settings folder; opened after the arguments (so `--version` leaves
+    // The log file stays in the data folder; opened after the arguments (so `--version` leaves
     // no file behind). Records logged until now are written to it first.
-    if let (Some(logger), Some(dir)) = (logger, settings_dir()) {
+    if let (Some(logger), Some(dir)) = (
+        logger,
+        pdfcraft_ui_egui::portable::data_dir().map(std::path::Path::to_path_buf).or_else(|| eframe::storage_dir(amaraza_identity::FOLDER_NAME)),
+    ) {
         match logger.attach_dir(&dir.join("logs")) {
             Ok(path) => log::info!("{} {}, log file {}", amaraza_identity::PRODUCT_NAME, pdfcraft_engine::build_info::version(), path.display()),
             // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
             Err(e) => log::warn!("no log file: {e}"),
         }
     }
-    // Windows: a launch that only names files (an Outlook attachment, an Explorer double-click)
-    // hands them to the PdfCraft already running and exits (#282, #317). Any option means the
-    // caller wants this launch's own window.
+    // Windows, Linux and the BSDs: a launch that only names files (an Outlook attachment, an
+    // Explorer double-click, a file manager or `xdg-open`) hands them to the PdfCraft already
+    // running and exits (#282, #317, #1726). Any option means the caller wants this launch's own
+    // window.
     let may_hand_off = !new_window && !files.is_empty() && options.is_empty() && control_file.is_none() && !create_images;
-    let instance = match single_instance::claim(&single_instance::absolute(&files), may_hand_off) {
+    // Absolute for this instance too: links relative to a document resolve against its folder,
+    // never the working directory.
+    let files = single_instance::absolute(&files);
+    let instance = match single_instance::claim(&files, may_hand_off) {
         single_instance::Claim::HandedOff => return Ok(()),
         single_instance::Claim::Primary(server) => Some(server),
         single_instance::Claim::Alone => None,
@@ -301,6 +320,18 @@ struct Launch {
     window_controls: Option<pdfcraft_ui_egui::window_controls::Layout>,
 }
 
+/// Whether the window is a native Wayland one (not X11 or XWayland).
+#[cfg(all(unix, not(target_os = "macos")))]
+fn native_wayland(cc: &eframe::CreationContext<'_>) -> bool {
+    use raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
+    cc.display_handle().is_ok_and(|handle| matches!(handle.as_raw(), RawDisplayHandle::Wayland(_)))
+}
+
+#[cfg(not(all(unix, not(target_os = "macos"))))]
+fn native_wayland(_: &eframe::CreationContext<'_>) -> bool {
+    false
+}
+
 fn app_creator<'a>(
     launch: Launch,
     started: Rc<Cell<bool>>,
@@ -320,6 +351,7 @@ fn app_creator<'a>(
         if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string(LEGACY_STORAGE_KEY))) {
             app.restore(&json);
         }
+        app.window_state = pdfcraft_ui_egui::window_state::WindowState::started_with(cc.storage);
         app.integrated_titlebar = integrated;
         app.window_controls = window_controls;
         app.system_text_scale = text_scale::system();
@@ -335,9 +367,14 @@ fn app_creator<'a>(
         #[cfg(target_os = "macos")]
         {
             app.os_events = Some(apple_events.connect(&cc.egui_ctx));
+            // winit's Quit (⌘Q) ends the process without asking about unsaved changes (#1136). This
+            // menu's Quit closes the window instead, so `guard_quit` asks, as for the close button.
+            if let Err(e) = craft_quit::install_app_menu(&cc.egui_ctx, amaraza_identity::PRODUCT_NAME) {
+                log::warn!("couldn't install the app menu, so ⌘Q quits without asking to save: {e}");
+            }
         }
         if let Some(server) = instance {
-            app.os_events = Some(server.connect(&cc.egui_ctx));
+            app.os_events = Some(server.connect(&cc.egui_ctx, native_wayland(cc)));
         }
         if let Some(file) = &control_file {
             let client = app.attach_control(&cc.egui_ctx);
@@ -500,7 +537,7 @@ fn configure_gpu(native: &mut eframe::NativeOptions) {
     setup.instance_descriptor.flags = setup.instance_descriptor.flags.difference(eframe::wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL).with_env();
     // egui-wgpu requests only 8192 pixels even when the adapter can render larger surfaces.
     // A restored 3440-point window at 250% DPI requests 8600 pixels and otherwise panics in
-    // Surface::configure before the app starts. Keep the renderer's other device requirements,
+    // Surface::configure before the app starts. Keep the renderer's other compatible requirements,
     // but enable the adapter's actual 2D texture extent (also for smaller/downlevel adapters).
     let device_descriptor = std::sync::Arc::clone(&setup.device_descriptor);
     setup.device_descriptor = std::sync::Arc::new(move |adapter| {
@@ -541,8 +578,9 @@ fn configure_gpu(native: &mut eframe::NativeOptions) {
 }
 
 /// Surface textures must fit the device's enabled limits, not just the physical GPU's limits.
-/// Changing only the 2D extent preserves egui-wgpu's backend-specific downlevel requirements.
+/// Clamp egui-wgpu's backend-specific requirements before enabling the adapter's full 2D extent.
 fn surface_texture_limits(mut required: eframe::wgpu::Limits, supported: &eframe::wgpu::Limits) -> eframe::wgpu::Limits {
+    required = required.or_worse_values_from(supported);
     required.max_texture_dimension_2d = supported.max_texture_dimension_2d;
     required
 }
@@ -874,14 +912,49 @@ mod tests {
     fn surface_limits_preserve_other_requirements_and_never_overrequest() {
         for required in [eframe::wgpu::Limits::default(), eframe::wgpu::Limits::downlevel_webgl2_defaults()] {
             for extent in [4096, 8192, 16384] {
-                let supported = eframe::wgpu::Limits { max_texture_dimension_2d: extent, ..required.clone() };
+                let supported = eframe::wgpu::Limits {
+                    max_texture_dimension_2d: extent,
+                    max_bind_groups: 8,
+                    min_uniform_buffer_offset_alignment: 128,
+                    min_storage_buffer_offset_alignment: 128,
+                    ..required.clone()
+                };
                 let enabled = super::surface_texture_limits(required.clone(), &supported);
                 let mut expected = required.clone();
                 expected.max_texture_dimension_2d = extent;
                 assert_eq!(enabled, expected);
                 assert_eq!(enabled.max_texture_dimension_2d, supported.max_texture_dimension_2d);
+                assert!(enabled.check_limits(&supported));
             }
         }
+    }
+
+    #[test]
+    fn surface_limits_fit_v3d_shader_variable_limit() {
+        // Issue #2383: V3D supports 15 variables, below the default request of 16.
+        let required = eframe::wgpu::Limits::default();
+        let supported = eframe::wgpu::Limits { max_texture_dimension_2d: 7680, max_inter_stage_shader_variables: 15, ..required.clone() };
+        let enabled = super::surface_texture_limits(required.clone(), &supported);
+        assert!(enabled.check_limits(&supported), "unsupported device limits: {enabled:?}");
+        let expected = eframe::wgpu::Limits { max_texture_dimension_2d: 7680, max_inter_stage_shader_variables: 15, ..required };
+        assert_eq!(enabled, expected);
+    }
+
+    #[test]
+    fn surface_limits_fit_downlevel_maxima_and_minimum_alignments() {
+        let required = eframe::wgpu::Limits::downlevel_webgl2_defaults();
+        let supported = eframe::wgpu::Limits {
+            max_texture_dimension_2d: 2048,
+            max_bind_groups: 2,
+            max_vertex_attributes: 8,
+            min_uniform_buffer_offset_alignment: 512,
+            min_storage_buffer_offset_alignment: 512,
+            ..required.clone()
+        };
+        let enabled = super::surface_texture_limits(required, &supported);
+        assert!(enabled.check_limits(&supported), "unsupported device limits: {enabled:?}");
+        // Larger minimum alignments are weaker capabilities, unlike maximum limits.
+        assert_eq!(enabled, supported);
     }
 
     #[test]

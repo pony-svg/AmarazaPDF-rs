@@ -7,10 +7,11 @@
   Per-machine install into Program Files, a Start Menu shortcut, a desktop shortcut (on by default,
   optional, and an update keeps it only if it is still there), an App Paths entry, Amaraza PDF
   registered as a PDF handler (offered under "Open with" and in Default apps, never forced as the
-  default), and "Editar con Amaraza PDF" on PDF files' right-click menu (on by default, optional).
-  Files opened with Amaraza PDF arrive on its command line. Every name and GUID here is Amaraza
-  PDF's own (crates/amaraza-identity), never PdfCraft's: cargo builds pdfcraft.exe, installed as
-  AmarazaPDF.exe.
+  default), "Editar con Amaraza PDF" on PDF files' right-click menu and "Crear PDF con Amaraza
+  PDF…" on image files' right-click menu (both on by default, optional, and an update keeps the
+  installed version's choice). Files opened with Amaraza PDF arrive on its command line. Every
+  name and GUID here is Amaraza PDF's own (crates/amaraza-identity), never PdfCraft's: cargo
+  builds pdfcraft.exe, installed as AmarazaPDF.exe.
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package
@@ -53,9 +54,31 @@
     </Property>
     <SetProperty Id="INSTALLDESKTOPSHORTCUT" Value="1" After="AppSearch" Sequence="first"
         Condition="NOT INSTALLDESKTOPSHORTCUT AND (NOT WIX_UPGRADE_DETECTED OR EXISTINGDESKTOPSHORTCUT)" />
-    <!-- "Editar con Amaraza PDF" on the right-click menu of PDF files in File Explorer (#682): on by
-         default, the same way, and INSTALLPDFCONTEXTMENU=0 for unattended installs without it. -->
-    <Property Id="INSTALLPDFCONTEXTMENU" Value="1" Secure="yes" />
+    <!-- The File Explorer menus: "Editar con Amaraza PDF" for PDF files (#682) and "Crear PDF con
+         Amaraza PDF…" for images (#190). Each is on by default for a first install and has a property
+         to leave it out of unattended installs: INSTALLPDFCONTEXTMENU=0 (also a welcome-dialog
+         checkbox) and INSTALLIMAGECONTEXTMENU=0. Secure, like the desktop shortcut's.
+         An update keeps the installed version's choice (#305) by looking for the menu's registry
+         key, the way the desktop shortcut looks for its file: AppSearch runs before the old version
+         is removed. Releases from before a menu existed (the PDF one came in 0.7.1, the image one in
+         0.4.0) never had the key, so updating from one of them counts as a first install; the
+         OnlyDetect rows below tell them apart. A value given on the command line wins. -->
+    <Upgrade Id="B023D7AF-E898-4990-9855-B539545099F3">
+      <UpgradeVersion Minimum="0.7.1" IncludeMinimum="yes" OnlyDetect="yes" Property="PDFCONTEXTMENURELEASE" />
+      <UpgradeVersion Minimum="0.4.0" IncludeMinimum="yes" OnlyDetect="yes" Property="IMAGECONTEXTMENURELEASE" />
+    </Upgrade>
+    <Property Id="INSTALLPDFCONTEXTMENU" Secure="yes" />
+    <Property Id="EXISTINGPDFCONTEXTMENU">
+      <RegistrySearch Id="PdfContextMenuSearch" Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit" Type="raw" />
+    </Property>
+    <SetProperty Id="INSTALLPDFCONTEXTMENU" Value="1" After="AppSearch" Sequence="first"
+        Condition="NOT INSTALLPDFCONTEXTMENU AND (NOT PDFCONTEXTMENURELEASE OR EXISTINGPDFCONTEXTMENU)" />
+    <Property Id="INSTALLIMAGECONTEXTMENU" Secure="yes" />
+    <Property Id="EXISTINGIMAGECONTEXTMENU">
+      <RegistrySearch Id="ImageContextMenuSearch" Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf" Type="raw" />
+    </Property>
+    <SetProperty Id="INSTALLIMAGECONTEXTMENU" Value="1" After="AppSearch" Sequence="first"
+        Condition="NOT INSTALLIMAGECONTEXTMENU AND (NOT IMAGECONTEXTMENURELEASE OR EXISTINGIMAGECONTEXTMENU)" />
     <UIRef Id="PdfcraftInstallerUI" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
@@ -90,6 +113,11 @@
              Resource 1 is the app's icon (the Amaraza logo); resource 2 is the PDF document (build.rs). -->
         <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document\DefaultIcon" Value="&quot;[#PdfcraftExe]&quot;,-2" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document\shell\open\command" Value="&quot;[#PdfcraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <!-- No overlay on thumbnails and in the preview pane: without TypeOverlay, Windows paints
+             the default program's icon (the app's icon) over the lower-right corner of every PDF
+             thumbnail, covering part of the page. An empty string means none ("Thumbnail
+             Handlers", Microsoft Learn). -->
+        <RegistryValue Root="HKLM" Key="Software\Classes\AmarazaPDF.Document" Name="TypeOverlay" Value="" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\.pdf\OpenWithProgids" Name="AmarazaPDF.Document" Value="" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\Applications\AmarazaPDF.exe" Name="FriendlyAppName" Value="Amaraza PDF" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\Applications\AmarazaPDF.exe\DefaultIcon" Value="&quot;[#PdfcraftExe]&quot;,-2" Type="string" />
@@ -100,38 +128,6 @@
         <RegistryValue Root="HKLM" Key="Software\AmarazaPDF\Capabilities" Name="ApplicationIcon" Value="[#PdfcraftExe],0" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\AmarazaPDF\Capabilities\FileAssociations" Name=".pdf" Value="AmarazaPDF.Document" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="AmarazaPDF" Value="Software\AmarazaPDF\Capabilities" Type="string" />
-
-        <!-- Image context menu (#190): convert without changing image file defaults. -->
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
-        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
       </Component>
 
       <!-- Shortcuts (#143) are plain links to the app (AmarazaPDF.exe), not advertised MSI shortcuts: advertised
@@ -165,6 +161,45 @@
         <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit" Name="Icon" Value="&quot;[#PdfcraftExe]&quot;,0" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit" Name="MultiSelectModel" Value="Document" Type="string" />
         <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.pdf\shell\AmarazaPDF.Edit\command" Value="&quot;[#PdfcraftExe]&quot; &quot;%1&quot;" Type="string" />
+      </Component>
+
+      <!-- Image context menu (#190): "Crear PDF con Amaraza PDF…" opens the DPI chooser, without
+           changing image file defaults. Its own component with an HKLM key path, so
+           INSTALLIMAGECONTEXTMENU=0 leaves it out and uninstall removes it. These rows were in
+           PdfcraftApp up to 0.7.1; moving them is safe because MajorUpgrade removes the old version
+           before installing (afterInstallValidate), so no old row is left behind. -->
+      <Component Id="PdfcraftImageContextMenu" Guid="96D52A18-56D6-49F5-A0C9-00CD3790CD18"
+          Condition="INSTALLIMAGECONTEXTMENU = 1">
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" KeyPath="yes" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\AmarazaPDF.CreatePdf" Value="Crear PDF con Amaraza PDF…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\AmarazaPDF.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\AmarazaPDF.CreatePdf\command" Value="&quot;[#PdfcraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
       </Component>
 
       <Component Id="PdfcraftCli">

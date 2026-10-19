@@ -113,6 +113,9 @@ for s in 16 32 128 256 512; do
   fi
 done
 iconutil -c icns -o "$APP/Contents/Resources/AmarazaPDF.icns" "$ICONSET"
+# The standard About panel (Amaraza PDF menu > About) shows Credits.rtf under the version: the
+# plain-text credit to PdfCraft and the fork's repository (Amaraza PDF fork; upstream #1287).
+cp "$HERE/Credits.rtf" "$APP/Contents/Resources/Credits.rtf"
 copy_font_licences "$APP/Contents/Resources"
 # OCR models: the app finds them at Contents/MacOS/../Resources/models. Before signing, so the
 # bundle's seal covers them.
