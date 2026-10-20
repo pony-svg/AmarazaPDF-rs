@@ -32,12 +32,6 @@
     <keyword>annotate</keyword>
     <keyword>forms</keyword>
   </keywords>
-  <screenshots>
-    <screenshot type="default">
-      <caption>A PDF open with its threaded comments</caption>
-      <image>https://raw.githubusercontent.com/pony-svg/AmarazaPDF-rs/main/docs/images/pdfcraft-viewer.png</image>
-    </screenshot>
-  </screenshots>
   <branding>
     <color type="primary" scheme_preference="light">#f4eee1</color>
     <color type="primary" scheme_preference="dark">#211a15</color>

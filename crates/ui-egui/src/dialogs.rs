@@ -52,6 +52,7 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let mut number_now: Option<Edit> = None;
     let mut apply_number = false;
     let mut link_command: Option<&'static str> = None;
+    let mut open_upstream = false;
     let mut protect_now = false;
     let mut boxes_now = false;
     let mut marks_now = false;
@@ -1172,7 +1173,13 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
                         );
                         ui.add_space(12.0);
                         // The plain-text credit upstream's brand licence allows forks (amaraza_identity).
-                        ui.label(egui::RichText::new(pdfcraft_engine::links::BASED_ON).color(t.text_muted));
+                        if ui
+                            .add(egui::Link::new(egui::RichText::new(pdfcraft_engine::links::BASED_ON).color(t.text_muted)))
+                            .on_hover_text(pdfcraft_engine::links::UPSTREAM)
+                            .clicked()
+                        {
+                            open_upstream = true;
+                        }
                         ui.add_space(6.0);
                         if let Some(cmd) = widgets::project_links(ui) {
                             link_command = Some(cmd);
@@ -1390,6 +1397,9 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
     }
     if let Some(cmd) = link_command {
         app.execute(cmd);
+    }
+    if open_upstream {
+        app.open_url(pdfcraft_engine::links::UPSTREAM);
     }
     if let Some(n) = open_revision {
         app.open_revision(n);

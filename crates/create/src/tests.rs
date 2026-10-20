@@ -1181,3 +1181,13 @@ fn a_jpeg_with_an_exif_orientation_becomes_an_upright_page() {
     let img = image_of(&doc, 1);
     assert_eq!((img.int(b"Width"), img.int(b"Height")), (Some(60), Some(20)));
 }
+
+#[test]
+fn producer_is_amaraza_pdf() {
+    let doc = from_text("title", "hello", (612.0, 792.0), 12.0).unwrap();
+    let info_ref = doc.trailer().reference(b"Info").unwrap();
+    let info = doc.get(info_ref);
+    let producer = info.as_dict().unwrap().get(b"Producer").unwrap().as_string().unwrap().to_text();
+    assert_eq!(producer, amaraza_identity::PRODUCT_NAME);
+    assert!(!producer.contains("PdfCraft"));
+}

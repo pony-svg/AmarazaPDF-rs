@@ -25,7 +25,7 @@ fn no_artcraft_community_on_the_home_screen_or_title_bar() {
     // PdfCraft had a Discord button in the title bar and a community card for its brand on the
     // home screen; the fork shows neither.
     let h = harness(|_| {});
-    h.get_by_label_contains("Amaraza PDF");
+    assert!(h.query_all_by_label_contains("Amaraza PDF").count() >= 1);
     assert_eq!(h.query_all_by_label("Discord").count(), 0);
     assert_eq!(h.query_all_by_label_contains("ArtCraft").count(), 0);
     assert_eq!(h.query_all_by_label_contains("Discord").count(), 0);
@@ -45,6 +45,15 @@ fn about_dialog_credits_pdfcraft_and_opens_the_project_links() {
         h.run_steps(2);
         assert_eq!(h.state().last_opened_url.as_deref(), Some(l.url), "{}", l.label);
     }
+
+    // Clicking the attribution line directly opens the upstream repository (AR-D8).
+    let mut h = harness(|app| {
+        app.open_bytes("one.pdf", None, ONE_PAGE.to_vec()).unwrap();
+        app.dialog = Some(Dialog::About);
+    });
+    h.get_by_label(links::BASED_ON).click();
+    h.run_steps(2);
+    assert_eq!(h.state().last_opened_url.as_deref(), Some(links::UPSTREAM));
 }
 
 #[test]
@@ -56,8 +65,8 @@ fn help_commands_open_each_link() {
         assert_eq!(h.state().last_opened_url.as_deref(), Some(l.url));
         assert_eq!(pdfcraft_engine::commands::command(l.command).unwrap().menu, Some("Help"));
     }
-    for gone in ["help.discord", "help.app_page", "help.website"] {
-        assert!(pdfcraft_engine::commands::command(gone).is_none(), "{gone} linked to upstream's brand");
+    for gone in ["help.discord", "help.app_page", "help.website", "help.upstream"] {
+        assert!(pdfcraft_engine::commands::command(gone).is_none(), "{gone} linked to upstream's brand or removed menu command");
     }
 }
 

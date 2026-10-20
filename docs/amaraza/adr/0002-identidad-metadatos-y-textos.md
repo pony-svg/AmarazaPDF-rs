@@ -95,7 +95,7 @@ Aprovechando esta misma función `catalog_source(code, source)` en `crates/ui-eg
    - Las claves se descubren a partir de los propios catálogos embebidos: cualquier clave `source` que contenga `"PdfCraft"` en cualquier catálogo del upstream se incluye en el procesamiento.
 2. **Sustitución en memoria para idiomas con catálogo (`code != "en"`):**
    - En cada línea TSV (`context\tsource\ttranslation`), si la traducción `cols[2]` contiene `"PdfCraft"`, se sustituye en memoria por `"Amaraza PDF"`.
-   - **Sin excepciones:** Al retirarse `help.upstream` de los comandos (AR-D8, §4), ya no existe "PdfCraft on GitHub" en los catálogos; por tanto, **desaparece la necesidad de excepciones por clave**. Toda aparición de `"PdfCraft"` en la columna traducida pasa a `"Amaraza PDF"`.
+   - **Sin excepciones:** Al retirarse `help.upstream` de los comandos (AR-D8, §4), la clave `"PdfCraft on GitHub"` queda en los 22 catálogos TSV como línea huérfana, sin usar; no se tocan los catálogos para borrarla. Al no existir el comando en menús ni paleta, **desaparece la necesidad de excepciones por clave**. Toda aparición de `"PdfCraft"` en la columna traducida pasa a `"Amaraza PDF"`.
    - La clave fuente `cols[1]` permanece **intacta** (en el inglés original del upstream). Como `Catalog::parse` indexa `c.plain` por la clave original `source`, todas las llamadas `tl!(...)` del código del upstream siguen encontrando la entrada en el catálogo sin modificar una sola línea de código fuente de la UI.
    - **Limitación gramatical aceptada (AR-D6):** La sustitución mecánica en memoria puede generar discordancias de caso o sufijo en idiomas con declinación compleja (húngaro, esloveno, turco…); el titular evaluó y aceptó expresamente esta limitación técnica para la prueba de concepto, dado que en español e inglés la redacción resulta natural y gramaticalmente impecable.
 3. **Respaldo único en inglés con "Amaraza PDF":**
@@ -147,12 +147,18 @@ Este mecanismo requiere **0 líneas modificadas en los 22 catálogos TSV** y **0
    - Se retira `help.upstream` del array `links::LINKS` en `crates/engine/src/links.rs:27`. `LINKS` pasa a contener únicamente `help.github` ("Amaraza PDF en GitHub").
    - Las constantes públicas `UPSTREAM` (`amaraza_identity::UPSTREAM_REPOSITORY`) y `BASED_ON` (`amaraza_identity::BASED_ON`) permanecen en `crates/engine/src/links.rs`.
 2. **Enlace interactivo en "Acerca de":**
-   - En `crates/ui-egui/src/dialogs.rs:1175`, la línea de atribución `BASED_ON` se presenta como un enlace interactivo directo al hacer clic:
+   - En `crates/ui-egui/src/dialogs.rs`, la línea de atribución `BASED_ON` se presenta como un enlace interactivo directo utilizando el patrón diferido propio de `dialogs.rs` (una bandera dentro del bucle de dibujo y la apertura fuera de él):
      ```rust
+     // Dentro del bucle de dibujo del diálogo About (l. 1175):
      if ui.add(egui::Link::new(egui::RichText::new(pdfcraft_engine::links::BASED_ON).color(t.text_muted)))
          .on_hover_text(pdfcraft_engine::links::UPSTREAM)
          .clicked()
      {
+         open_upstream = true;
+     }
+
+     // Fuera del bucle de dibujo, junto a link_command (l. ~1391):
+     if open_upstream {
          app.open_url(pdfcraft_engine::links::UPSTREAM);
      }
      ```
@@ -208,7 +214,7 @@ El cambio de textos, metadatos y enlaces requiere adaptar 7 pruebas del upstream
 Para garantizar que "PdfCraft" nunca vuelva a aparecer en los metadatos generados ni en los textos que ve el usuario:
 
 1. **`ui_code_scan_has_no_unhandled_pdfcraft` (en `crates/ui-egui/tests/amaraza.rs`):**
-   - Escanea todos los archivos fuente Rust de la interfaz (`crates/ui-egui/src/`) y extrae los textos literales suministrados a `tl!`, `tl_ctx!`, `notify_tr` y `notify_fmt`.
+   - Escanea todos los archivos fuente Rust de la interfaz (`crates/ui-egui/src/` y `apps/pdfcraft/src/`) y extrae los textos literales suministrados a `tl!`, `tl_ctx!`, `notify_tr` y `notify_fmt`.
    - Si detecta cualquier literal que contenga `"PdfCraft"`, evalúa mediante `tr(lang, &key)` en todos los 23 idiomas (`Lang::all()`) que la traducción devuelta NO contenga `"PdfCraft"`.
    - Si en una sincronización futura el upstream añade un mensaje nuevo con "PdfCraft", esta prueba fallará de inmediato en `cargo test`, alertando antes de integrar.
 2. **`producer_is_amaraza_pdf` (en `crates/create/src/lib.rs` o `crates/engine/src/amaraza/tests.rs`):**
@@ -223,8 +229,8 @@ Para garantizar que "PdfCraft" nunca vuelva a aparecer en los metadatos generado
    - Comprueba que `safe_name("  ..  ")` devuelve `"AmarazaPDF"`.
 7. **`mcp_server_info_is_amaraza_pdf` (en `crates/automation/tests/amaraza.rs`):**
    - Inicializa el servidor MCP y verifica que `serverInfo.name == "amarazapdf"` y `serverInfo.title == "Amaraza PDF"`.
-8. **`packaging_macos_has_no_pdfcraft_icon` (en `crates/amaraza-identity/tests/identity.rs`):**
-   - Verifica que `packaging/macos/Info.plist.in` no contenga `CFBundleTypeIconFile` con `"PdfCraft"` (corregido en ARS.4).
+8. **`packaging_macos_has_no_pdfcraft_icon` (en `crates/amaraza-identity/src/lib.rs`):**
+   - Verifica en `the_other_platforms_packages_use_the_app_id` que `packaging/macos/Info.plist.in` no contenga `CFBundleTypeIconFile` con `"PdfCraft"` (corregido en ARS.4).
 
 ---
 

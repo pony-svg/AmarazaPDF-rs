@@ -2199,3 +2199,22 @@ fn rewritten_page_resources_are_page_content_whatever_keys_they_carry() {
         s.modification
     );
 }
+
+#[test]
+fn signature_app_name_is_amaraza_pdf() {
+    let id = pkcs12::open(&data("rsa-aes.p12"), "test").unwrap();
+    let signed = pdfcraft_sign::sign(&open(&fixture()), &id, &opts()).unwrap();
+    let doc = open(&signed);
+    let root = doc.get(doc.root().unwrap());
+    let acro = doc.resolve(root.as_dict().unwrap().get(b"AcroForm").unwrap());
+    let fields = doc.resolve(acro.as_dict().unwrap().get(b"Fields").unwrap());
+    let sig_field =
+        fields.as_array().unwrap().iter().map(|f| doc.resolve(f)).find(|f| f.as_dict().unwrap().get(b"V").is_some()).expect("signed field with /V");
+    let v_ref = sig_field.as_dict().unwrap().reference(b"V").unwrap();
+    let v = doc.get(v_ref);
+    let build = doc.resolve(v.as_dict().unwrap().get(b"Prop_Build").unwrap());
+    let app = doc.resolve(build.as_dict().unwrap().get(b"App").unwrap());
+    let name = app.as_dict().unwrap().name(b"Name").unwrap();
+    assert_eq!(name, amaraza_identity::PRODUCT_NAME.as_bytes());
+    assert!(!String::from_utf8_lossy(name).contains("PdfCraft"));
+}

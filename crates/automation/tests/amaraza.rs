@@ -137,3 +137,52 @@ fn the_hello_command_runs_through_its_tool() {
     let r = ok(&mut a, "command_run", json!({ "id": "amaraza.hello" }));
     assert_eq!(r["text"], format!("Hola, Amaraza PDF {}", env!("CARGO_PKG_VERSION")));
 }
+
+#[test]
+fn default_comment_author_is_amaraza_pdf() {
+    let root = Root::new("comment-author");
+    let mut a = auto(&root);
+    let open = ok(&mut a, "doc_open", json!({ "path": "a.pdf" }));
+    let doc = open["doc"].as_u64().unwrap();
+    let add = ok(
+        &mut a,
+        "comment_add",
+        json!({
+            "doc": doc,
+            "page": 1,
+            "type": "note",
+            "at": [150, 20],
+            "contents": "Test note"
+        }),
+    );
+    let id = add["comment"]["id"].as_str().unwrap();
+    let list = ok(&mut a, "comment_list", json!({ "doc": doc }));
+    let comments = list["comments"].as_array().unwrap();
+    let c = comments.iter().find(|c| c["id"] == id).unwrap();
+    assert_eq!(c["author"], amaraza_identity::PRODUCT_NAME);
+    assert!(!c["author"].as_str().unwrap().contains("PdfCraft"));
+}
+
+#[test]
+#[cfg(feature = "mcp")]
+fn mcp_server_info_is_amaraza_pdf() {
+    use pdfcraft_automation::mcp::McpServer;
+    let input = json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-03-26",
+            "capabilities": {},
+            "clientInfo": { "name": "test", "version": "1.0" }
+        }
+    })
+    .to_string();
+    let mut out = Vec::new();
+    McpServer::new(Automation::new()).serve(input.as_bytes(), &mut out).unwrap();
+    let reply: Value = serde_json::from_slice(&out).unwrap();
+    assert_eq!(reply["result"]["serverInfo"]["name"], amaraza_identity::MCP_SERVER_NAME);
+    assert_eq!(reply["result"]["serverInfo"]["title"], amaraza_identity::PRODUCT_NAME);
+    let instructions = reply["result"]["instructions"].as_str().unwrap();
+    assert!(instructions.starts_with("Amaraza PDF edits PDFs."));
+}

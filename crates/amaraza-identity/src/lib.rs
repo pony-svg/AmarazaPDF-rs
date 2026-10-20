@@ -64,6 +64,15 @@ pub const UPSTREAM_REPOSITORY: &str = "https://github.com/storytold/pdfcraft";
 /// The attribution line for About, the README and NOTICE.
 pub const BASED_ON: &str = "Basado en PdfCraft, del equipo ArtCraft";
 
+/// The MCP server name reported to agents and clients.
+pub const MCP_SERVER_NAME: &str = "amarazapdf";
+
+/// The font family name for shaped bidirectional / complex text in PDF editing.
+pub const SHAPED_TEXT_FONT_FAMILY: &str = "Amaraza PDF Shaped Text";
+
+/// The ICC profile description in PDF/A output intents.
+pub const ICC_PROFILE_DESC: &str = "sRGB (Amaraza PDF)";
+
 /// The Amaraza PDF logo (master vector), a trademark of its owner under
 /// `LicenseRef-Amaraza-Trademark` (docs/brand/LICENSE-brand.txt), not the code's licence.
 pub const LOGO_SVG: &[u8] = include_bytes!("../../../docs/brand/amaraza-logo.svg");
@@ -195,6 +204,7 @@ mod tests {
         }
         let plist = repo_file("packaging/macos/Info.plist.in");
         assert!(plist.contains(&format!("<string>{APP_ID}</string>")) && plist.contains(&format!("<string>{PRODUCT_NAME}</string>")), "Info.plist");
+        assert!(!plist.contains("<string>PdfCraft</string>"), "Info.plist CFBundleTypeIconFile still has PdfCraft");
         // No packaging file names upstream's id, publisher, site or community, or its icon set.
         let files = files_under(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packaging"));
         let mut checked = 0;

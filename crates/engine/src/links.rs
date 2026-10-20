@@ -6,7 +6,8 @@ use std::path::{Path, PathBuf};
 
 /// Amaraza PDF's source repository.
 pub const GITHUB: &str = amaraza_identity::REPOSITORY;
-/// PdfCraft, the project Amaraza PDF is based on, credited in plain text ([`BASED_ON`]).
+/// PdfCraft, the project Amaraza PDF is based on, credited in plain text ([`BASED_ON`]). Linked
+/// directly from the attribution line in the About dialog, not from a Help menu command.
 pub const UPSTREAM: &str = amaraza_identity::UPSTREAM_REPOSITORY;
 /// The attribution line shown in About and printed by the CLI.
 pub const BASED_ON: &str = amaraza_identity::BASED_ON;
@@ -21,11 +22,8 @@ pub struct Link {
     pub icon: &'static str,
 }
 
-/// In the order they are shown: Amaraza PDF first, then the project it is based on.
-pub const LINKS: &[Link] = &[
-    Link { command: "help.github", label: "Amaraza PDF en GitHub", url: GITHUB, icon: "code-xml" },
-    Link { command: "help.upstream", label: "PdfCraft on GitHub", url: UPSTREAM, icon: "external-link" },
-];
+/// Project links with their own registry command (shown in menus and the command palette).
+pub const LINKS: &[Link] = &[Link { command: "help.github", label: "Amaraza PDF en GitHub", url: GITHUB, icon: "code-xml" }];
 
 pub fn for_command(id: &str) -> Option<&'static Link> {
     LINKS.iter().find(|l| l.command == id)

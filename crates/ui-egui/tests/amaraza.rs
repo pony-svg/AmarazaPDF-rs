@@ -118,3 +118,69 @@ fn saved_actions_keep_the_fork_step() {
     fresh.restore(&saved);
     assert_eq!(fresh.custom_actions, app.custom_actions);
 }
+
+fn extract_ui_strings(text: &str, out: &mut std::collections::HashSet<String>) {
+    for marker in ["tl!(", "tl_ctx!(", "notify_tr(", "notify_fmt("] {
+        let mut rest = text;
+        while let Some(pos) = rest.find(marker) {
+            let after_marker = &rest[pos + marker.len()..];
+            if let Some(quote_start) = after_marker.find('"') {
+                let after_first_quote = &after_marker[quote_start + 1..];
+                let target = if marker == "tl_ctx!(" {
+                    if let Some(close_quote) = after_first_quote.find('"') {
+                        if let Some(second_open) = after_first_quote[close_quote + 1..].find('"') {
+                            &after_first_quote[close_quote + 1 + second_open + 1..]
+                        } else {
+                            after_first_quote
+                        }
+                    } else {
+                        after_first_quote
+                    }
+                } else {
+                    after_first_quote
+                };
+                if let Some(quote_end) = target.find('"') {
+                    let literal = &target[..quote_end];
+                    if literal.contains("PdfCraft") {
+                        out.insert(literal.to_string());
+                    }
+                }
+            }
+            rest = after_marker;
+        }
+    }
+}
+
+fn walk_dir(dir: &std::path::Path, out: &mut std::collections::HashSet<String>) {
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if path.file_name().is_some_and(|n| n != "amaraza") {
+                    walk_dir(&path, out);
+                }
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                if let Ok(text) = std::fs::read_to_string(&path) {
+                    extract_ui_strings(&text, out);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn ui_code_scan_has_no_unhandled_pdfcraft() {
+    let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let ui_src = manifest_dir.join("src");
+    let app_src = manifest_dir.join("../../apps/pdfcraft/src");
+    let mut keys = std::collections::HashSet::new();
+    walk_dir(&ui_src, &mut keys);
+    walk_dir(&app_src, &mut keys);
+    assert!(!keys.is_empty(), "expected to find UI strings with 'PdfCraft'");
+    for key in &keys {
+        for lang in pdfcraft_ui_egui::i18n::Lang::all() {
+            let translated = pdfcraft_ui_egui::i18n::tr(lang, key);
+            assert!(!translated.contains("PdfCraft"), "Language {:?} for key {:?} still contains 'PdfCraft': {:?}", lang.code(), key, translated);
+        }
+    }
+}

@@ -48,7 +48,7 @@ fn curve() -> Vec<u8> {
 pub fn srgb() -> Vec<u8> {
     // sRGB primaries, Bradford-adapted to the D50 profile connection space.
     let tags: Vec<(&[u8; 4], Vec<u8>)> = vec![
-        (b"desc", desc("sRGB (PdfCraft)")),
+        (b"desc", desc(amaraza_identity::ICC_PROFILE_DESC)),
         (b"cprt", text("No copyright, use freely")),
         (b"wtpt", xyz(0.9642, 1.0, 0.8249)),
         (b"rXYZ", xyz(0.4361, 0.2225, 0.0139)),
@@ -124,5 +124,7 @@ mod tests {
             let len = u32::from_be_bytes(p[e + 8..e + 12].try_into().unwrap()) as usize;
             assert!(off.is_multiple_of(4) && off + len <= p.len(), "tag {i}");
         }
+        assert!(p.windows(amaraza_identity::ICC_PROFILE_DESC.len()).any(|w| w == amaraza_identity::ICC_PROFILE_DESC.as_bytes()));
+        assert!(!p.windows(15).any(|w| w == b"sRGB (PdfCraft)"));
     }
 }

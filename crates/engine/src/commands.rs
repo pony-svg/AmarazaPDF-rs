@@ -372,7 +372,6 @@ const UPSTREAM_COMMANDS: &[CommandSpec] = &[
     c("page.number", "Number pages…", PAGES, None, Assembly, "hash"),
     c("help.shortcuts", "Keyboard shortcuts", HELP, None, Nothing, "circle-help"),
     c("help.github", "Amaraza PDF en GitHub", HELP, None, Nothing, "code-xml"),
-    c("help.upstream", "PdfCraft on GitHub", HELP, None, Nothing, "external-link"),
     c("help.check_updates", "Check for updates…", HELP, None, Nothing, "cloud"),
     c("help.about", "Acerca de Amaraza PDF", HELP, None, Nothing, "info"),
 ];

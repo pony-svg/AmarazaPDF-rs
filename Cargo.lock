@@ -4013,6 +4013,7 @@ name = "pdfcraft-automation"
 version = "0.9.0"
 dependencies = [
  "amaraza-ext",
+ "amaraza-identity",
  "base64 0.22.1",
  "flate2",
  "image",
@@ -4076,6 +4077,7 @@ dependencies = [
 name = "pdfcraft-create"
 version = "0.9.0"
 dependencies = [
+ "amaraza-identity",
  "encoding_rs",
  "hayro-syntax",
  "image",
@@ -4104,6 +4106,7 @@ dependencies = [
 name = "pdfcraft-edit"
 version = "0.9.0"
 dependencies = [
+ "amaraza-identity",
  "hayro-syntax",
  "kurbo 0.13.1",
  "pdfcraft-annot",
@@ -4278,6 +4281,7 @@ dependencies = [
 name = "pdfcraft-preflight"
 version = "0.9.0"
 dependencies = [
+ "amaraza-identity",
  "flate2",
  "pdfcraft-content",
  "pdfcraft-cos",
@@ -4336,6 +4340,7 @@ name = "pdfcraft-sign"
 version = "0.9.0"
 dependencies = [
  "aes",
+ "amaraza-identity",
  "aws-lc-rs",
  "base64 0.22.1",
  "bp256",

@@ -9,6 +9,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+amaraza-identity = { path = "../amaraza-identity" }
 pdfcraft-annot = { workspace = true }
 pdfcraft-cos = { workspace = true }
 pdfcraft-content = { workspace = true }
