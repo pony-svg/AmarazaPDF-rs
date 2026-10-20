@@ -823,9 +823,10 @@ Los mismos archivos que tras ARS.2, más `packaging/macos/Credits.rtf`, que cont
 
 | Commit | Contenido | Puertas |
 |---|---|---|
-| *(siguiente)* | ADR-0002: diseño de identidad en metadatos y textos (solo documentación, para revisión D-13) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
+| `39d3457f62ae0f4a07169e3e13a9a28d4659edf4` | ADR-0002: diseño de identidad en metadatos y textos (solo documentación, para revisión D-13) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
+| *(siguiente)* | ADR-0002: correcciones de la revisión D-13 (bloqueantes y no bloqueantes atendidos; solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
 
-### ADR-0002 (primer commit)
+### ADR-0002 (primer commit: 39d3457f62ae0f4a07169e3e13a9a28d4659edf4)
 
 - `docs/amaraza/adr/0002-identidad-metadatos-y-textos.md`, solo diseño. No se implementa hasta la aprobación del titular y del revisor D-13.
 - Cubre:
@@ -848,3 +849,25 @@ Los mismos archivos que tras ARS.2, más `packaging/macos/Credits.rtf`, que cont
      - 12 capturas de `docs/images/` que muestran la marca ArtCraft y botones de Discord, junto con sus 12 bloques `[[asset]]` en `ATTRIBUTION.toml`.
   4. **Guardas automáticas (pruebas):**
      - Pruebas sintéticas que fallen si vuelve "PdfCraft" a los metadatos generados (`Producer`, firmas, comentarios, fuentes moldeadas, MCP) o a los textos de la interfaz.
+
+### Revisión D-13 del ADR-0002 inicial y correcciones aplicadas
+
+- **Dictamen de la revisión:** APROBADO CON CORRECCIONES.
+- **Correcciones bloqueantes integradas en ADR-0002:**
+  1. **Dependencia en `crates/automation`:** se declara en §2.2 y §6 la adición de `amaraza-identity = { path = "../amaraza-identity" }` en `crates/automation/Cargo.toml` (L7 → L0) y la arista correspondiente en `Cargo.lock`.
+  2. **Adaptación de pruebas existentes:** declaradas en §5.1 y computadas en §6 las 6 pruebas que romperían con el cambio (`ui.rs:114`, `updates.rs:58, 102`, `signing.rs:536`, `automation.rs:1300`, `image_pick.rs:251` y `amaraza/mod.rs:91`). Se corrige el recuento en §3.2 y §6: 26 líneas modificadas/insertadas en 17 archivos del upstream (incluyendo 5 Cargo.toml y 5 archivos de prueba), manteniendo cero líneas modificadas en los 22 catálogos TSV y cero en código de producción de la UI para traducción.
+  3. **Regla de sustitución y respaldo en `catalog_source`:**
+     - Excepción por clave de origen: `cols[1] == "PdfCraft on GitHub"`, preservando intacta la clave fuente y la atribución.
+     - Respaldo para las 7 claves incompletas en el upstream: inyección automática de filas de respaldo sin duplicados para evitar que en idiomas sin esa traducción caiga al inglés con "PdfCraft".
+     - La prueba de guarda de §5.2 verifica `tr(lang, clave)` en todos los idiomas del catálogo, no solo las entradas cargadas.
+  4. **Alcance y delimitación:**
+     - Se incluyen las metaherramientas MCP en `crates/automation/src/mcp.rs` (l. 206, 207, 220, 224, 225, 236: títulos, descripciones y anotaciones).
+     - Se documenta que el texto de `OcrError::NoModels` (`crates/ocr/src/lib.rs:33`) es la clave exacta de los catálogos de la UI y no se modifica en `crates/ocr`.
+     - Se declaran los errores internos en inglés del motor y de la CLI fuera del alcance de la prueba de concepto para evitar dispersión en más de 20 crates.
+- **Correcciones no bloqueantes integradas:**
+  - Etiqueta sRGB de perfil ICC PDF/A: `sRGB (Amaraza PDF)` en `crates/preflight/src/icc.rs:51` (`preflight` añade `amaraza-identity`).
+  - La prueba de guarda de `/Producer` usa `pdfcraft_cos` (no `lopdf`).
+  - `websiteUrl` retirado de la tabla de cambios porque `links::GITHUB` ya apunta a `amaraza_identity::REPOSITORY`.
+  - Unificación de nombre para recortes de imagen del portapapeles a `FOLDER_NAME` (`"AmarazaPDF"`).
+  - Añadida prueba de guarda para `packaging/macos/Info.plist.in` (`CFBundleTypeIconFile`).
+- **Estado:** diseño listo para aprobación final. No se implementa hasta aprobar el ADR y realizar la sincronización ARS.4 por la revisora.
