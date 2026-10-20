@@ -1,10 +1,10 @@
 # ADR-0002. Identidad en metadatos y textos (AR0.4)
 
-- **Estado:** aceptado con correcciones en la revisión D-13 de `39d3457`; correcciones aplicadas.
+- **Estado:** propuesto (segunda corrección).
 - **Tarea:** AR0.4 (`docs/amaraza/PLAN.md`).
 - **Fecha:** 2026-10-19.
 - **Base:** `494f5c0` (`main`, con upstream v0.9.0 + 205 commits y AR0.3 cerrada).
-- **Decisiones del titular:** §7.
+- **Decisiones del titular:** AR-D6, AR-D7, AR-D8 (§8).
 
 ---
 
@@ -23,9 +23,9 @@ No obstante, en el motor, las herramientas y la interfaz persisten menciones a "
    - la etiqueta descriptiva del perfil ICC sRGB incrustado en exportaciones PDF/A;
    - el nombre por defecto de los recortes de imágenes copiados al portapapeles.
 2. Aparecen en **mensajes de la interfaz** para el usuario:
-   - con v0.9.0, existen 23 cadenas fuente únicas en inglés que contienen "PdfCraft";
-   - traducidas en los 22 catálogos TSV del upstream (`es`, `de`, `fr`, `ja`, etc.), suman **457 líneas** con "PdfCraft" en la columna de traducción;
-   - 7 de esas 23 cadenas no han sido traducidas por el upstream en varios de los catálogos (por ejemplo, `"PdfCraft can't check this signature yet: {}."` solo figura en 5 de los 22 catálogos), por lo que sin un mecanismo de respaldo se mostrarían en inglés con "PdfCraft" al usuario de esos idiomas.
+   - en v0.9.0 existen 23 cadenas fuente únicas en inglés que contienen "PdfCraft" (457 líneas traducidas en los 22 catálogos TSV del upstream);
+   - 7 de esas 23 cadenas no han sido traducidas por el upstream en varios de los catálogos (por ejemplo, `"PdfCraft can't check this signature yet: {}."` solo figura en 5 de los 22 catálogos), por lo que sin un mecanismo de respaldo se mostrarían en inglés con "PdfCraft" al usuario de esos idiomas;
+   - el comando `help.upstream` ("PdfCraft on GitHub") permanece registrado en el menú Ayuda y en la paleta ⌘K.
 3. Permanecen como **activos visuales obsoletos**:
    - 12 capturas de pantalla de la interfaz de PdfCraft en `docs/images/`, registradas en `ATTRIBUTION.toml`, que muestran la marca y el botón de Discord del upstream.
 
@@ -39,22 +39,25 @@ Toda la identidad de metadatos se centraliza en `crates/amaraza-identity` (L0 st
 
 ### 2.1 Constantes en `amaraza-identity`
 
-Se aprovechan las constantes existentes y se añaden las requeridas (reutilizando `FOLDER_NAME` para imágenes):
+Se aprovechan las constantes existentes y se añaden las requeridas (AR-D7):
 
 ```rust
 // crates/amaraza-identity/src/lib.rs
 pub const PRODUCT_NAME: &str = "Amaraza PDF";
 pub const FOLDER_NAME: &str = "AmarazaPDF";
 pub const REPOSITORY: &str = "https://github.com/pony-svg/AmarazaPDF-rs";
+pub const UPSTREAM_REPOSITORY: &str = "https://github.com/storytold/pdfcraft";
+pub const BASED_ON: &str = "Basado en PdfCraft, del equipo ArtCraft";
 
-// Nuevas constantes para metadatos (AR0.4):
+// Nuevas constantes para metadatos (AR0.4 / AR-D7):
 pub const MCP_SERVER_NAME: &str = "amarazapdf";
 pub const SHAPED_TEXT_FONT_FAMILY: &str = "Amaraza PDF Shaped Text";
+pub const ICC_PROFILE_DESC: &str = "sRGB (Amaraza PDF)";
 ```
 
 ### 2.2 Puntos de enganche de metadatos (8 puntos)
 
-| Punto | Archivo | Línea upstream | Cambio propuesto | Capas y dependencias |
+| Punto | Archivo | Líneas upstream | Cambio propuesto | Capas y dependencias |
 |---|---|---|---|---|
 | 1. `Producer` en PDF creados | `crates/create/src/lib.rs` | l. 54 | `PdfString::text(amaraza_identity::PRODUCT_NAME)` | `create` (L4) añade `amaraza-identity` (L0) |
 | 2. App en firmas digitales | `crates/sign/src/pdf.rs` | l. 1835 y 2008 | `Object::name(amaraza_identity::PRODUCT_NAME)` | `sign` (L4) añade `amaraza-identity` (L0) |
@@ -62,62 +65,105 @@ pub const SHAPED_TEXT_FONT_FAMILY: &str = "Amaraza PDF Shaped Text";
 | 4. Título de impresión web | `crates/ui-egui/src/web_print.rs` | l. 131 | `<title>{amaraza_identity::PRODUCT_NAME}</title>` | `ui-egui` (L7) ya depende de `amaraza-identity` |
 | 5. Servidor MCP y metaherramientas | `crates/automation/src/mcp.rs` | l. 29, 134, 206, 207, 220, 224, 225, 236 | `name: amaraza_identity::MCP_SERVER_NAME`, `title: amaraza_identity::PRODUCT_NAME`, instrucciones y metaherramientas ("Find Amaraza PDF tools", "Run any Amaraza PDF tool") | `automation` (L7) añade `amaraza-identity` (L0) |
 | 6. Fuente de texto moldeado | `crates/edit/src/added.rs` | l. 711 | `None => amaraza_identity::SHAPED_TEXT_FONT_FAMILY,` | `edit` (L4) añade `amaraza-identity` (L0) |
-| 7. Perfil ICC sRGB en PDF/A | `crates/preflight/src/icc.rs` | l. 51 | `(b"desc", desc(&format!("sRGB ({})", amaraza_identity::PRODUCT_NAME)))` | `preflight` (L4) añade `amaraza-identity` (L0) |
+| 7. Perfil ICC sRGB en PDF/A | `crates/preflight/src/icc.rs` | l. 51 | `(b"desc", desc(amaraza_identity::ICC_PROFILE_DESC))` | `preflight` (L4) añade `amaraza-identity` (L0) |
 | 8. Imagen del portapapeles | `crates/ui-egui/src/image_pick.rs` | l. 77 | `if cleaned.is_empty() { amaraza_identity::FOLDER_NAME.into() }` | `ui-egui` ya depende de `amaraza-identity` |
 
 *Nota:* `websiteUrl` en `mcp.rs:134` ya utiliza `pdfcraft_engine::links::GITHUB`, que en el fork ya apunta a `amaraza_identity::REPOSITORY` (`crates/engine/src/links.rs:8`), por lo que no requiere modificación.
 
 ---
 
-## 3. Mensajes de la interfaz: mecanismo con pocos enganches
+## 3. Mensajes de la interfaz: mecanismo dinámico en el fork (Enganche E18)
 
 ### 3.1 El problema de editar catálogos y fuentes del upstream
 
-Existen 23 cadenas únicas en inglés que contienen "PdfCraft". Si se modificaran directamente:
+Si se modificaran directamente los catálogos TSV y los mensajes de origen:
 - Habría que editar **457 líneas a través de los 22 archivos TSV** de `crates/ui-egui/src/i18n/`.
 - Habría que editar múltiples archivos `.rs` del upstream (`home.rs`, `dialogs.rs`, `updates.rs`, `ocr_ui.rs`, etc.).
 - **Riesgo crítico de conflicto:** en cada sincronización con el upstream (que a menudo reordena o añade claves en los catálogos), los 22 archivos `.tsv` colisionarían masivamente, exigiendo resolución manual propensa a errores.
 
-### 3.2 Mecanismo propuesto: transformación en la capa del fork (Enganche E18)
+### 3.2 Mecanismo propuesto: transformación en memoria y respaldo robusto (AR-D6)
 
 En AR0.3 se introdujo el enganche E18 en `crates/ui-egui/src/i18n/mod.rs:224`:
 ```rust
 let (mut catalog, errors) = Catalog::parse(&crate::amaraza::catalog_source(self.code, self.source), self.plural_forms());
 ```
 
-Aprovechando esta misma función `catalog_source(code, source)` en `crates/ui-egui/src/amaraza/mod.rs` (archivo propio del fork), se resuelve la identidad en todos los idiomas sin tocar los catálogos del upstream:
+Aprovechando esta misma función `catalog_source(code, source)` en `crates/ui-egui/src/amaraza/mod.rs` (archivo propio del fork), se resuelve la identidad en todos los idiomas de forma dinámica y robusta ante futuras sincronizaciones:
 
-1. **Regla de sustitución y excepción precisa:**
-   - La sustitución en cada línea TSV (`context\tsource\ttranslation`) examina la clave de origen `cols[1]` (`source`).
-   - **Excepción:** si `cols[1] == "PdfCraft on GitHub"`, la línea se preserva sin cambios, manteniendo la atribución honesta y el enlace al repositorio original (`00-amaraza.md` §1).
-   - En cualquier otra línea donde la traducción `cols[2]` contenga `"PdfCraft"`, se sustituye por `"Amaraza PDF"`.
-   - La clave fuente `cols[1]` permanece **completamente intacta** (en el inglés original del upstream). Como `Catalog::parse` indexa `c.plain` por la clave original `source`, todas las llamadas `tl!(...)` del código de producción del upstream siguen encontrando la entrada en el catálogo sin modificar una sola línea de código fuente de la UI.
-2. **Respaldo para claves ausentes (7 claves incompletas en el upstream):**
-   - 7 de las 23 claves con "PdfCraft" no están traducidas en varios catálogos del upstream (por ejemplo, `"PdfCraft can't check this signature yet: {}."` solo está en 5 catálogos). Si un idioma no tiene esa entrada en su TSV, `tr(lang, clave)` caería al texto en inglés que dice "PdfCraft".
-   - `catalog_source` comprueba si alguna de las 23 claves no apareció en el TSV del idioma `code`. Si falta, inyecta automáticamente una fila de respaldo (con la traducción al español conforme a AR-D4, o con la versión en inglés de Amaraza PDF) evitando duplicados.
-   - De este modo, se garantiza que `tr(lang, clave)` **nunca** devuelve un texto con "PdfCraft" en ninguno de los 22 idiomas.
-3. **Para inglés (`code == "en"`):**
+1. **Dinamismo en la detección de claves (sin listas fijas):**
+   - El conjunto de claves que contienen `"PdfCraft"` no se fija a una constante estática de 23 cadenas.
+   - Las claves se descubren a partir de los propios catálogos embebidos: cualquier clave `source` que contenga `"PdfCraft"` en cualquier catálogo del upstream se incluye en el procesamiento.
+2. **Sustitución en memoria para idiomas con catálogo (`code != "en"`):**
+   - En cada línea TSV (`context\tsource\ttranslation`), si la traducción `cols[2]` contiene `"PdfCraft"`, se sustituye en memoria por `"Amaraza PDF"`.
+   - **Sin excepciones:** Al retirarse `help.upstream` de los comandos (AR-D8, §4), ya no existe "PdfCraft on GitHub" en los catálogos; por tanto, **desaparece la necesidad de excepciones por clave**. Toda aparición de `"PdfCraft"` en la columna traducida pasa a `"Amaraza PDF"`.
+   - La clave fuente `cols[1]` permanece **intacta** (en el inglés original del upstream). Como `Catalog::parse` indexa `c.plain` por la clave original `source`, todas las llamadas `tl!(...)` del código del upstream siguen encontrando la entrada en el catálogo sin modificar una sola línea de código fuente de la UI.
+   - **Limitación gramatical aceptada (AR-D6):** La sustitución mecánica en memoria puede generar discordancias de caso o sufijo en idiomas con declinación compleja (húngaro, esloveno, turco…); el titular evaluó y aceptó expresamente esta limitación técnica para la prueba de concepto, dado que en español e inglés la redacción resulta natural y gramaticalmente impecable.
+3. **Respaldo único en inglés con "Amaraza PDF":**
+   - Para las 7 claves identificadas que el upstream no tradujo en varios idiomas (por ejemplo, `"PdfCraft can't check this signature yet: {}."`, ausente en 17 de los 22 catálogos), `catalog_source` comprueba si alguna clave con `"PdfCraft"` falta en el catálogo del idioma `code`.
+   - Si falta, inyecta automáticamente una fila de respaldo en inglés adaptado:
+     `\t<clave_origen>\t<clave_origen_con_Amaraza_PDF>`
+   - Se adopta de forma determinista el respaldo en **inglés con "Amaraza PDF"** (coincidiendo con el comportamiento de fallback del upstream, pero garantizando que jamás se muestra la marca original).
+4. **Para inglés (`code == "en"`):**
    - En el upstream, el inglés tiene `source: ""` (catálogo vacío; el código asume que el texto fuente ya está en inglés).
-   - `catalog_source("en", "")` inyecta las 23 filas que mapean cada clave fuente con "PdfCraft" a su versión en inglés con "Amaraza PDF":
+   - `catalog_source("en", "")` inyecta las filas que mapean cada clave fuente con "PdfCraft" a su versión en inglés con "Amaraza PDF":
      ```tsv
      \tFiles you open in PdfCraft appear here. Drop a PDF anywhere to open it.\tFiles you open in Amaraza PDF appear here. Drop a PDF anywhere to open it.
      \tPdfCraft works offline. No telemetry, no account, and no cloud processing unless you add a provider.\tAmaraza PDF works offline. No telemetry, no account, and no cloud processing unless you add a provider.
      \tPdfCraft {v} is available.\tAmaraza PDF {v} is available.
      \tPdfCraft {c} is up to date.\tAmaraza PDF {c} is up to date.
      ```
-   - `Catalog::parse` carga estas 23 filas en el `c.plain` del catálogo inglés.
+   - `Catalog::parse` carga estas filas en `c.plain` del catálogo inglés.
    - Cuando la UI corre en inglés, `tl!("PdfCraft works offline...")` busca en `c.plain` y devuelve `"Amaraza PDF works offline..."`. Cualquier otra cadena sin entrada en `c.plain` se devuelve idéntica (`unwrap_or(s)`).
 
-### 3.3 Alcance y delimitación clara
+Este mecanismo requiere **0 líneas modificadas en los 22 catálogos TSV** y **0 líneas modificadas en el código de producción de la UI para traducción de mensajes**.
 
-- **Texto de `OcrError::NoModels` (`crates/ocr/src/lib.rs:33`):**
-  - El texto exacto `#[error("the text recognition models are not installed (reinstall PdfCraft, or set PDFCRAFT_MODELS to the folder that holds them)")]` es la clave exacta que indexan los 22 catálogos del upstream. Por tanto, **no se modifica en `crates/ocr`**, ya que rompería la coincidencia de clave en los catálogos. La capa de internacionalización de la UI se encarga de traducirlo y presentar al usuario "Amaraza PDF".
-- **Errores internos en inglés del motor y la CLI:**
-  - Los mensajes de error internos en inglés para desarrolladores, volcados de depuración y errores de la CLI que no pasan por la capa de internacionalización de la UI quedan **fuera del alcance de esta prueba de concepto** (AR0.4 se enfoca estrictamente en los metadatos persistentes y en lo que ve el usuario final). Modificar enums de error internos en más de 20 crates aumentaría enormemente la superficie de colisión sin aportar valor funcional al usuario.
+### 3.3 Delimitación y elementos fuera de alcance (con motivo)
+
+1. **Marcador técnico `%PdfCraft` en flujos de contenido de edición (`crates/edit/src/lib.rs:330–334`):**
+   - *Motivo:* Los literales binarios `b"q %PdfCraft\n"`, `b"\nQ %PdfCraft\n"` y `b"Q %PdfCraft\n"` son delimitadores estructurales internos que el motor de edición escribe y parsea para reconocer y envolver modificaciones previas. Alterar este marcador rompería el reconocimiento de ediciones anteriores e introduciría incompatibilidades técnicas con documentos ya editados, sin ningún beneficio para el usuario.
+2. **`<title>PdfCraft</title>` en `apps/pdfcraft-web/index.html`:**
+   - *Motivo:* El objetivo de compilación y empaquetado web no forma parte del alcance de la prueba de concepto (limitada estrictamente al entorno de escritorio en Windows).
+3. **Mensajes de registro técnico (`log::info!`, `log::debug!`, etc.):**
+   - *Motivo:* Son diagnósticos técnicos para desarrolladores emitidos a la consola o terminal; no persisten en los documentos PDF ni son visibles por el usuario en la interfaz gráfica.
+4. **Errores internos en inglés del motor y la CLI:**
+   - *Motivo:* Los mensajes de depuración en enums de error de bajo nivel en más de 20 crates no pasan por la capa de internacionalización de la UI. Modificarlos ampliaría enormemente la superficie de colisión al sincronizar sin aportar valor funcional al usuario de la prueba.
+5. **Texto exacto de `OcrError::NoModels` (`crates/ocr/src/lib.rs:33`):**
+   - *Motivo:* Es la clave exacta que indexan los 22 catálogos TSV de la UI; se preserva intacta en `crates/ocr` y la interfaz (`ocr_ui.rs`) se encarga de presentar al usuario "Amaraza PDF".
 
 ---
 
-## 4. Borrado de las 12 capturas de `docs/images/` y `ATTRIBUTION.toml`
+## 4. Retirada de "PdfCraft en GitHub" de la interfaz y enlace en "Acerca de" (AR-D8)
+
+### 4.1 Problema y restricción legal
+
+- En AR0.1 se registró el comando `help.upstream` ("PdfCraft on GitHub") en `crates/engine/src/commands.rs:375` (dentro del menú Ayuda) y en `links::LINKS` (`crates/engine/src/links.rs:27`), lo que hacía que apareciera en el menú Ayuda y en la paleta de comandos ⌘K.
+- El titular decidió expresamente (**AR-D8**) retirar "PdfCraft en GitHub" del menú Ayuda y de la paleta.
+- **Restricción legal (`00-amaraza.md` §1):** La ventana "Acerca de" debe seguir mostrando la atribución `"Basado en PdfCraft, del equipo ArtCraft"` con enlace interactivo a `https://github.com/storytold/pdfcraft`.
+
+### 4.2 Solución de diseño
+
+1. **Retirada de comandos y menús:**
+   - Se elimina la entrada `c("help.upstream", "PdfCraft on GitHub", HELP, ...)` de `COMMANDS` en `crates/engine/src/commands.rs:375`. Al no ser un comando registrado, deja de figurar en el menú Ayuda y en la paleta ⌘K.
+   - Se retira `help.upstream` del array `links::LINKS` en `crates/engine/src/links.rs:27`. `LINKS` pasa a contener únicamente `help.github` ("Amaraza PDF en GitHub").
+   - Las constantes públicas `UPSTREAM` (`amaraza_identity::UPSTREAM_REPOSITORY`) y `BASED_ON` (`amaraza_identity::BASED_ON`) permanecen en `crates/engine/src/links.rs`.
+2. **Enlace interactivo en "Acerca de":**
+   - En `crates/ui-egui/src/dialogs.rs:1175`, la línea de atribución `BASED_ON` se presenta como un enlace interactivo directo al hacer clic:
+     ```rust
+     if ui.add(egui::Link::new(egui::RichText::new(pdfcraft_engine::links::BASED_ON).color(t.text_muted)))
+         .on_hover_text(pdfcraft_engine::links::UPSTREAM)
+         .clicked()
+     {
+         app.open_url(pdfcraft_engine::links::UPSTREAM);
+     }
+     ```
+   - A continuación, `widgets::project_links(ui)` renderiza únicamente el botón destacado del repositorio propio (`help.github`, "Amaraza PDF en GitHub").
+   - De este modo, "Acerca de" cumple la obligación legal de atribución y enlace sin contaminar el menú de Ayuda ni la paleta de comandos.
+   - `README.md` y `NOTICE` mantienen sus menciones y enlaces intactos.
+   - Como consecuencia directa, **desaparece la excepción por clave `"PdfCraft on GitHub"` en `catalog_source`**: toda mención a "PdfCraft" se transforma en "Amaraza PDF".
+
+---
+
+## 5. Borrado de las 12 capturas de `docs/images/` y `ATTRIBUTION.toml`
 
 Las 12 capturas de `docs/images/` muestran la interfaz original con la marca ArtCraft y botones de Discord:
 - `pdfcraft-bookmarks.png`, `pdfcraft-dark.png`, `pdfcraft-find.png`, `pdfcraft-forms.png`, `pdfcraft-layers.png`, `pdfcraft-organize.png`, `pdfcraft-palette.png`, `pdfcraft-properties.png`, `pdfcraft-scripts.png`, `pdfcraft-split.png`, `pdfcraft-twoup.png`, `pdfcraft-viewer.png`.
@@ -130,11 +176,11 @@ Las 12 capturas de `docs/images/` muestran la interfaz original con la marca Art
 
 ---
 
-## 5. Pruebas de guardas contra regresiones y adaptación de pruebas existentes
+## 6. Pruebas de guardas contra regresiones y adaptación de pruebas existentes
 
-### 5.1 Adaptación de pruebas existentes del upstream
+### 6.1 Adaptación de pruebas existentes del upstream (7 pruebas)
 
-El cambio de textos y metadatos hace que 6 aserciones de pruebas existentes del upstream fallen porque buscan explícitamente "PdfCraft". Se adaptan en la implementación:
+El cambio de textos, metadatos y enlaces requiere adaptar 7 pruebas del upstream que asertan explícitamente cadenas antiguas:
 
 1. `crates/ui-egui/tests/ui.rs:114`:
    - De: `h.get_by_label_contains("Files you open in PdfCraft appear here");`
@@ -152,33 +198,37 @@ El cambio de textos y metadatos hace que 6 aserciones de pruebas existentes del 
    - De: `assert_eq!(safe_name("  ..  "), "PdfCraft");`
    - A: `assert_eq!(safe_name("  ..  "), "AmarazaPDF");`
 6. `crates/ui-egui/src/amaraza/mod.rs:91`:
-   - Adaptar para comprobar que el catálogo inglés contiene las 23 filas de anulación de identidad en lugar de estar vacío.
+   - Adaptar para comprobar que el catálogo inglés contiene las filas de anulación de identidad en lugar de estar vacío.
+7. `crates/ui-egui/tests/ui_group/links.rs:35–62`:
+   - En `help_commands_open_each_link`: comprobar que `help.upstream` ya no es un comando registrado (`assert!(commands::command("help.upstream").is_none());`).
+   - En `about_dialog_credits_pdfcraft_and_opens_the_project_links`: comprobar que hacer clic en el texto `links::BASED_ON` abre `links::UPSTREAM`.
 
-### 5.2 Pruebas nuevas de guardas contra regresiones
+### 6.2 Pruebas nuevas de guardas contra regresiones
 
 Para garantizar que "PdfCraft" nunca vuelva a aparecer en los metadatos generados ni en los textos que ve el usuario:
 
-1. **`producer_is_amaraza_pdf` (en `crates/create/src/lib.rs` o `crates/engine/src/amaraza/tests.rs`):**
+1. **`ui_code_scan_has_no_unhandled_pdfcraft` (en `crates/ui-egui/tests/amaraza.rs`):**
+   - Escanea todos los archivos fuente Rust de la interfaz (`crates/ui-egui/src/`) y extrae los textos literales suministrados a `tl!`, `tl_ctx!`, `notify_tr` y `notify_fmt`.
+   - Si detecta cualquier literal que contenga `"PdfCraft"`, evalúa mediante `tr(lang, &key)` en todos los 23 idiomas (`Lang::all()`) que la traducción devuelta NO contenga `"PdfCraft"`.
+   - Si en una sincronización futura el upstream añade un mensaje nuevo con "PdfCraft", esta prueba fallará de inmediato en `cargo test`, alertando antes de integrar.
+2. **`producer_is_amaraza_pdf` (en `crates/create/src/lib.rs` o `crates/engine/src/amaraza/tests.rs`):**
    - Crea un documento con `new_document`, lo guarda y comprueba con `pdfcraft_cos` que `/Producer` es `amaraza_identity::PRODUCT_NAME` y no contiene `"PdfCraft"`.
-2. **`signature_app_name_is_amaraza_pdf` (en `crates/sign/src/pdf.rs`):**
+3. **`signature_app_name_is_amaraza_pdf` (en `crates/sign/src/pdf.rs`):**
    - Firma un documento en memoria y comprueba que en `/Prop_Build /App /Name` figura `"Amaraza PDF"`.
-3. **`default_comment_author_is_amaraza_pdf` (en `crates/automation/tests/amaraza.rs`):**
+4. **`default_comment_author_is_amaraza_pdf` (en `crates/automation/tests/amaraza.rs`):**
    - Añade un comentario sin autor explícito mediante automatización y comprueba que `author` resultante es `"Amaraza PDF"`.
-4. **`shaped_font_family_is_amaraza_pdf` (en `crates/edit/src/tests.rs`):**
+5. **`shaped_font_family_is_amaraza_pdf` (en `crates/edit/src/tests.rs`):**
    - Moldea texto bidireccional y comprueba que el `/FontFamily` generado es `"Amaraza PDF Shaped Text"`.
-5. **`safe_name_fallback_is_amaraza_pdf` (en `crates/ui-egui/src/image_pick.rs`):**
+6. **`safe_name_fallback_is_amaraza_pdf` (en `crates/ui-egui/src/image_pick.rs`):**
    - Comprueba que `safe_name("  ..  ")` devuelve `"AmarazaPDF"`.
-6. **`mcp_server_info_is_amaraza_pdf` (en `crates/automation/tests/amaraza.rs`):**
+7. **`mcp_server_info_is_amaraza_pdf` (en `crates/automation/tests/amaraza.rs`):**
    - Inicializa el servidor MCP y verifica que `serverInfo.name == "amarazapdf"` y `serverInfo.title == "Amaraza PDF"`.
-7. **`ui_catalog_scan_has_no_user_facing_pdfcraft` (en `crates/ui-egui/tests/amaraza.rs`):**
-   - Itera por los 23 idiomas (`Lang::all()`) y por las 23 claves con "PdfCraft".
-   - Verifica mediante `tr(lang, clave)` que ninguna traducción visible contiene `"PdfCraft"`, evaluando tanto las entradas cargadas como las inyectadas por respaldo, salvo la excepción autorizada (`cols[1] == "PdfCraft on GitHub"`).
 8. **`packaging_macos_has_no_pdfcraft_icon` (en `crates/amaraza-identity/tests/identity.rs`):**
    - Verifica que `packaging/macos/Info.plist.in` no contenga `CFBundleTypeIconFile` con `"PdfCraft"` (corregido en ARS.4).
 
 ---
 
-## 6. Archivos del upstream modificados (resumen)
+## 7. Archivos del upstream modificados (resumen)
 
 | Archivo | Cambio | Líneas |
 |---|---|---|
@@ -189,28 +239,37 @@ Para garantizar que "PdfCraft" nunca vuelva a aparecer en los metadatos generado
 | `crates/edit/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |
 | `crates/edit/src/added.rs` | Familia de fuente de texto moldeado | 1 |
 | `crates/preflight/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |
-| `crates/preflight/src/icc.rs` | Etiqueta `desc` del perfil ICC sRGB | 1 |
+| `crates/preflight/src/icc.rs` | Etiqueta `desc` del perfil ICC sRGB usa `ICC_PROFILE_DESC` | 1 |
 | `crates/automation/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |
 | `crates/automation/src/comments.rs` | `DEFAULT_AUTHOR` usa `PRODUCT_NAME` | 1 |
 | `crates/automation/src/mcp.rs` | `serverInfo` (nombre y título), instrucciones y metaherramientas (título, descripción y anotaciones) usan `amaraza-identity` / `"Amaraza PDF"` | 8 |
+| `crates/engine/src/commands.rs` | Retirada del comando `help.upstream` del menú Ayuda | 1 |
+| `crates/engine/src/links.rs` | Retirada de `help.upstream` del array `LINKS` | 1 |
+| `crates/ui-egui/src/dialogs.rs` | `BASED_ON` se presenta como enlace interactivo directo a `UPSTREAM` | 2 |
 | `crates/ui-egui/src/image_pick.rs` | Fallback de nombre seguro usa `FOLDER_NAME` y aserción | 2 |
 | `crates/ui-egui/src/web_print.rs` | `<title>` de impresión web usa `PRODUCT_NAME` | 1 |
 | `crates/ui-egui/tests/ui.rs` | Aserción de texto reciente l. 114 | 1 |
 | `crates/ui-egui/tests/ui_group/updates.rs` | Aserciones de actualización l. 58 y l. 102 | 2 |
 | `crates/ui-egui/tests/signing.rs` | Aserción de texto de almacén l. 536 | 1 |
 | `crates/automation/tests/automation.rs` | Aserción de nombre MCP l. 1300 | 1 |
+| `crates/ui-egui/tests/ui_group/links.rs` | Adaptación de pruebas de enlace directo y ausencia de comando | 2 |
 | `Cargo.lock` | Aristas de dependencias locales añadidas (`create`, `sign`, `edit`, `preflight`, `automation` hacia `amaraza-identity`) | ~ |
 | `packaging/linux/io.github.pony_svg.AmarazaPDF.metainfo.xml.in` | Retirar enlace a captura borrada | 1 |
 | `ATTRIBUTION.toml` y `ATTRIBUTION.md` | Borrado de los 12 bloques de capturas | −132 |
 
-Total en código Rust del upstream: **26 líneas modificadas/insertadas en 17 archivos** (incluyendo 5 archivos de dependencias `Cargo.toml` y 5 archivos de pruebas existentes; `Cargo.lock` actualiza las aristas locales). Cero líneas en los 22 catálogos `.tsv` y cero líneas en código de producción de la UI para textos traducidos.
+Total en código Rust del upstream: **33 líneas modificadas/insertadas/retiradas en 21 archivos** (incluyendo 5 archivos de dependencias `Cargo.toml` y 6 archivos de pruebas existentes; `Cargo.lock` actualiza las aristas locales). Cero líneas en los 22 catálogos `.tsv` y cero líneas en código de producción de la UI para textos traducidos.
 
 ---
 
-## 7. Decisiones del titular
+## 8. Decisiones del titular (2026-10-19)
 
-1. **Aprobación del mecanismo de traducción:** confirmada la interceptación en memoria vía E18 con excepción por clave de origen (`cols[1] == "PdfCraft on GitHub"`) y respaldo automático para las 7 claves incompletas, evitando tocar 457 líneas en los 22 catálogos `.tsv`.
-2. **Nombre del servidor MCP:** `amarazapdf` como identificador de herramienta/servidor (`name`), con título `Amaraza PDF`.
-3. **Nombre de la fuente moldeada:** `Amaraza PDF Shaped Text` como nombre de familia para texto Type3 moldeado.
-4. **Perfil ICC sRGB de PDF/A:** `sRGB (Amaraza PDF)` como descriptor.
-5. **Mención upstream en Help:** `PdfCraft on GitHub` se mantiene como enlace de atribución al repositorio original (`00-amaraza.md` §1).
+1. **AR-D6 (Mecanismo en memoria vía E18):** Aprobada la transformación en memoria mediante `catalog_source` para sustituir `"PdfCraft"` por `"Amaraza PDF"`, evitando modificar 457 líneas en los 22 catálogos TSV del upstream. Se acepta expresamente la limitación gramatical en idiomas con declinación compleja (húngaro, esloveno, turco…), constatando que en español e inglés la lectura es perfectamente correcta.
+2. **AR-D7 (Identificadores de herramientas y metadatos):**
+   - Servidor MCP: identificador `amarazapdf`, título `Amaraza PDF`.
+   - Fuente de texto moldeado: `Amaraza PDF Shaped Text`.
+   - Perfil ICC sRGB en PDF/A: `sRGB (Amaraza PDF)`.
+3. **AR-D8 (Retirada de "PdfCraft en GitHub" de menús y enlace en "Acerca de"):**
+   - Se retira el comando `help.upstream` ("PdfCraft en GitHub") del menú Ayuda y de la paleta de comandos ⌘K.
+   - En la ventana "Acerca de", se conserva la atribución legal `"Basado en PdfCraft, del equipo ArtCraft"` como un enlace interactivo directo a `https://github.com/storytold/pdfcraft` (`links::UPSTREAM`) sin necesidad de registrar un comando de menú.
+   - `README.md` y `NOTICE` mantienen su atribución intacta.
+   - Al retirarse el comando, desaparece por completo la necesidad de excepciones por clave en `catalog_source`.

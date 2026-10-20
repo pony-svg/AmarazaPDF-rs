@@ -15,6 +15,9 @@ Decidir con evidencia si Amaraza PDF pasa de Python (PDForte) a Rust sobre PdfCr
 | AR-D3 | 2026-10-10 | Se crea `crates/amaraza-ext`, con dependencias internas; `Cargo.lock` cambia solo con el paquete interno (ADR-0001) |
 | AR-D4 | 2026-10-10 | Los textos del fork se muestran en español en los 14 idiomas restantes (filas "sin traducir"); traducirlos es otra tarea |
 | AR-D5 | 2026-10-10 | Identificadores del código del fork en inglés (como `amaraza-identity`); los textos que ve el usuario, en español |
+| AR-D6 | 2026-10-19 | Mecanismo en memoria vía E18 aprobado para sustituir "PdfCraft" por "Amaraza PDF", aceptando la limitación gramatical en idiomas con declinación (hu, sl, tr…); en español e inglés queda bien (ADR-0002) |
+| AR-D7 | 2026-10-19 | Servidor MCP `amarazapdf` (título `Amaraza PDF`), fuente `Amaraza PDF Shaped Text` y perfil ICC `sRGB (Amaraza PDF)` (ADR-0002) |
+| AR-D8 | 2026-10-19 | Se quita `help.upstream` ("PdfCraft en GitHub") del menú Ayuda y de la paleta. En "Acerca de" se conserva el enlace a `https://github.com/storytold/pdfcraft` en la atribución `BASED_ON` sin comando de menú. Desaparece la excepción por clave de `catalog_source` (ADR-0002) |
 
 ## Estrategia de código
 
@@ -102,15 +105,19 @@ Es obligatorio por la licencia de marca del upstream y debe estar hecho antes de
 - Diseño: `docs/amaraza/adr/0001-puntos-de-enganche.md`, aceptado el 2026-10-10. La fase 2 (firma por lote) y sus dependencias se deciden al empezarla.
 
 ### AR0.4. Identidad en metadatos y textos (antes de AR1.2)
+- Diseño: `docs/amaraza/adr/0002-identidad-metadatos-y-textos.md` (ADR-0002; decisiones AR-D6, AR-D7, AR-D8).
 - Desde `amaraza-identity`:
   - el `Producer` de los PDF creados;
   - el nombre de la app en las firmas;
   - el autor por defecto de los comentarios;
   - el título de los trabajos de impresión;
-  - el nombre del servidor MCP.
-- Los mensajes que dicen PdfCraft, con sus catálogos y los `sha256` de `ATTRIBUTION.toml`:
-  - los 12 de la lista de `REGISTRO.md` (AR0.1, "Pendiente");
-  - 3 nuevos de v0.5.0 (ARS.1): el aviso de GPU "PdfCraft is drawing without a graphics processor…" (`apps/pdfcraft/src/main.rs`); el error de OCR "…reinstall PdfCraft…" (`crates/ocr/src/lib.rs`) y su aviso en la interfaz "Text recognition isn't installed… Reinstall PdfCraft…" (`crates/ui-egui/src/ocr_ui.rs`).
+  - el nombre y metadatos del servidor MCP;
+  - la fuente de texto moldeado y el perfil ICC sRGB de PDF/A.
+- Los mensajes que dicen PdfCraft en la interfaz:
+  - sustitución en memoria mediante `catalog_source` (enganche E18 de AR0.3) sin modificar los 22 catálogos TSV (AR-D6);
+  - respaldo automático en inglés con "Amaraza PDF" para claves ausentes en idiomas incompletos del upstream;
+  - retirada de `help.upstream` del menú Ayuda y de la paleta, preservando el enlace en "Acerca de" mediante `BASED_ON` (AR-D8);
+  - prueba de guarda que escanea textos traducibles de la UI (`tl!`, `tl_ctx!`, `notify_tr`, `notify_fmt`) contra regresiones.
 - Borrar las 12 capturas de `docs/images/` y sus entradas en `ATTRIBUTION.toml`.
 
 ### AR0.5. CI del fork (opcional, con autorización)
