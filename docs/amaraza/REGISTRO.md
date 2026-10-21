@@ -930,7 +930,8 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 | `0036048ad4c57f23efd5367e6a415a781986a81e` | Integración de `main` (ARS.4) en `ar0.4-identidad` con resolución de conflicto en REGISTRO.md | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` (39) y assets (251) en verde |
 | `1134a56a3af4ec3b68745b01962f38a87de7a7e1` | AR0.4: Identidad en metadatos y textos (ADR-0002 implementado: 8 metadatos desde `amaraza-identity`, traducciones dinámicas en memoria vía E18, retiro de `help.upstream` con enlace diferido en Acerca de, borrado de 12 capturas obsoletas y guardas contra regresiones) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt 0, clippy workspace 0, clippy fork crates 0, `xtask layers` (39 crates) ok, `xtask assets` (239 activos) ok, `cargo test --workspace`: 177 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas. **Dictamen D-13: APROBADO CON CORRECCIONES** |
 | `9dd36c76d28af5a2bdfd013446d1b154f7bae27b` | AR0.4: correcciones de la revisión D-13 (prueba de fuente moldeada con escrituras mixtas y demostración en rojo, pruebas extraídas a `crates/{create,sign}/tests/amaraza.rs` y `crates/edit/src/added/amaraza_tests.rs`, escáner de UI reforzado con lista de excepciones, ADR-0002 aceptado y nota sobre screenshots) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt 0, clippy workspace 0, clippy fork crates 0, `xtask layers` (39 crates) ok, `xtask assets` (239 activos) ok, `cargo test --workspace`: 179 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas. **Dictamen D-13: APROBADO** |
-| *(siguiente)* | Integración de `main` (ARS.5, versión 0.10.1) en `ar0.4-identidad` con resolución de conflicto en REGISTRO.md y marcador unificado en `added.rs` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente |
+| `64b07470ca5d74b0798b0a011d99c9a8f73e06bf` | Integración de `main` (ARS.5, versión 0.10.1) en `ar0.4-identidad` con resolución de conflicto en REGISTRO.md y marcador unificado en `added.rs` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente. Puertas de la revisora sobre 0.10.1: 179 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas, assets (239) ok, layers (39) ok. **Dictamen D-13: APROBADO** |
+| *(siguiente)* | Cierre de AR0.4: dictamen D-13 y evidencia real del titular (AR0.4 cerrada; solo documentación) | Solo documentación |
 
 ### ADR-0002 (primer commit: 39d3457f62ae0f4a07169e3e13a9a28d4659edf4)
 
@@ -1088,3 +1089,26 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 - **Resolución de conflictos:** único archivo en conflicto `docs/amaraza/REGISTRO.md` (sección ARS.5 conservada íntegra antes de las secciones de AR0.4).
 - **Marcador unificado:** en `crates/edit/src/added.rs:1151`, unificado el marcador a `mod amaraza_tests; // Amaraza (ADR-0001)`.
 - **Versión 0.10.1:** integración limpia de la actualización de versión del workspace traída por ARS.5.
+
+### Revisión D-13 de la integración de main y evidencia del titular (AR0.4 cerrada)
+
+- **Dictamen D-13 sobre la integración de ARS.5 en `ar0.4-identidad` (`64b07470ca5d74b0798b0a011d99c9a8f73e06bf`): APROBADO.**
+  - El merge solo difiere de la fusión automática en `REGISTRO.md` y en el marcador de `added.rs`.
+- **Anotaciones de la integración:**
+  - Dictamen D-13 sobre las correcciones de AR0.4 (`9dd36c76d28af5a2bdfd013446d1b154f7bae27b`): **APROBADO** (revisora, 2026-10-21).
+  - ARS.5 aprobada por la sesión implementadora y push autorizado por el titular (`main` = `origin/main` = `09f08cf47bbbacfb0aaa5f48c4617e9d9f01a8fc`, 2026-10-21).
+- **Puertas completas de la revisora sobre versión 0.10.1 (a la corriente):**
+  - `cargo fmt --check`: 0.
+  - `cargo clippy --workspace -- -D warnings`: 0.
+  - `cargo xtask layers`: 39 crates, 0 violaciones.
+  - `cargo xtask assets`: 239 activos del repositorio ok.
+  - `cargo test --workspace`: 179 binarios, **3852 pasadas, 0 fallidas, 16 ignoradas**.
+- **Evidencia real del titular (2026-10-21, app real en Windows, ar0.4-identidad en 64b07470, versión 0.10.1):**
+  - Menú ▸ Ayuda: Atajos de teclado, Amaraza PDF en GitHub, Buscar actualizaciones…, Acerca de Amaraza PDF; ya no aparece "PdfCraft en GitHub".
+  - Ayuda ▸ Acerca de Amaraza PDF: "Amaraza PDF", "Versión 0.10.1", la atribución "Basado en PdfCraft, del equipo ArtCraft" y el botón "Amaraza PDF en GitHub". Al pulsar la atribución se abrió el navegador en `github.com/storytold/pdfcraft`.
+  - Título de la ventana, bienvenida, menú Amaraza y nota de privacidad con "Amaraza PDF"; sin menciones a PdfCraft fuera de la atribución, ni a Discord ni a ArtCraft.
+  - El texto de inicio sin archivos recientes no se vio en la app (había recientes); lo cubren las pruebas automáticas (evidencia sintética).
+  - Decisión del titular: la atribución se queda en gris, discreta; el enlace funciona al pulsarla y muestra la URL al pasar el ratón.
+  - *Privacidad (`00-amaraza.md` §5):* las capturas del titular no se suben (muestran documentos personales en Recientes); no se citan sus nombres ni rutas. La evidencia se registra estrictamente en texto.
+- **Dictamen D-13 final: AR0.4 APROBADA y CERRADA.**
+- Pendiente: el revisor hará el avance rápido de `main` y el push a `origin`, con autorización expresa del titular.
