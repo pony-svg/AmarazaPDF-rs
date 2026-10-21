@@ -84,6 +84,9 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `.github/pull_request_template.md` (nuevo en el upstream) | "Thanks for contributing to Amaraza PDF (a fork of PdfCraft)." | Identidad | ARS.3 |
 | `.github/workflows/nix.yml` (nuevo en el upstream en ARS.2) | **Sin cambios**: se conserva tal cual. Se dispara con `push` y `pull_request` sobre `Cargo.lock`, sin `schedule` ni flujos de `craft-common-actions`; inerte mientras Actions siga desactivado en el fork | Revisar en AR0.5 si se activa Actions; lo señaló la segunda revisión independiente | ARS.4 |
 | `packaging/macos/Info.plist.in` | `CFBundleTypeIconFile` del tipo de documento PDF = `AmarazaPDF` (el `.icns` que genera `package.sh`), no `PdfCraft`; entró sin conflicto en ARS.2. Las claves internas `PdfCraftVersion` y `PdfCraftBuildCommit` se conservan, como los nombres de crates | Identidad; lo señaló la segunda revisión independiente | ARS.4 |
+| `README.md` | Las insignias que añadió el upstream (SonarCloud y CodeRabbit, que apuntan a los servicios de `storytold/pdfcraft`, y el estilo `flat-square` de las demás) no se incorporan: el README del fork no tiene fila de insignias. Conflicto resuelto con el lado del fork | El fork no usa esos servicios; identidad | ARS.5 |
+| `.coderabbit.yaml` (nuevo en el upstream) | **Sin cambios**: se conserva tal cual. Configura el servicio de revisión CodeRabbit del upstream (omitir los PR de Dependabot); solo actúa si se instala la app de CodeRabbit en el repositorio, y eso lo decidiría el titular | Diff mínimo; revisar si el titular instala CodeRabbit | ARS.5 |
+| `Cargo.lock` | `amaraza-identity` y `amaraza-ext` 0.10.1 (la versión del workspace), con `cargo update --workspace --offline`; sin crates externos | Merge de la versión 0.10.1 del upstream | ARS.5 |
 | `crates/engine/src/links.rs` | Pruebas nuevas del upstream (documentos remotos) más la del fork; fuera la que exigía la web de ArtCraft | Licencia de marca | ARS.2 |
 | `crates/ui-egui/src/i18n/{cs,el,kk,lt,pl,sl,tr}.tsv` | El tratamiento de AR0.1 (fuera Discord, ArtCraft y "Part of"; fuentes en español; "Amaraza PDF en GitHub"); `cs` había recuperado las entradas de Discord en la fusión | Licencia de marca | ARS.2 |
 | `crates/ui-egui/Cargo.toml`, `Cargo.lock`, `ATTRIBUTION.*` | `craft-ui` del upstream junto a `amaraza-identity`; `amaraza-identity` 0.8.0; `sha256` de los 21 catálogos y entradas del icono de documento sin las de ArtCraft ni las del icono de PdfCraft | Merge | ARS.2 |
@@ -867,11 +870,53 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 - **Puertas de la implementadora (a la corriente):** fmt 0, clippy 0, layers ok (39 crates), assets ok (251), `cargo test --workspace` (177 binarios, 3846 pasadas, 0 fallidas, 16 ignoradas).
 - **Push a origin/main:** autorizado por el titular el 2026-10-19 con avance rápido (`main` = `origin/main` = `4e26c44f9e7db8b7363f7a370b5cf4071a151d75`).
 
+## ARS.5. Sincronización con el upstream, versión 0.10.1 (2026-10-20)
+
+La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Autorización del titular (2026-10-20):** "haz el upstream". No incluye el push ni el merge a `main`.
+
+### Punto de partida
+
+- `main` = `origin/main` = `4e26c44f9e7db8b7363f7a370b5cf4071a151d75` (ARS.4).
+- `upstream/main` = `22bedbf2af25bd4cdc1c188b5eff6ec3d2d089fb` (`git cat-file -t` → `commit`): 4 commits desde `ec0a965074f376a5bf610435948e4e5184bf3299`. El upstream no ha publicado etiquetas `v0.10.*`; la versión sale de `Cargo.toml`.
+- Rama `sync/upstream-2026-10-20-ars5` desde `main`, en el worktree de sincronización; `git merge --no-ff`.
+
+### Qué trae el upstream
+
+- **Versiones 0.10.0 y 0.10.1:** solo la versión del workspace y de las dependencias internas en `Cargo.toml` y `Cargo.lock` (de 0.9.0 a 0.10.1). Amaraza PDF pasa a mostrar la versión 0.10.1.
+- **`README.md`:** insignias de SonarCloud y CodeRabbit (de `storytold/pdfcraft`) y estilo `flat-square` en las demás.
+- **`.coderabbit.yaml`** (nuevo): configuración del servicio de revisión CodeRabbit del upstream.
+
+### Resolución
+
+- **1 conflicto, en `README.md`:** se conserva el README del fork, que no tiene fila de insignias; las de SonarCloud y CodeRabbit apuntan a servicios del upstream que el fork no usa.
+- **`Cargo.lock`:** `cargo update --workspace --offline` sube `amaraza-identity` y `amaraza-ext` a 0.10.1 (la versión del workspace). Frente a `upstream/main`, el diff solo trae los paquetes del fork y sus aristas; ningún crate externo nuevo ni cambiado.
+- **`.coderabbit.yaml`:** se conserva tal cual (fila en la tabla).
+- **Identidad:** nada nuevo con PdfCraft, ArtCraft ni Discord; sin cambios en código, catálogos, CI ni empaquetado; los enganches del ADR-0001 no se tocan.
+- La fila *(siguiente)* de ARS.4 no se rellena aquí: ya la rellenó la rama de AR0.4 (`0036048ad4c57f23efd5367e6a415a781986a81e`), y tocarla en las dos ramas daría un conflicto más.
+
+### Puertas (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`, a la corriente)
+
+- Sobre el merge: `cargo fmt --check` 0; `cargo clippy --workspace -- -D warnings` 0 (39 crates en 0.10.1); `cargo clippy -p amaraza-identity -p amaraza-ext --all-targets -- -D warnings` 0; `cargo xtask layers` sin violaciones (39 crates); `cargo xtask assets` ok (251 activos).
+- `cargo test --workspace --no-fail-fast` (2033 s): 177 binarios, **3846 pasadas, 0 fallidas y 16 ignoradas**, igual que en ARS.4 (el upstream no cambió código).
+
+### Commits
+
+| Commit | Contenido |
+|---|---|
+| `b438e58421904bcadc9731c1a0d3c7a987f1b7ae` | Merge de `upstream/main` (`22bedbf2af25bd4cdc1c188b5eff6ec3d2d089fb`), con el conflicto del README resuelto y `Cargo.lock` al día |
+| `09f08cf47bbbacfb0aaa5f48c4617e9d9f01a8fc` | Este registro |
+
+### Revisión D-13 de ARS.5 (sesión implementadora, 2026-10-21)
+
+- **Dictamen D-13:** APROBADA por la sesión implementadora. Verificados: `git show --stat` de `b438e58` y `09f08cf`; `README.md` idéntico al de `main` (sin insignias del upstream); `Cargo.lock` diff frente a `upstream/main` = únicamente `amaraza-identity`/`amaraza-ext` 0.10.1 y sus aristas; `.coderabbit.yaml` conservado idéntico a upstream; sin marcas prohibidas.
+- **Puertas (a la corriente):** fmt 0, clippy 0, layers ok (39 crates), assets ok (251), `cargo test --workspace` (177 binarios, 3846 pasadas, 0 fallidas, 16 ignoradas).
+- **Push a origin/main:** autorizado por el titular el 2026-10-21 con avance rápido (`main` = `origin/main` = `09f08cf47bbbacfb0aaa5f48c4617e9d9f01a8fc`).
+
 ## AR0.4. Identidad en metadatos y textos (2026-10-19)
 
 ### Punto de partida
 
-- `main` = `origin/main` = `4e26c44f9e7db8b7363f7a370b5cf4071a151d75` (`git cat-file -t` → `commit`), con ARS.4 cerrada e integrada con avance rápido y push autorizados por el titular.
+- `main` = `origin/main` = `09f08cf47bbbacfb0aaa5f48c4617e9d9f01a8fc` (`git cat-file -t` → `commit`), con ARS.5 cerrada (dictamen D-13: APROBADA por la sesión implementadora) e integrada con avance rápido y push autorizados por el titular (2026-10-21).
 - Rama `ar0.4-identidad`, integrada con `main` mediante `git merge --no-ff`.
 - `git config user.email`: el correo del proyecto.
 
@@ -884,7 +929,8 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 | `df963731413658f44f495948ea135c605cb8f681` | ADR-0002: segunda corrección (decisiones AR-D6 a AR-D8, dinamismo sin lista fija, guarda en código de UI, enlace en Acerca de y retiro de help.upstream; solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
 | `0036048ad4c57f23efd5367e6a415a781986a81e` | Integración de `main` (ARS.4) en `ar0.4-identidad` con resolución de conflicto en REGISTRO.md | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` (39) y assets (251) en verde |
 | `1134a56a3af4ec3b68745b01962f38a87de7a7e1` | AR0.4: Identidad en metadatos y textos (ADR-0002 implementado: 8 metadatos desde `amaraza-identity`, traducciones dinámicas en memoria vía E18, retiro de `help.upstream` con enlace diferido en Acerca de, borrado de 12 capturas obsoletas y guardas contra regresiones) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt 0, clippy workspace 0, clippy fork crates 0, `xtask layers` (39 crates) ok, `xtask assets` (239 activos) ok, `cargo test --workspace`: 177 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas. **Dictamen D-13: APROBADO CON CORRECCIONES** |
-| *(siguiente)* | AR0.4: correcciones de la revisión D-13 (prueba de fuente moldeada con escrituras mixtas y demostración en rojo, pruebas extraídas a `crates/{create,sign}/tests/amaraza.rs` y `crates/edit/src/added/amaraza_tests.rs`, escáner de UI reforzado con lista de excepciones, ADR-0002 aceptado y nota sobre screenshots) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente |
+| `9dd36c76d28af5a2bdfd013446d1b154f7bae27b` | AR0.4: correcciones de la revisión D-13 (prueba de fuente moldeada con escrituras mixtas y demostración en rojo, pruebas extraídas a `crates/{create,sign}/tests/amaraza.rs` y `crates/edit/src/added/amaraza_tests.rs`, escáner de UI reforzado con lista de excepciones, ADR-0002 aceptado y nota sobre screenshots) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt 0, clippy workspace 0, clippy fork crates 0, `xtask layers` (39 crates) ok, `xtask assets` (239 activos) ok, `cargo test --workspace`: 179 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas. **Dictamen D-13: APROBADO** |
+| *(siguiente)* | Integración de `main` (ARS.5, versión 0.10.1) en `ar0.4-identidad` con resolución de conflicto en REGISTRO.md y marcador unificado en `added.rs` | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente |
 
 ### ADR-0002 (primer commit: 39d3457f62ae0f4a07169e3e13a9a28d4659edf4)
 
@@ -1035,3 +1081,10 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
   - `cargo xtask layers`: 39 crates, 0 violaciones.
   - `cargo xtask assets`: 239 activos del repositorio ok.
   - `cargo test --workspace --no-fail-fast`: 179 binarios, **3852 pasadas, 0 fallidas, 16 ignoradas** (dos binarios nuevos de integración para las pruebas extraídas de `create` y `sign`).
+
+### Integración de main (ARS.5, versión 0.10.1)
+
+- Integración de `main` (`09f08cf47bbbacfb0aaa5f48c4617e9d9f01a8fc`) en `ar0.4-identidad` mediante `git merge --no-ff`.
+- **Resolución de conflictos:** único archivo en conflicto `docs/amaraza/REGISTRO.md` (sección ARS.5 conservada íntegra antes de las secciones de AR0.4).
+- **Marcador unificado:** en `crates/edit/src/added.rs:1151`, unificado el marcador a `mod amaraza_tests; // Amaraza (ADR-0001)`.
+- **Versión 0.10.1:** integración limpia de la actualización de versión del workspace traída por ARS.5.

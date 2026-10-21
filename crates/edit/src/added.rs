@@ -1148,6 +1148,6 @@ fn drop_fonts(doc: &Document, res: &mut Dict, names: &[Vec<u8>]) {
 }
 
 #[cfg(test)]
-mod amaraza_tests; // Enganche ADR-0001
+mod amaraza_tests; // Amaraza (ADR-0001)
 #[cfg(test)]
 mod arabic_tests;
