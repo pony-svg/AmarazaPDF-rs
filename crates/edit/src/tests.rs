@@ -5218,9 +5218,3 @@ fn a_clipping_copy_on_the_same_baseline_is_refused() {
     assert!(matches!(&block, Err(EditError::Invalid(m)) if m.contains("clipping path")), "{block:?}");
     assert_eq!(text::text_lines(&doc, 0).unwrap().len(), 2, "refused means untouched");
 }
-
-#[test]
-fn shaped_font_family_is_amaraza_pdf() {
-    assert_eq!(amaraza_identity::SHAPED_TEXT_FONT_FAMILY, "Amaraza PDF Shaped Text");
-    assert!(!amaraza_identity::SHAPED_TEXT_FONT_FAMILY.contains("PdfCraft"));
-}

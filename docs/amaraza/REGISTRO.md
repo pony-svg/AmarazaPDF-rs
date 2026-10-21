@@ -114,7 +114,7 @@ Mapa para resolver conflictos en cada sincronización con el upstream (`ARS.n`).
 | `Cargo.lock` | **E20**: paquete `amaraza-ext` y sus aristas desde `pdfcraft-automation` y `pdfcraft-ui-egui`; sin crates externos ni versiones nuevas. Archivo generado, sin marcador | AR-D3 | AR0.3 |
 | `crates/create/Cargo.toml`, `crates/create/src/lib.rs` | Dependencia `amaraza-identity`; `Producer` del PDF usa `amaraza_identity::PRODUCT_NAME` | Metadatos generados propios (AR-D7, ADR-0002) | AR0.4 |
 | `crates/sign/Cargo.toml`, `crates/sign/src/pdf.rs` | Dependencia `amaraza-identity`; `/Prop_Build /App /Name` usa `amaraza_identity::PRODUCT_NAME` | Identidad en firmas digitales y sellos de tiempo (AR-D7, ADR-0002) | AR0.4 |
-| `crates/edit/Cargo.toml`, `crates/edit/src/added.rs` | Dependencia `amaraza-identity`; nombre de familia de la fuente moldeada usa `amaraza_identity::SHAPED_TEXT_FONT_FAMILY` | Metadatos generados propios (AR-D7, ADR-0002) | AR0.4 |
+| `crates/edit/Cargo.toml`, `crates/edit/src/added.rs` | Dependencia `amaraza-identity`; nombre de familia de la fuente moldeada usa `amaraza_identity::SHAPED_TEXT_FONT_FAMILY` (l. 711) y `mod amaraza_tests;` (l. 1152, marcador ADR-0001) | Metadatos generados propios (AR-D7, ADR-0002) | AR0.4 |
 | `crates/preflight/Cargo.toml`, `crates/preflight/src/icc.rs` | Dependencia `amaraza-identity`; descripción del perfil ICC sRGB usa `amaraza_identity::ICC_PROFILE_DESC` | Metadatos generados propios (AR-D7, ADR-0002) | AR0.4 |
 | `crates/automation/Cargo.toml`, `crates/automation/src/{comments,mcp}.rs` | Dependencia `amaraza-identity`; `DEFAULT_AUTHOR` = `amaraza_identity::PRODUCT_NAME`; servidor MCP `serverInfo.name = "amarazapdf"`, `serverInfo.title = "Amaraza PDF"` e instrucciones y herramientas | Identidad en servidor MCP y metadatos (AR-D7, ADR-0002) | AR0.4 |
 | `crates/engine/src/commands.rs`, `crates/engine/src/links.rs` | Retirado el comando `help.upstream` ("PdfCraft on GitHub") de `COMMANDS` y de `LINKS`; `UPSTREAM` se mantiene para "Acerca de" | AR-D8, ADR-0002 | AR0.4 |
@@ -883,7 +883,8 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
 | `87cf27683ae012812e6330f7fb26c07782eb808a` | ADR-0002: correcciones de la primera revisión D-13 (bloqueantes y no bloqueantes atendidos; solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
 | `df963731413658f44f495948ea135c605cb8f681` | ADR-0002: segunda corrección (decisiones AR-D6 a AR-D8, dinamismo sin lista fija, guarda en código de UI, enlace en Acerca de y retiro de help.upstream; solo documentación) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` y assets (251) en verde |
 | `0036048ad4c57f23efd5367e6a415a781986a81e` | Integración de `main` (ARS.4) en `ar0.4-identidad` con resolución de conflicto en REGISTRO.md | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt, clippy, `xtask layers` (39) y assets (251) en verde |
-| *(siguiente)* | AR0.4: Identidad en metadatos y textos (ADR-0002 implementado: 8 metadatos desde `amaraza-identity`, traducciones dinámicas en memoria vía E18, retiro de `help.upstream` con enlace diferido en Acerca de, borrado de 12 capturas obsoletas y guardas contra regresiones) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt 0, clippy workspace 0, clippy fork crates 0, `xtask layers` (39 crates) ok, `xtask assets` (239 activos) ok, `cargo test --workspace`: 177 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas |
+| `1134a56a3af4ec3b68745b01962f38a87de7a7e1` | AR0.4: Identidad en metadatos y textos (ADR-0002 implementado: 8 metadatos desde `amaraza-identity`, traducciones dinámicas en memoria vía E18, retiro de `help.upstream` con enlace diferido en Acerca de, borrado de 12 capturas obsoletas y guardas contra regresiones) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente: fmt 0, clippy workspace 0, clippy fork crates 0, `xtask layers` (39 crates) ok, `xtask assets` (239 activos) ok, `cargo test --workspace`: 177 binarios, 3852 pasadas, 0 fallidas, 16 ignoradas. **Dictamen D-13: APROBADO CON CORRECCIONES** |
+| *(siguiente)* | AR0.4: correcciones de la revisión D-13 (prueba de fuente moldeada con escrituras mixtas y demostración en rojo, pruebas extraídas a `crates/{create,sign}/tests/amaraza.rs` y `crates/edit/src/added/amaraza_tests.rs`, escáner de UI reforzado con lista de excepciones, ADR-0002 aceptado y nota sobre screenshots) | En inglés, `CARGO_BUILD_JOBS=6`, a la corriente |
 
 ### ADR-0002 (primer commit: 39d3457f62ae0f4a07169e3e13a9a28d4659edf4)
 
@@ -995,3 +996,42 @@ La hace la sesión revisora (D-13) y la revisa la sesión implementadora. **Auto
   - `cargo xtask layers`: 39 crates, 0 violaciones.
   - `cargo xtask assets`: 239 activos del repositorio ok.
   - `cargo test --workspace --no-fail-fast`: 177 binarios, **3852 pasadas, 0 fallidas, 16 ignoradas** (+6 pasadas frente a la línea base de ARS.4).
+
+### Correcciones de la revisión D-13 de AR0.4 (quinto commit)
+
+- **Dictamen D-13 sobre `1134a56a3af4ec3b68745b01962f38a87de7a7e1`:** APROBADO CON CORRECCIONES.
+- **Correcciones implementadas:**
+  1. **Prueba de fuente moldeada con escrituras mixtas (`shaped_font_family_is_amaraza_pdf`):**
+     - Sustituida la comprobación anterior por una prueba que construye un documento en memoria con clústeres de escrituras mezcladas (árabe y hebreo en una misma fuente Type 3 con contornos sintéticos `boxed(0.5)`), alcanzando el brazo `None` de `type3_shaped`.
+     - Comprueba en el diccionario `/FontDescriptor` resultante:
+       - `/FontFamily` = `"Amaraza PDF Shaped Text"` (`amaraza_identity::SHAPED_TEXT_FONT_FAMILY`), sin mención a `"PdfCraft"`;
+       - `/FontName` = `"AmarazaPDFShapedText"` (sin espacios, derivado de `family.replace(' ', "")`).
+     - **Demostración en rojo:** revirtiendo temporalmente `crates/edit/src/added.rs:711` a `"PdfCraft Shaped Text"`, la prueba falló con:
+       ```
+       thread 'added::amaraza_tests::shaped_font_family_is_amaraza_pdf' panicked at crates\edit\src\added\amaraza_tests.rs:44:5:
+       assertion `left == right` failed
+         left: "PdfCraft Shaped Text"
+        right: "Amaraza PDF Shaped Text"
+       ```
+       Restaurado a `amaraza_identity::SHAPED_TEXT_FONT_FAMILY`, pasa en verde.
+  2. **Pruebas del fork fuera de archivos grandes del upstream (A7):**
+     - `producer_is_amaraza_pdf` trasladada a `crates/create/tests/amaraza.rs`. `crates/create/src/tests.rs` queda 100% idéntico al upstream.
+     - `signature_app_name_is_amaraza_pdf` trasladada a `crates/sign/tests/amaraza.rs` (con sus propios ayudantes `fixture()`, `open()`, `opts()`, `data()`). `crates/sign/tests/pdf.rs` queda 100% idéntico al upstream.
+     - `shaped_font_family_is_amaraza_pdf` ubicada en submódulo propio `crates/edit/src/added/amaraza_tests.rs`, declarado en `crates/edit/src/added.rs:1152` con una sola línea `#[cfg(test)] mod amaraza_tests; // Enganche ADR-0001`. `crates/edit/src/tests.rs` queda 100% idéntico al upstream.
+  3. **Escáner de código de UI reforzado (`ui_code_scan_has_no_unhandled_pdfcraft`):**
+     - En `crates/ui-egui/tests/amaraza.rs`, el escáner ahora examina todo literal de cadena que contenga `"PdfCraft"` fuera de módulos `#[cfg(test)]` y fuera de macros de log (`log::`, `tracing::`).
+     - Detecta tanto llamadas directas (`tl!`, `notify_tr`, `notify_fmt`) como cadenas asignadas a variables intermedias (como `let template = "…PdfCraft…"` en `crates/ui-egui/src/lib.rs:1979–1981`).
+     - Incorpora `ALLOWLIST_EXCEPTIONS` con la excepción explícita `"the running PdfCraft didn't confirm"` (mensaje de error interno en `single_instance.rs:311`, no visible en la UI).
+     - Verifica que cada una de las cadenas detectadas (18 cadenas de UI) se traduzca sin `"PdfCraft"` en los 23 idiomas de la interfaz mediante `tr(lang, &key)`.
+  4. **ADR-0002 y `catalog_source`:**
+     - `docs/amaraza/adr/0002-identidad-metadatos-y-textos.md`: Estado actualizado a `aceptado (D-13, 2026-10-19); implementado en AR0.4`.
+     - `crates/ui-egui/src/amaraza/mod.rs`: comentario de `catalog_source` actualizado; ayudante unificado `append_fallback_row` compartido entre `english_catalog` y `transform_catalog`.
+  5. **Nota sobre capturas de pantalla:**
+     - **`cargo xtask screenshots` no debe ejecutarse en el fork**: regeneraría `docs/images/` con capturas que contienen marcas, logotipos o la atribución *"PdfCraft screenshot"* del upstream.
+- **Puertas de calidad (`LANG=en_US.UTF-8`, `CARGO_BUILD_JOBS=6`, a la corriente):**
+  - `cargo fmt --check`: 0.
+  - `cargo clippy --workspace -- -D warnings`: 0.
+  - `cargo clippy -p amaraza-identity -p amaraza-ext --all-targets -- -D warnings`: 0.
+  - `cargo xtask layers`: 39 crates, 0 violaciones.
+  - `cargo xtask assets`: 239 activos del repositorio ok.
+  - `cargo test --workspace --no-fail-fast`: 179 binarios, **3852 pasadas, 0 fallidas, 16 ignoradas** (dos binarios nuevos de integración para las pruebas extraídas de `create` y `sign`).

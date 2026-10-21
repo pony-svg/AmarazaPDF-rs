@@ -1,6 +1,6 @@
 # ADR-0002. Identidad en metadatos y textos (AR0.4)
 
-- **Estado:** propuesto (segunda corrección).
+- **Estado:** aceptado (D-13, 2026-10-19); implementado en AR0.4.
 - **Tarea:** AR0.4 (`docs/amaraza/PLAN.md`).
 - **Fecha:** 2026-10-19.
 - **Base:** `494f5c0` (`main`, con upstream v0.9.0 + 205 commits y AR0.3 cerrada).
@@ -243,7 +243,7 @@ Para garantizar que "PdfCraft" nunca vuelva a aparecer en los metadatos generado
 | `crates/sign/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |
 | `crates/sign/src/pdf.rs` | `/Prop_Build /App /Name` usa `amaraza_identity::PRODUCT_NAME` | 2 |
 | `crates/edit/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |
-| `crates/edit/src/added.rs` | Familia de fuente de texto moldeado | 1 |
+| `crates/edit/src/added.rs` | Familia de fuente de texto moldeado (l. 711) y declaración de `amaraza_tests` (l. 1152, marcador ADR-0001) | 2 |
 | `crates/preflight/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |
 | `crates/preflight/src/icc.rs` | Etiqueta `desc` del perfil ICC sRGB usa `ICC_PROFILE_DESC` | 1 |
 | `crates/automation/Cargo.toml` | Dependencia `amaraza-identity = { path = "../amaraza-identity" }` | +1 |

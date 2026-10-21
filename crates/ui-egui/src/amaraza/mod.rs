@@ -68,15 +68,19 @@ fn all_pdfcraft_keys() -> &'static [&'static str] {
     })
 }
 
+fn append_fallback_row(out: &mut String, key: &str) {
+    let replacement = key.replace("PdfCraft", amaraza_identity::PRODUCT_NAME);
+    out.push('\t');
+    out.push_str(key);
+    out.push('\t');
+    out.push_str(&replacement);
+    out.push('\n');
+}
+
 fn english_catalog() -> String {
     let mut out = String::new();
     for key in all_pdfcraft_keys() {
-        let replacement = key.replace("PdfCraft", amaraza_identity::PRODUCT_NAME);
-        out.push('\t');
-        out.push_str(key);
-        out.push('\t');
-        out.push_str(&replacement);
-        out.push('\n');
+        append_fallback_row(&mut out, key);
     }
     out
 }
@@ -110,19 +114,16 @@ fn transform_catalog(source: &str) -> String {
     }
     for key in all_pdfcraft_keys() {
         if !seen.contains(key) {
-            let replacement = key.replace("PdfCraft", amaraza_identity::PRODUCT_NAME);
-            out.push('\t');
-            out.push_str(key);
-            out.push('\t');
-            out.push_str(&replacement);
-            out.push('\n');
+            append_fallback_row(&mut out, key);
         }
     }
     out
 }
 
-/// The catalog text for language `code`: the upstream's `source`, then the fork's rows for that
-/// language without their first column, so they go through the same parser and checks.
+/// The catalog text for language `code`: the upstream's `source` transformed in memory
+/// (substituting "PdfCraft" with "Amaraza PDF" and injecting English fallbacks for missing
+/// keys), plus the fork's rows for that language without their first column, so they go
+/// through the same parser and checks.
 pub(crate) fn catalog_source(code: &str, source: &'static str) -> Cow<'static, str> {
     let fork_rows: String = ROWS.lines().filter_map(|line| line.strip_prefix(code)?.strip_prefix('\t')).flat_map(|row| [row, "\n"]).collect();
     let base = if code == "en" { english_catalog() } else { transform_catalog(source) };

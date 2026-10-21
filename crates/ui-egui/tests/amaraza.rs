@@ -119,34 +119,56 @@ fn saved_actions_keep_the_fork_step() {
     assert_eq!(fresh.custom_actions, app.custom_actions);
 }
 
+/// Explicit exceptions for string literals containing "PdfCraft" that are not user-facing UI messages.
+const ALLOWLIST_EXCEPTIONS: &[(&str, &str)] =
+    &[("the running PdfCraft didn't confirm", "Internal io::Error message in single_instance.rs; not shown in UI")];
+
+fn is_exception(s: &str) -> bool {
+    ALLOWLIST_EXCEPTIONS.iter().any(|(exc, _)| *exc == s)
+}
+
 fn extract_ui_strings(text: &str, out: &mut std::collections::HashSet<String>) {
-    for marker in ["tl!(", "tl_ctx!(", "notify_tr(", "notify_fmt("] {
-        let mut rest = text;
-        while let Some(pos) = rest.find(marker) {
-            let after_marker = &rest[pos + marker.len()..];
-            if let Some(quote_start) = after_marker.find('"') {
-                let after_first_quote = &after_marker[quote_start + 1..];
-                let target = if marker == "tl_ctx!(" {
-                    if let Some(close_quote) = after_first_quote.find('"') {
-                        if let Some(second_open) = after_first_quote[close_quote + 1..].find('"') {
-                            &after_first_quote[close_quote + 1 + second_open + 1..]
-                        } else {
-                            after_first_quote
-                        }
-                    } else {
-                        after_first_quote
-                    }
-                } else {
-                    after_first_quote
-                };
-                if let Some(quote_end) = target.find('"') {
-                    let literal = &target[..quote_end];
-                    if literal.contains("PdfCraft") {
-                        out.insert(literal.to_string());
-                    }
+    // Exclude #[cfg(test)] modules at the bottom of files
+    let content = if let Some(idx) = text.find("#[cfg(test)]\nmod ") {
+        &text[..idx]
+    } else if let Some(idx) = text.find("#[cfg(test)]\r\nmod ") {
+        &text[..idx]
+    } else {
+        text
+    };
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*') {
+            continue;
+        }
+        if trimmed.contains("log::") || trimmed.contains("tracing::") {
+            continue;
+        }
+        let mut rest = line;
+        while let Some(start) = rest.find('"') {
+            let after_open = &rest[start + 1..];
+            let mut end = None;
+            let mut escaped = false;
+            for (i, b) in after_open.bytes().enumerate() {
+                if escaped {
+                    escaped = false;
+                } else if b == b'\\' {
+                    escaped = true;
+                } else if b == b'"' {
+                    end = Some(i);
+                    break;
                 }
             }
-            rest = after_marker;
+            if let Some(close) = end {
+                let literal = &after_open[..close];
+                if literal.contains("PdfCraft") && !is_exception(literal) {
+                    out.insert(literal.to_string());
+                }
+                rest = &after_open[close + 1..];
+            } else {
+                break;
+            }
         }
     }
 }
